@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="grid">
+    <hgroup>
+        <h1>Data Harian</h1>
+        <small>Hasil proses data dari server lain</small>    
+    </hgroup>
+    <div class="grid"><a href="?s={{ _sampling.strftime('%Y-%m-%d') }}">{{ _sampling.strftime('%d') }} &lt;</a> <span>{{ sampling.strftime('%Y-%m-%d') }}</span> {% if sampling_ %}<a href="?s={{ sampling_.strftime('%Y-%m-%d') }}">&gt; {{ sampling_.strftime('%d') }}</a>{% else %}-{% endif %}</div>    
+</div>
+<table>
+    <thead>
+        <tr>
+            <th style="color:#398712">Pos Sumber A <span style="font-weight:300;">({{ sa_dailies|length }})</span></th>
+            {% for i in range(24) %}
+            <th style="padding:2px;font-weight:300;font-family:monospace"><small>{{i}}</small></th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    {% for f in sa_dailies %}
+        <tr>
+            <td>{{ f.nama }}</td>
+            {% for d, v in f._24jam().items() %}
+            <td style="padding:2px;font-family:monospace">{% if v['num'] > 0 %}{{ v['num'] }}{% else %}-{% endif %}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<table>
+    <thead>
+        <tr>
+            <th style="color: #FFBF00">Pos Sumber B <span style="font-weight:300;">({{ sb_dailies|length }})</span></th>
+            {% for i in range(24) %}
+            <th style="padding:2px;font-weight:300;font-family:monospace"><small>{{i}}</small></th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    {% for f in sb_dailies %}
+        <tr>
+            <td>{{ f.nama }}</td>
+            {% for d, v in f._24jam().items() %}
+            <td style="padding:2px;font-family:monospace">{% if v['num'] > 0 %}{{ v['num'] }}{% else %}-{% endif %}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

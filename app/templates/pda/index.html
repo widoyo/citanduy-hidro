@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>PDA</h1>
+<h2>Tanggal</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Nama</th>
+            <th colspan="2">Pagi</th>
+            <th colspan="2">Siang</th>
+            <th colspan="2">Sore</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for p in poses %}
+        <tr>
+            <td>{{ p.nama }}{% if p.elevasi %} + {{ p.elevasi }} mdpl{% endif %}</td>
+            <td>{{ p.tma_7}}</td>
+            <td>{{ p.m_tma_7}}</td>
+            <td>{{ p.tma_12}}</td>
+            <td>{{ p.m_tma_12}}</td>
+            <td>{{ p.tma_17}}</td>
+            <td>{{ p.m_tma_17}}</td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="7">Tidak ada data</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

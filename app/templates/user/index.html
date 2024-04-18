@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Pos</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.username }}</td>
+            <td>{% if u.pos %}{{ u.pos.nama }}{% else %}Kantor{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="3">Belum ada User terdaftar</td>
+        </tr>
+        {% endfor %}        
+    </tbody>
+</table>
+{% endblock %}
