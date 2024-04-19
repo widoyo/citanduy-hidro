@@ -56,6 +56,7 @@ def create_app():
         '''Membaca data pada server SDATELEMETRY'''
         x = requests.get(SDATELEMETRY)
         fl = FetchLog.create(url=x.url, response=x.status_code, body=x.text, source='SA')
+        fl.sa_to_daily()
             
     @app.cli.command('fetch-telemet')
     def fetch_telemet():
@@ -76,6 +77,7 @@ def create_app():
                     body += l
                     
         fl = FetchLog.create(url=x.url, response=x.status_code, body=body, source='SB')
+        fl.sb_to_daily()
 
     register_bluprint(app)
     
