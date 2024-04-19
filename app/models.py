@@ -212,10 +212,14 @@ class RDaily(BaseModel):
     def _24jam(self):
         out = dict([(i, {'num': 0, 'rain': 0, 'wlevel': 0}) for i in range(24)])
         for d in json.loads(self.raw):
-            jam = int(d['sampling'][12:13])
+            sampling = datetime.datetime.fromisoformat(d['sampling'])
+            jam = sampling.hour
             out[jam]['num'] += 1
             if d.get('rain'):
-                out[jam]['rain'] = d['rain']
+                try:
+                    out[jam]['rain'] += float(d['rain'])
+                except KeyError:
+                    out[jam]['rain'] = float(d['rain'])
             if d.get('wlevel'):
                 out[jam]['wlevel'] = d['wlevel']
         return out

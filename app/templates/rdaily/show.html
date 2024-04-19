@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<a href="/rdaily/?s={{ this_day.sampling.strftime('%Y-%m-%d') }}">&larr;</a> 
+<h1>{{ this_day.nama }} - <small>{{ this_day.sampling.strftime('%d %b') }}</small></h1>
+<div class="grid">
+    <table>
+        <thead>
+            <th>Jam</th>
+            <th>Banyak Data</th>
+            <th>Rain</th>
+            <th>WLevel</th>
+        </thead>
+        <tbody>
+            {% for d, v in this_day._24jam().items() %}
+            <tr>
+                <td>{{ d }}</td>
+                <td>{{ v['num'] }}</td>
+                <td>{{ v['rain'] }}</td>
+                <td>{{ v['wlevel'] }}</td>      
+            </tr>
+            {% endfor %}        
+        </tbody>
+    </table>
+    <div><pre id="raw"></pre></div>    
+</div>
+{% endblock %}
+{% block js_foot %}
+<script>
+    let out = {{ this_day.raw|safe }};
+    let raw = document.getElementById('raw')
+    raw.innerText = JSON.stringify(out, null, 2);
+</script>
+{% endblock %}

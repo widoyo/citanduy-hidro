@@ -19,11 +19,15 @@
     <tbody>
     {% for f in sa_dailies %}
         <tr>
-            <td>{{ f.nama }}</td>
+            <td><a href="/rdaily/{{ f.nama}}/?s={{ sampling.strftime('%Y-%m-%d') }}">{{ f.nama }}</a></td>
             {% for d, v in f._24jam().items() %}
             <td style="padding:2px;font-family:monospace">{% if v['num'] > 0 %}{{ v['num'] }}{% else %}-{% endif %}</td>
             {% endfor %}
         </tr>
+    {% else %}
+    <tr>
+        <td colspan="24">Tidak ada data</td>
+    </tr>
     {% endfor %}
     </tbody>
 </table>
@@ -39,12 +43,16 @@
     <tbody>
     {% for f in sb_dailies %}
         <tr>
-            <td>{{ f.nama }}</td>
+            <td><a href="/rdaily/{{ f.nama}}/?s={{ sampling.strftime('%Y-%m-%d') }}">{{ f.nama }}</a></td>
             {% for d, v in f._24jam().items() %}
             <td style="padding:2px;font-family:monospace">{% if v['num'] > 0 %}{{ v['num'] }}{% else %}-{% endif %}</td>
             {% endfor %}
         </tr>
-    {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="24">Tidak ada data</td>
+        </tr>
+        {% endfor %}
     </tbody>
 </table>
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>PCH</h1>
-<h2>&lt; Tanggal &gt;</h2>
+<h1>PCH <small>{{ pchs|length }}</small></h1>
+<h2><small style="margin-right:12px;">{{ _sampling.strftime('%d')}}&lt;</small> {{ sampling.strftime('%d %b') }} <span style="margin-left:16px;">&gt; {% if sampling_ %}{{ sampling_.strftime('%d')}}{% endif %}</span></h2>
 <table>
     <thead>
         <tr>
@@ -10,8 +10,23 @@
             <th>Siang</th>
             <th>Sore</th>
             <th>Malam</th>
-            <th>Petugas</th>
+            <th style="background-color:#F1F1F1">Telemetri</th>
+            <th style="background-color: #D7FBC1;">Petugas</th>
         </tr>
     </thead>
+    <tbody>
+    {% for p in pchs %}
+        <tr>
+            <td>{{ p.nama }} <small class="secondary">+{{ p.elevasi }}mdpl</small></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td style="background-color:#F1F1F1"></td>
+            <td style="background-color: #D7FBC1;"></td>
+        </tr>
+    {% else %}
+    {% endfor %}
+    </tbody>
 </table>
 {% endblock %}

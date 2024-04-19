@@ -13,10 +13,10 @@ def index():
         _sampling = sampling - datetime.timedelta(days=1)
         sampling_ = sampling + datetime.timedelta(days=1)
     except:
-        sampling = datetime.date.today()
+        sampling = datetime.datetime.now()
         _sampling = sampling - datetime.timedelta(days=1)
         sampling_ = None
     if sampling.date() >= datetime.date.today():
         sampling_ = None
     pchs = Pos.select().where(Pos.tipe=='1').order_by(Pos.elevasi.desc())
-    return render_template('pch/index.html', pchs=pchs)
+    return render_template('pch/index.html', pchs=pchs, sampling=sampling, _sampling=_sampling, sampling_=sampling_)

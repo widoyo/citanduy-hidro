@@ -4,6 +4,23 @@ from app.models import RDaily
 
 bp = Blueprint('rdaily', __name__, url_prefix='/rdaily')
 
+@bp.route('/<pos_name>/')
+def show(pos_name):
+    s = request.args.get('s', None)
+    try:
+        sampling = datetime.datetime.strptime(s, '%Y-%m-%d')
+        _sampling = sampling - datetime.timedelta(days=1)
+        sampling_ = sampling + datetime.timedelta(days=1)
+    except:
+        sampling = datetime.datetime.now()
+        _sampling = sampling - datetime.timedelta(days=1)
+        sampling_ = None
+    if sampling.date() >= datetime.date.today():
+        sampling_ = None
+        
+    this_day = RDaily.select().where(RDaily.nama==pos_name, RDaily.sampling==sampling).first()
+    return render_template('rdaily/show.html', sampling=sampling, this_day=this_day)
+
 @bp.route('/')
 def index():
     s = request.args.get('s', None)
