@@ -10,18 +10,19 @@
 <table>
     <thead>
         <tr>
-            <th style="color:#398712">Pos Sumber A <span style="font-weight:300;">({{ sa_dailies|length }})</span></th>
+            <th colspan="2" style="color:#398712">Server SDATelemetry.com <span style="font-weight:300;">({{ sa_dailies|length }})</span></th>
             {% for i in range(24) %}
-            <th style="padding:2px;font-weight:300;font-family:monospace"><small>{{i}}</small></th>
+            <th class="_24header">{{i}}</th>
             {% endfor %}
         </tr>
     </thead>
     <tbody>
     {% for f in sa_dailies %}
         <tr>
-            <td><a href="/rdaily/{{ f.nama}}/?s={{ sampling.strftime('%Y-%m-%d') }}">{{ f.nama }}</a></td>
+            <td>{{ loop.index }}</td>
+            <td><span class="{% if f.tipe == 'PCH' %}badgepch{% else %}badgepda{% endif %}">{{f.tipe}}</span> <a href="/rdaily/{{ f.nama}}/?s={{ sampling.strftime('%Y-%m-%d') }}">{{ f.nama }}</a></td>
             {% for d, v in f._24jam().items() %}
-            <td style="padding:2px;font-family:monospace">{% if v['num'] > 0 %}{{ v['num'] }}{% else %}-{% endif %}</td>
+            <td class="_24data">{% if v['num'] > 0 %}{{ v['num'] }}{% else %}-{% endif %}</td>
             {% endfor %}
         </tr>
     {% else %}
@@ -34,18 +35,19 @@
 <table>
     <thead>
         <tr>
-            <th style="color: #FFBF00">Pos Sumber B <span style="font-weight:300;">({{ sb_dailies|length }})</span></th>
+            <th colspan="2" style="color: #FFBF00">Server PoliteknikPolban.duckdns.org:8081 <span style="font-weight:300;">({{ sb_dailies|length }})</span></th>
             {% for i in range(24) %}
-            <th style="padding:2px;font-weight:300;font-family:monospace"><small>{{i}}</small></th>
+            <th class="_24header">{{i}}</th>
             {% endfor %}
         </tr>
     </thead>
     <tbody>
     {% for f in sb_dailies %}
         <tr>
-            <td><a href="/rdaily/{{ f.nama}}/?s={{ sampling.strftime('%Y-%m-%d') }}">{{ f.nama }}</a></td>
+            <td style="width:10px;">{{ loop.index }}</td>
+            <td><span class="{% if f.tipe == 'Rain Fall' %}badgepch{% else %}badgepda{% endif %}">{{f.tipe}}</span> <a href="/rdaily/{{ f.nama}}/?s={{ sampling.strftime('%Y-%m-%d') }}">{{ f.nama }}</a></td>
             {% for d, v in f._24jam().items() %}
-            <td style="padding:2px;font-family:monospace">{% if v['num'] > 0 %}{{ v['num'] }}{% else %}-{% endif %}</td>
+            <td class="_24data">{% if v['num'] > 0 %}{{ v['num'] }}{% else %}-{% endif %}</td>
             {% endfor %}
         </tr>
         {% else %}

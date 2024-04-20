@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <a href="/rdaily/?s={{ this_day.sampling.strftime('%Y-%m-%d') }}">&larr;</a> 
-<h1>{{ this_day.nama }} - <small>{{ this_day.sampling.strftime('%d %b') }}</small></h1>
+<h1>{% if this_day.tipe in ('Rain Fall', 'PCH') %}<small class="badgepch">{{ this_day.tipe }}</small>{% else %}<small class="badgepda">{{ this_day.tipe }}</small>{% endif %} {{ this_day.nama }} - <small>{{ this_day.sampling.strftime('%d %b') }}</small></h1>
 <div class="grid">
     <table>
         <thead>
@@ -15,8 +15,8 @@
             <tr>
                 <td>{{ d }}</td>
                 <td>{{ v['num'] }}</td>
-                <td>{{ v['rain'] }}</td>
-                <td>{{ v['wlevel'] }}</td>      
+                <td {% if loop.index <  7 %}style="background-color:#A0ACC7;"{% endif %}>{% if v['rain'] > 0 %}{{ v['rain'] }}{% else %}-{% endif %}</td>
+                <td>{% if v['wlevel'] > 0 %}{{ v['wlevel'] }}{% else %}-{% endif %}</td>      
             </tr>
             {% endfor %}        
         </tbody>

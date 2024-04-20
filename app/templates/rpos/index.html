@@ -10,8 +10,8 @@
     <thead>
         <tr>
             <th onClick="sortTable('rpos', 0)">Nama</th>
-            <th>Sumber Server</th>
             <th>Tipe</th>
+            <th>Sumber Server</th>
             <th onClick="sortTable('rpos', 3)">Data Terakhir</th>    
         </tr>
     </thead>
@@ -19,8 +19,12 @@
     {% for p in poses %}
         <tr>
             <td>{{ p.nama }}</td>
-            <td {% if p.source == 'SA' %} style="color: #D93526"{%endif %}>{{ p.source }}</td>
-            <td>{{ p.tipe }}</td>
+            <td><span class="{% if p.tipe in ('Rain Fall', 'PCH') %}badgepch{% else %}badgepda{% endif %}">{{ p.tipe }}</span></td>
+            {% if p.source == 'SA' %}
+            <td style="color: #D93526">SDATelemetry.com</td> 
+            {% else %}
+            <td style="color: #B78800">politeknikpolban.duckdns</td>
+            {%endif %}
             <td><pre>{{ p.latest_sampling }}</pre></td>
         </tr>
     {% endfor %}
