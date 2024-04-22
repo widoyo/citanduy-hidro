@@ -9,5 +9,5 @@ bp = Blueprint('user', __name__, url_prefix='/user')
 @bp.route('/')
 @login_required
 def index():
-    users = User.select()
+    users = User.select().order_by(User.pos_id)
     return render_template('user/index.html', users=users)

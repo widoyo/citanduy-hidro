@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
+<form action="">
 
+</form>
 <table>
     <thead>
         <tr>
@@ -12,8 +14,19 @@
     <tbody>
         {% for u in users %}
         <tr>
-            <td>{{ u.username }}</td>
-            <td>{% if u.pos %}{{ u.pos.nama }}{% else %}Kantor{% endif %}</td>
+            <td>{{ u.username }}
+                <details class="dropdown" style="float: right">
+                    <summary role="foo" class="secondary">&middot;&middot;&middot;</summary>
+                    <ul>
+                      <li><a href="/password">Atur Password</a></li>
+                      <li><a href="/rpos">Non Aktifkan</a></li>
+                    </ul>
+          
+                  </details>
+            </td>
+            <td>{% if not u.is_admin %}{{ u.pos.nama }}{% else %}Kantor{% endif %}</td>
+            <td>{{ u.last_login.strftime('%d %b %Y %H:%M:%S') }}</td>
+            
         </tr>
         {% else %}
         <tr>

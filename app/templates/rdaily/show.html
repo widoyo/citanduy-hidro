@@ -3,6 +3,7 @@
 <a href="/rdaily/?s={{ this_day.sampling.strftime('%Y-%m-%d') }}">&larr;</a> 
 <h1>{% if this_day.tipe in ('Rain Fall', 'PCH') %}<small class="badgepch">{{ this_day.tipe }}</small>{% else %}<small class="badgepda">{{ this_day.tipe }}</small>{% endif %} {{ this_day.nama }} - <small>{{ this_day.sampling.strftime('%d %b') }}</small></h1>
 <div class="grid">
+    <div>
     <table>
         <thead>
             <th>Jam</th>
@@ -21,6 +22,8 @@
             {% endfor %}        
         </tbody>
     </table>
+    <p>End</p>
+    </div>
     <div><pre id="raw"></pre></div>    
 </div>
 {% endblock %}

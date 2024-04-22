@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Semua Pos <small>({{ poses|length}})</small></h1>
+<table>
+    <thead>
+        <tr>
+            <th>No</th>
+            <th>Nama</th>
+            <th>Tipe/Jenis</th>
+            <th>Elevasi</th>
+            <th>LonLat</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for p in poses %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ p.nama }}</td>
+            <td>{% if p.tipe == '1' %} <span class="badgepch">PCH</span>{% else %} <span class="badgepda">PDA</span>{% endif %}</td>
+            <td><code>{{ p.elevasi }}</code></td>
+            <td><code>{{ p.ll }}</code></td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="7">Tidak ada data</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

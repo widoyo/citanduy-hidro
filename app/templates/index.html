@@ -2,6 +2,7 @@
 {% block content %}
 <div class="pure-u-1-1">
     <h1>Homepage</h1>
-    <p>Hujan Hari ini</p>    
+    <p>Hujan Hari ini</p>
+    {{ current_user.is_anonymoous }}  
 </div>
 {% endblock %}

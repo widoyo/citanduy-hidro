@@ -6,6 +6,7 @@ from wtforms.validators import DataRequired
 from urllib.parse import urlparse, urljoin
 
 import requests
+import datetime
 
 from app.models import FetchLog, User, Pos
 
@@ -15,6 +16,7 @@ TELEMET = 'https://elektronikapolban.duckdns.org:8081/telemet/telemet/tabel10?p=
 SECRET_KEY = '3jkowi920ujwp9803-2yu-2jd'
 
 login_manager = LoginManager()
+login_manager.login_view = 'login'
 
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
@@ -41,16 +43,10 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
 
-@login_manager.user_loader
-def load_user(user_id):
-    try:
-        return User.get(User.username==user_id)
-    except User.DoesNotExists:
-        return None
     
 def create_app():
     app = Flask(__name__)
-    
+    app.config['SECRET_KEY'] = 'jkosdjieohsnihpm9hd02m=nsihxn'
     @app.cli.command('fetch-sda')
     def fetch_sdatelemetry():
         '''Membaca data pada server SDATELEMETRY'''
@@ -82,6 +78,14 @@ def create_app():
     register_bluprint(app)
     
     login_manager.init_app(app)
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        print('load_user: ', user_id)
+        try:
+            return User.get(user_id)
+        except User.DoesNotExist:
+            return None
     
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -98,14 +102,14 @@ def create_app():
             if user is None or not user.check_password(form.password.data):
                 flash('Invalid username or password')
                 return redirect(url_for('login'))
-            login_user(user, remember=form.remember_me.data)
-            
+            login_user(user, remember=True, force=True)
+            user.last_login = datetime.datetime.now()
+            user.save()
             return redirect_back('homepage')
         return render_template('login.html', title='Sign In', form=form, next=next)
     
     @app.route('/logout')
     def logout():
-        current_user.revoke_token()
         logout_user()
         return redirect('/')    
 
@@ -116,7 +120,26 @@ def create_app():
         background: -webkit-linear-gradient(to right, #6dd5ed, #2193b0);  /* Chrome 10-25, Safari 5.1-6 */
         background: linear-gradient(to right, #6dd5ed, #2193b0); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
         '''
-        return render_template('index.html')
+        if current_user.is_authenticated:
+            try:
+                pos = current_user.pos
+                s = request.args.get('s', None)
+                try:
+                    sampling = datetime.datetime.strptime(s, '%Y-%m-%d')
+                    _sampling = sampling - datetime.timedelta(days=1)
+                    sampling_ = sampling + datetime.timedelta(days=1)
+                except:
+                    sampling = datetime.datetime.now()
+                    _sampling = sampling - datetime.timedelta(days=1)
+                    sampling_ = None
+                if sampling.date() >= datetime.date.today():
+                    sampling_ = None
+                return render_template('home_petugas.html')
+            except Pos.DoesNotExist:
+                return render_template('index.html')
+        else:
+            return render_template('index.html')
+                
 
 
     return app
@@ -124,11 +147,19 @@ def create_app():
 
 def register_bluprint(app):
     from app.pch import bp as bp_pch
+    from app.pda import bp as bp_pda
+    from app.pos import bp as bp_pos
     from app.fetchlog import bp as bp_fetchlog
     from app.rdaily import bp as bp_rdaily
     from app.rpos import bp as bp_rpos
+    from app.user import bp as bp_user
+    from app.map import bp as bp_map
     
     app.register_blueprint(bp_pch)
+    app.register_blueprint(bp_pda)
+    app.register_blueprint(bp_pos)
     app.register_blueprint(bp_fetchlog)
     app.register_blueprint(bp_rdaily)
     app.register_blueprint(bp_rpos)
+    app.register_blueprint(bp_user)
+    app.register_blueprint(bp_map)

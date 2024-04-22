@@ -1,5 +1,6 @@
 import datetime
 from flask_login import UserMixin
+from bcrypt import checkpw, hashpw, gensalt
 import peewee as pw
 import json
 
@@ -233,10 +234,23 @@ class RDaily(BaseModel):
 class User(BaseModel, UserMixin):
     username = pw.CharField(max_length=20, unique=True)
     password = pw.CharField(max_length=100)
+    pos = pw.ForeignKeyField(Pos)
     pos_id = pw.IntegerField(null=True)
     last_login = pw.DateTimeField()
+    active = pw.BooleanField(default=True)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     
+    @property
+    def is_admin(self):
+        
+        return False if self.pos_id else True
+    
+    def check_password(self, password):
+        return checkpw(password.encode(), self.password.encode())
+    
+    def set_password(self, password):
+        self.password = hashpw(password.encode('utf-8'), gensalt())
+        
     
 class PosMap(BaseModel):
     source = pw.CharField(max_length=3)

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>PCH <small>{{ pchs|length }}</small></h1>
+<h1>PCH <small>({{ pchs|length }})</small></h1>
 <h2><small style="margin-right:12px;">{{ _sampling.strftime('%d')}}&lt;</small> {{ sampling.strftime('%d %b') }} <span style="margin-left:16px;">&gt; {% if sampling_ %}{{ sampling_.strftime('%d')}}{% endif %}</span></h2>
 <table>
     <thead>
@@ -17,7 +17,7 @@
     <tbody>
     {% for p in pchs %}
         <tr>
-            <td>{{ p.nama }} <small class="secondary">+{{ p.elevasi }}mdpl</small></td>
+            <td>{{ p.nama }} <small class="secondary"><kbd>+{{ p.elevasi }} mdpl</kbd></small></td>
             <td></td>
             <td></td>
             <td></td>

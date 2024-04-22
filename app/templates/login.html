@@ -1,9 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Login</h1>
-<form action="/login">
-    <input type="text" name="username" placeholder="username">
-    <input type="password" name="password" placeholder="password">
-    <input type="submit" value="Log-In">
-</form>
+<div class="grid">
+    <form action="/login" method="POST">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="next" value="{{ next or '' }}">
+        {% for message in get_flashed_messages() %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+        {{ form.username()}}
+        {{ form.password() }}
+        <input type="submit" value="Log-In">
+    </form>
+<div></div>
+<div></div>
+</div>
 {% endblock %}

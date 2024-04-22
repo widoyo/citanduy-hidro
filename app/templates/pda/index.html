@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>PDA</h1>
+<h1>PDA <small>({{ pdas|length}})</small></h1>
 <h2>Tanggal</h2>
 <table>
     <thead>
@@ -12,7 +12,7 @@
         </tr>
     </thead>
     <tbody>
-    {% for p in poses %}
+    {% for p in pdas %}
         <tr>
             <td>{{ p.nama }}{% if p.elevasi %} + {{ p.elevasi }} mdpl{% endif %}</td>
             <td>{{ p.tma_7}}</td>
