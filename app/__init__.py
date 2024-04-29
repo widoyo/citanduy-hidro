@@ -7,11 +7,13 @@ from urllib.parse import urlparse, urljoin
 
 import requests
 import datetime
+import json
 
-from app.models import FetchLog, User, Pos
+from app.models import FetchLog, User, Pos, LuwesPos
 
-SDATELEMETRY = 'https://sdatelemetry.com/API_ap_telemetry/datatelemetry2.php?idbbws=8'
-TELEMET = 'https://elektronikapolban.duckdns.org:8081/telemet/telemet/tabel10?p=0'
+SDATELEMETRY_URL = 'https://sdatelemetry.com/API_ap_telemetry/datatelemetry2.php?idbbws=8'
+TELEMET_URL = 'https://elektronikapolban.duckdns.org:8081/telemet/telemet/tabel10?p=0'
+LUWES_URL = 'http://data4.luweswatersensor.com:8002/withweather'
 
 SECRET_KEY = '3jkowi920ujwp9803-2yu-2jd'
 
@@ -47,17 +49,18 @@ class LoginForm(FlaskForm):
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'jkosdjieohsnihpm9hd02m=nsihxn'
+    
     @app.cli.command('fetch-sda')
     def fetch_sdatelemetry():
         '''Membaca data pada server SDATELEMETRY'''
-        x = requests.get(SDATELEMETRY)
+        x = requests.get(SDATELEMETRY_URL)
         fl = FetchLog.create(url=x.url, response=x.status_code, body=x.text, source='SA')
         fl.sa_to_daily()
             
     @app.cli.command('fetch-telemet')
     def fetch_telemet():
         '''Membaca data pada server Omtronik'''
-        x = requests.get(TELEMET)
+        x = requests.get(TELEMET_URL)
         body = ''
         inside = False
         for l in x.text.split('\n'):
@@ -75,6 +78,22 @@ def create_app():
         fl = FetchLog.create(url=x.url, response=x.status_code, body=body, source='SB')
         fl.sb_to_daily()
 
+    @app.cli.command('fetch-luwes')
+    def fetch_luwes():
+        '''Membaca data dari luwes'''
+        for l in LuwesPos.select():
+            data = {'a': 'stat', 'imei': l.imei}
+            x = requests.post(LUWES_URL, data=data)
+            rst_body = json.loads(x.text)
+            pch_fields = 'rec;submitted_at;imei;name;power_current;power_voltage;rain_rate;raindrop'.split(';')
+            pda_fields = 'rec;submitted_at;imei;name;power_current;power_voltage;level_sensor'.split(';')
+            if l.tipe == '1':
+                body = dict([(f, x.rst_body[f])for f in pch_fields])
+            elif l.tipe == '2':
+                body = dict([(f, x.rst_body[f])for f in pda_fields])
+            fl = FetchLog.create(url=x.url, response=x.status_code, body=body, source='SC')
+    
+    
     register_bluprint(app)
     
     login_manager.init_app(app)
@@ -154,6 +173,7 @@ def register_bluprint(app):
     from app.rpos import bp as bp_rpos
     from app.user import bp as bp_user
     from app.map import bp as bp_map
+    from app.petugas import bp as bp_petugas
     
     app.register_blueprint(bp_pch)
     app.register_blueprint(bp_pda)
@@ -163,3 +183,4 @@ def register_bluprint(app):
     app.register_blueprint(bp_rpos)
     app.register_blueprint(bp_user)
     app.register_blueprint(bp_map)
+    app.register_blueprint(bp_petugas)

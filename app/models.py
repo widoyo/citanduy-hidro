@@ -35,6 +35,23 @@ class FetchLog(BaseModel):
         else:
             self.sb_to_daily()
     
+    def sc_to_daily(self):
+        if self.source != 'SC':
+            return
+        data = json.loads(self.body)
+        '''
+        {"imei":"869467048458989",
+        "level_sensor":0,"name":"PCH CIMANGGU",
+        "power_current":95,"power_voltage":4.17,
+        "rain_rate":0,"raindrop":0.029,
+        "rec":106317428,
+        "submitted_at":"2024-04-29T21:21:00Z"}
+        '''
+        sb = datetime.datetime.fromisoformat(data.get('submitted_at'))
+        this_sampling = sb.astimezone(datetime.timezone(datetime.timedelta(hours=7)))
+        pos, created = OPos.get_or_create(nama=data['name'], source='SC', 
+                                          defaults={'latest_sampling': this_sampling, 'tipe':''})
+    
     def sb_to_daily(self):
         if self.source != 'SB':
             return None
@@ -251,9 +268,32 @@ class User(BaseModel, UserMixin):
     def set_password(self, password):
         self.password = hashpw(password.encode('utf-8'), gensalt())
         
-    
+
+class Petugas(BaseModel):
+    nama = pw.CharField(max_length=50)
+    nik = pw.CharField(max_length=20, null=True)
+    hp = pw.CharField(max_length=20, null=True)
+    dusun = pw.CharField(max_length=20, null=True)
+    rt = pw.IntegerField(null=True)
+    rw = pw.IntegerField(null=True)
+    desa = pw.CharField(max_length=20, null=True)
+    kecamatan = pw.CharField(max_length=20, null=True)
+    kabupaten = pw.CharField(max_length=20, null=True)
+    pendidikan = pw.CharField(max_length=5, null=True)
+    pos = pw.ForeignKeyField(Pos, null=True)
+    tipe = pw.CharField(max_length=2, null=True) # 1: PCH, 2: PDA, 3: Klimat
+
+
 class PosMap(BaseModel):
     source = pw.CharField(max_length=3)
     dari = pw.CharField(max_length=50)
     ke = pw.CharField(max_length=50)
     ke_id = pw.IntegerField(null=True)
+    
+    
+class LuwesPos(BaseModel):
+    nama = pw.CharField(max_length=35, unique=True)
+    imei = pw.CharField(max_length=30, unique=True)
+    pos = pw.ForeignKeyField(Pos, null=True)
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    mdate = pw.DateTimeField(null=True)
