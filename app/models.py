@@ -295,5 +295,6 @@ class LuwesPos(BaseModel):
     nama = pw.CharField(max_length=35, unique=True)
     imei = pw.CharField(max_length=30, unique=True)
     pos = pw.ForeignKeyField(Pos, null=True)
+    tipe = pw.CharField(max_length=2, default='1') # 1 PCH, 2 PDA, 3 Klimat
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)

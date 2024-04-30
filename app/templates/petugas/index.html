@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<table>
+    <thead>
+        <tr>
+            <th>Nama</th>
+            <th>HP</th>
+            <th>Alamat</th>
+            <th>Pos</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for p in petugas %}
+        <tr>
+            <td>{{ p.nama }}</td>
+            <td>{{ p.hp }}</td>
+            <td>{{ p.dusun }}, RT {{ p.rt}} RW {{ p.rw }}<br>
+            {{ p.desa }}, {{ p.kecamatan }}, {{ p.kabupaten }}</td>
+            <td>{% if p.tipe == '1' %}<span class="badgepch">PCH</span>{% else %}<span class="badgepda">PDA</span>{% endif %}</td>
+
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
