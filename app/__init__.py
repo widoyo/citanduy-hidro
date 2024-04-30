@@ -88,9 +88,9 @@ def create_app():
             pch_fields = 'rec;submitted_at;imei;name;power_current;power_voltage;rain_rate;raindrop'.split(';')
             pda_fields = 'rec;submitted_at;imei;name;power_current;power_voltage;level_sensor'.split(';')
             if l.tipe == '1':
-                body = dict([(f, x.rst_body[f])for f in pch_fields])
+                body = dict([(f, rst_body[f])for f in pch_fields])
             elif l.tipe == '2':
-                body = dict([(f, x.rst_body[f])for f in pda_fields])
+                body = dict([(f, rst_body[f])for f in pda_fields])
             fl = FetchLog.create(url=x.url, response=x.status_code, body=body, source='SC')
     
     
