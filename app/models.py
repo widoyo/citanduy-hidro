@@ -6,6 +6,8 @@ import json
 
 from app.html_table_parser import HTMLTableParser
 
+pg_db = pw.PostgresqlDatabase('citadb', user='citauser', password='thispass',
+                           host='localhost', port=5432)
 sqlite_db = pw.SqliteDatabase('hidro_citanduy.db', pragmas={
     'journal_mode': 'wal',
     'cache_size': -1024 * 64})
@@ -14,13 +16,13 @@ SUNGAI_LIST = 'Citanduy_Ciseel_Cibeureum_Cijolang_Cileueur'.split('_')
 
 class BaseModel(pw.Model):
     class Meta:
-        database = sqlite_db
+        database = pg_db
 
 class Das(BaseModel):
     nama = pw.CharField(max_length=50)
     
 class FetchLog(BaseModel):
-    url = pw.CharField(max_length=250)
+    url = pw.CharField(max_length=250, index=True)
     response = pw.TextField(null=True)
     body = pw.TextField(null=True)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
@@ -49,9 +51,34 @@ class FetchLog(BaseModel):
         '''
         sb = datetime.datetime.fromisoformat(data.get('submitted_at'))
         this_sampling = sb.astimezone(datetime.timezone(datetime.timedelta(hours=7)))
-        pos, created = OPos.get_or_create(nama=data['name'], source='SC', 
-                                          defaults={'latest_sampling': this_sampling, 'tipe':''})
-    
+        new_raw = {'sampling': this_sampling.isoformat()}
+        if 'PCH' in data['name']:
+            tipe = '1'
+            new_raw.update({'rain': data.get('raindrop')})
+        else:
+            tipe = '2'
+            new_raw.update({'wlevel': data.get('level_sensor')})
+        
+        pos, pos_created = OPos.get_or_create(
+            nama=data['name'], source='SC', 
+            defaults={'latest_sampling': this_sampling, 'tipe':tipe})
+        
+        rd, rdaily_created = RDaily.get_or_create(
+            source='SC', nama=data.get('name'),
+            sampling=this_sampling.date(), 
+            defaults={'raw': json.dumps([new_raw])})
+
+        if not pos_created:
+            if pos.latest_sampling < this_sampling:
+                pos.latest_sampling = this_sampling
+                pos.save()
+                
+        if not rdaily_created:
+            raw = json.loads(rd.raw)
+            raw.append(new_raw)
+            rd.raw = json.dumps(raw)
+            rd.save()
+
     def sb_to_daily(self):
         if self.source != 'SB':
             return None
@@ -138,9 +165,13 @@ class FetchLog(BaseModel):
                                 tipe=r['id_tipe'])
                 except:
                     pass
+                try:
+                    rain = float(r['Rain'])
+                except:
+                    rain = 0.0
                 new_raw = [{
                     "sampling": this_sampling.isoformat(),
-                    "rain": r['Rain'],
+                    "rain": rain,
                     "wlevel": r['WLevel']
                     }]
                 rd, created = RDaily.get_or_create(source='SA', 
@@ -174,7 +205,7 @@ class FetchLog(BaseModel):
                 
 
 class Pos(BaseModel):
-    nama = pw.CharField(max_length=35)
+    nama = pw.CharField(max_length=35, index=True)
     ll = pw.CharField(max_length=60, null=True)
     tipe = pw.CharField(max_length=3, null=True)
     elevasi = pw.IntegerField(null=True)
@@ -193,7 +224,7 @@ class Pos(BaseModel):
     
 
 class OPos(BaseModel):
-    nama = pw.CharField(max_length=50, unique=True)
+    nama = pw.CharField(max_length=50, unique=True, index=True)
     tipe = pw.CharField(max_length=10, null=True)
     latest_sampling = pw.DateTimeField(index=True)
     source = pw.CharField(max_length=3)
@@ -249,10 +280,9 @@ class RDaily(BaseModel):
         )
     
 class User(BaseModel, UserMixin):
-    username = pw.CharField(max_length=20, unique=True)
+    username = pw.CharField(max_length=20, unique=True, index=True)
     password = pw.CharField(max_length=100)
     pos = pw.ForeignKeyField(Pos)
-    pos_id = pw.IntegerField(null=True)
     last_login = pw.DateTimeField()
     active = pw.BooleanField(default=True)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
@@ -270,7 +300,7 @@ class User(BaseModel, UserMixin):
         
 
 class Petugas(BaseModel):
-    nama = pw.CharField(max_length=50)
+    nama = pw.CharField(max_length=50, index=True)
     nik = pw.CharField(max_length=20, null=True)
     hp = pw.CharField(max_length=20, null=True)
     dusun = pw.CharField(max_length=20, null=True)

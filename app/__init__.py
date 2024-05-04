@@ -91,7 +91,8 @@ def create_app():
                 body = dict([(f, rst_body[f])for f in pch_fields])
             elif l.tipe == '2':
                 body = dict([(f, rst_body[f])for f in pda_fields])
-            fl = FetchLog.create(url=x.url, response=x.status_code, body=body, source='SC')
+            fl = FetchLog.create(url=x.url, response=x.status_code, body=json.dumps(body), source='SC')
+            fl.sc_to_daily()
     
     
     register_bluprint(app)
