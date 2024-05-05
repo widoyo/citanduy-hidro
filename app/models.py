@@ -5,9 +5,10 @@ import peewee as pw
 import json
 
 from app.html_table_parser import HTMLTableParser
+from app import config
 
-pg_db = pw.PostgresqlDatabase('citadb', user='citauser', password='thispass',
-                           host='localhost', port=5432)
+pg_db = pw.PostgresqlDatabase(config.DBNAME, user=config.DBUSER, password=config.DBPASS,
+                           host=config.DBHOST, port=config.DBPORT)
 sqlite_db = pw.SqliteDatabase('hidro_citanduy.db', pragmas={
     'journal_mode': 'wal',
     'cache_size': -1024 * 64})
@@ -50,7 +51,9 @@ class FetchLog(BaseModel):
         "submitted_at":"2024-04-29T21:21:00Z"}
         '''
         sb = datetime.datetime.fromisoformat(data.get('submitted_at'))
-        this_sampling = sb.astimezone(datetime.timezone(datetime.timedelta(hours=7)))
+        print('sb:', sb)
+        this_sampling = sb.astimezone(datetime.timezone(datetime.timedelta(hours=7))).replace(tzinfo=None)
+        print('this_sampling:', this_sampling)
         new_raw = {'sampling': this_sampling.isoformat()}
         if 'PCH' in data['name']:
             tipe = '1'
