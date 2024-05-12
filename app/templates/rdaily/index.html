@@ -57,4 +57,29 @@
         {% endfor %}
     </tbody>
 </table>
+<table>
+    <thead>
+        <tr>
+            <th colspan="2" style="color: #FFBF00">Server data4.luweswatersensor.com:8002 <span style="font-weight:300;">({{ sc_dailies|length }})</span></th>
+            {% for i in range(24) %}
+            <th class="_24header">{{i}}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    {% for f in sc_dailies %}
+        <tr>
+            <td style="width:10px;">{{ loop.index }}</td>
+            <td><span class="{% if f.tipe == 'Rain Fall' %}badgepch{% else %}badgepda{% endif %}">{{f.tipe}}</span> <a href="/rdaily/{{ f.nama}}/?s={{ sampling.strftime('%Y-%m-%d') }}">{{ f.nama }}</a></td>
+            {% for d, v in f._24jam().items() %}
+            <td class="_24data">{% if v['num'] > 0 %}{{ v['num'] }}{% else %}-{% endif %}</td>
+            {% endfor %}
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="24">Tidak ada data</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

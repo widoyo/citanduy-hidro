@@ -3,6 +3,7 @@
 <table>
     <thead>
         <tr>
+            <th>No</th>
             <th>Nama</th>
             <th>HP</th>
             <th>Alamat</th>
@@ -12,6 +13,7 @@
     <tbody>
     {% for p in petugas %}
         <tr>
+            <td>{{ loop.index }}</td>
             <td>{{ p.nama }}</td>
             <td>{{ p.hp }}</td>
             <td>{{ p.dusun }}, RT {{ p.rt}} RW {{ p.rw }}<br>

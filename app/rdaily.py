@@ -47,10 +47,18 @@ def index():
                                        RDaily.sampling.month==sampling.month, 
                                        RDaily.sampling.day==sampling.day)
     for s in sb_dailies:
-        s.tipe = poses[s.nama].tipe
+        try:
+            s.tipe = poses[s.nama].tipe
+        except:
+            s.tipe = ''
+    sc_dailies = RDaily.select().where(RDaily.source=='SC', 
+                                       RDaily.sampling.year==sampling.year, 
+                                       RDaily.sampling.month==sampling.month, 
+                                       RDaily.sampling.day==sampling.day)
     return render_template('rdaily/index.html', 
                            sa_dailies=sa_dailies,
                            sb_dailies=sb_dailies,
+                           sc_dailies=sc_dailies, 
                            sampling=sampling, 
                            _sampling=_sampling,
                            sampling_=sampling_)

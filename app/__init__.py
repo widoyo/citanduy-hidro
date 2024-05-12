@@ -11,12 +11,6 @@ import json
 
 from app.models import FetchLog, User, Pos, LuwesPos
 
-SDATELEMETRY_URL = 'https://sdatelemetry.com/API_ap_telemetry/datatelemetry2.php?idbbws=8'
-TELEMET_URL = 'https://elektronikapolban.duckdns.org:8081/telemet/telemet/tabel10?p=0'
-LUWES_URL = 'http://data4.luweswatersensor.com:8002/withweather'
-
-SECRET_KEY = '3jkowi920ujwp9803-2yu-2jd'
-
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 
@@ -48,19 +42,19 @@ class LoginForm(FlaskForm):
     
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'jkosdjieohsnihpm9hd02m=nsihxn'
+    app.config.from_pyfile('config.py')
     
     @app.cli.command('fetch-sda')
     def fetch_sdatelemetry():
         '''Membaca data pada server SDATELEMETRY'''
-        x = requests.get(SDATELEMETRY_URL)
+        x = requests.get(SOURCE_A)
         fl = FetchLog.create(url=x.url, response=x.status_code, body=x.text, source='SA')
         fl.sa_to_daily()
             
     @app.cli.command('fetch-telemet')
     def fetch_telemet():
         '''Membaca data pada server Omtronik'''
-        x = requests.get(TELEMET_URL)
+        x = requests.get(SOURCE_B)
         body = ''
         inside = False
         for l in x.text.split('\n'):
@@ -83,7 +77,7 @@ def create_app():
         '''Membaca data dari luwes'''
         for l in LuwesPos.select():
             data = {'a': 'stat', 'imei': l.imei}
-            x = requests.post(LUWES_URL, data=data)
+            x = requests.post(SOURCE_C, data=data)
             rst_body = json.loads(x.text)
             pch_fields = 'rec;submitted_at;imei;name;power_current;power_voltage;rain_rate;raindrop'.split(';')
             pda_fields = 'rec;submitted_at;imei;name;power_current;power_voltage;level_sensor'.split(';')
@@ -154,7 +148,13 @@ def create_app():
                     sampling_ = None
                 if sampling.date() >= datetime.date.today():
                     sampling_ = None
-                return render_template('home_petugas.html')
+                ctx = {
+                    'pos': pos,
+                    'sampling': sampling,
+                    '_sampling': _sampling,
+                    'sampling_': sampling_
+                }
+                return render_template('home_petugas.html', ctx=ctx)
             except Pos.DoesNotExist:
                 return render_template('index.html')
         else:

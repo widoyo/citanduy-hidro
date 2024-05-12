@@ -5,14 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css"
+      /* href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css" */
+      href="/static/css/pico.css"
     />
     <title>{% block title %}Hidrologi BBWS Citanduy{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,800" rel="stylesheet">
     <style>
+      .flex-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .item {
+        background-color: lightgray;
+        padding: 10px;
+      }
+
+      .col-70 {
+        flex-basis: calc(70% - 20px); /* 70% width with 20px gap */
+      }
+
+      .col-30 {
+        flex-basis: calc(30% - 20px); /* 30% width with 20px gap */
+      }
+      ul.menu li {
+        padding: 0 20px;
+      }
       :root {
         --pico-color: #202632 !important;
         --pico-font-size: 100% !important;
+        --pico-box-shadow:  0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
       }
       h1, h2, h3, h4 {
         --pico-font-weight: 300 !important;
@@ -51,13 +73,21 @@
       <ul>
         <li>BBWS Citanduy</li>
       </ul>
-      <ul>
+      <ul class="menu">
         <li><a href="/">Home</a></li>
-        <li><a href="/pch">PCH</a></li>
-        <li><a href="/pda">PDA</a></li>
-        <li><a href="/peta">Peta</a></li>
+        <li>
+          <details class="dropdown">
+            <summary role="dropdown" class="secondary">Pos Hidrologi</summary>
+            <ul>
+              <li><a href="/pch">Pos Curah Hujan</a></li>
+              <li><a href="/pda">Pos Duga Air</a></li>
+              <li><a href="/pda">Pos Klimatologi</a></li>
+              <li><a href="/peta">Peta</a></li>      
+            </ul>
+          </details>
+        </li>
         <li><details class="dropdown">
-          <summary role="foo" class="secondary">Logger</summary>
+          <summary role="foo" class="secondary">Telemetri</summary>
           <ul>
             <li><a href="/rdaily">Data Harian</a></li>
             <li><a href="/rpos">Pos Versi Data Logger</a></li>
@@ -67,16 +97,6 @@
         </details></li>
       </ul>
       <ul>
-        <li>
-          <details class="dropdown">
-            <summary role="not" class="secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill="currentColor" class="icon-theme-toggle  moon"><clipPath id="theme-toggle-cutout"><path d="M0-11h25a1 1 0 0017 13v30H0Z"></path></clipPath><g clip-path="url(#theme-toggle-cutout)"><circle cx="16" cy="16" r="8.4"></circle><path d="M18.3 3.2c0 1.3-1 2.3-2.3 2.3s-2.3-1-2.3-2.3S14.7.9 16 .9s2.3 1 2.3 2.3zm-4.6 25.6c0-1.3 1-2.3 2.3-2.3s2.3 1 2.3 2.3-1 2.3-2.3 2.3-2.3-1-2.3-2.3zm15.1-10.5c-1.3 0-2.3-1-2.3-2.3s1-2.3 2.3-2.3 2.3 1 2.3 2.3-1 2.3-2.3 2.3zM3.2 13.7c1.3 0 2.3 1 2.3 2.3s-1 2.3-2.3 2.3S.9 17.3.9 16s1-2.3 2.3-2.3zm5.8-7C9 7.9 7.9 9 6.7 9S4.4 8 4.4 6.7s1-2.3 2.3-2.3S9 5.4 9 6.7zm16.3 21c-1.3 0-2.3-1-2.3-2.3s1-2.3 2.3-2.3 2.3 1 2.3 2.3-1 2.3-2.3 2.3zm2.4-21c0 1.3-1 2.3-2.3 2.3S23 7.9 23 6.7s1-2.3 2.3-2.3 2.4 1 2.4 2.3zM6.7 23C8 23 9 24 9 25.3s-1 2.3-2.3 2.3-2.3-1-2.3-2.3 1-2.3 2.3-2.3z"></path></g></svg></summary>
-            <ul>
-              <li><a href="#" data-theme-switcher="auto">Auto</a></li>
-              <li><a href="#" data-theme-switcher="light">Light</a></li>
-              <li><a href="#" data-theme-switcher="dark">Dark</a></li>
-            </ul>
-          </details>
-        </li>
         <li>
           {% if current_user.is_authenticated %}
           <details class="dropdown">

@@ -50,10 +50,8 @@ class FetchLog(BaseModel):
         "rec":106317428,
         "submitted_at":"2024-04-29T21:21:00Z"}
         '''
-        sb = datetime.datetime.fromisoformat(data.get('submitted_at'))
-        print('sb:', sb)
+        sb = datetime.datetime.fromisoformat(data.get('submitted_at').replace('Z', '+00:00'))
         this_sampling = sb.astimezone(datetime.timezone(datetime.timedelta(hours=7))).replace(tzinfo=None)
-        print('this_sampling:', this_sampling)
         new_raw = {'sampling': this_sampling.isoformat()}
         if 'PCH' in data['name']:
             tipe = '1'
@@ -269,7 +267,10 @@ class RDaily(BaseModel):
             out[jam]['num'] += 1
             if d.get('rain'):
                 try:
-                    out[jam]['rain'] += float(d['rain'])
+                    if self.source != 'SC':
+                        out[jam]['rain'] += float(d['rain'])
+                    else:
+                        raise KeyError
                 except KeyError:
                     out[jam]['rain'] = float(d['rain'])
             if d.get('wlevel'):
@@ -285,15 +286,15 @@ class RDaily(BaseModel):
 class User(BaseModel, UserMixin):
     username = pw.CharField(max_length=20, unique=True, index=True)
     password = pw.CharField(max_length=100)
-    pos = pw.ForeignKeyField(Pos)
-    last_login = pw.DateTimeField()
+    pos = pw.ForeignKeyField(Pos, null=True)
+    last_login = pw.DateTimeField(null=True)
     active = pw.BooleanField(default=True)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     
     @property
     def is_admin(self):
         
-        return False if self.pos_id else True
+        return (False if self.pos_id is not None else True)
     
     def check_password(self, password):
         return checkpw(password.encode(), self.password.encode())
@@ -306,7 +307,7 @@ class Petugas(BaseModel):
     nama = pw.CharField(max_length=50, index=True)
     nik = pw.CharField(max_length=20, null=True)
     hp = pw.CharField(max_length=20, null=True)
-    dusun = pw.CharField(max_length=20, null=True)
+    dusun = pw.CharField(max_length=50, null=True)
     rt = pw.IntegerField(null=True)
     rw = pw.IntegerField(null=True)
     desa = pw.CharField(max_length=20, null=True)
@@ -331,3 +332,7 @@ class LuwesPos(BaseModel):
     tipe = pw.CharField(max_length=2, default='1') # 1 PCH, 2 PDA, 3 Klimat
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
+
+class Session(BaseModel):
+    username = pw.ForeignKeyField(User)
+    expiresat = pw.DateTimeField()
