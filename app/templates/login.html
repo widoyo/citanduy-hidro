@@ -1,8 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Login</h1>
-<div class="grid">
-    <form action="/login" method="POST">
+<div class="container col-xl-10 col-xxl-8 px-4 py-5">
+  <div class="row align-items-center g-lg-5 py-5">
+    <div class="col-lg-7 text-center text-lg-start">
+      <img src="/static/img/bbwscitanduy.png" class="img-fluid" alt="bbws citanduy">
+    </div>
+    <div class="col-md-10 mx-auto col-lg-5">
+      <form action="/login" method="POST" class="p-4 p-md-5 border rounded-3 bg-body-tertiary">
         {{ form.hidden_tag() }}
         <input type="hidden" name="next" value="{{ next or '' }}">
         {% for message in get_flashed_messages() %}
@@ -11,11 +15,18 @@
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
       {% endfor %}
-        {{ form.username()}}
-        {{ form.password() }}
-        <input type="submit" value="Log-In">
-    </form>
-<div></div>
-<div></div>
+        <div class="form-floating mb-3">
+          {{ form.username(class="form-control", placeholder="username") }}
+          <label for="floatingInput">Username</label>
+        </div>
+        <div class="form-floating mb-3">
+          {{ form.password(class="form-control", placeholder="password") }}
+          <label for="floatingPassword">Password</label>
+        </div>
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Login</button>
+      </form>
+    </div>
+  </div>
 </div>
+
 {% endblock %}

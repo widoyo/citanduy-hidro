@@ -10,6 +10,7 @@ import datetime
 import json
 
 from app.models import FetchLog, User, Pos, LuwesPos
+from app.config import SOURCE_A, SOURCE_B, SOURCE_C
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'

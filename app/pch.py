@@ -8,6 +8,7 @@ bp = Blueprint('pch', __name__, url_prefix='/pch')
 @bp.route('/<id>')
 def show(id):
     pos = Pos.get(int(id))
+    
     s = request.args.get('s', None)
     try:
         sampling = datetime.datetime.strptime(s, '%Y-%m-%d')

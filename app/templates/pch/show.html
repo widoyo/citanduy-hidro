@@ -1,8 +1,56 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>{{ ctx.pos.nama }}</h1>
-<div class="flex-grid">
-    <div class="col-70">1</div>
-    <div class="col-30">2</div>
+<div class="row">
+    <div class="col">
+        <h1 class="fw-lighter">{{ ctx.pos.nama }} <small class="fs-6 fw-normal badge rounded-pill text-bg-primary">PCH</small></h1>
+    </div>
+    <div class="col text-end">
+        <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
+            <button type="button" class="btn btn-outline-secondary disabled">Sehari</button>
+            <button type="button" class="btn btn-outline-primary">Sebulan</button>
+            <button type="button" class="btn btn-outline-primary">Setahun</button>
+          </div>
+    
+    </div>
 </div>
+
+<div class="row">
+<div class="col-10">
+    <div class="text-end mb-3">
+        <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-secondary me-5">{{ ctx._sampling.strftime('%d')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%d')}}</span> {{ ctx.sampling.strftime('%b') }} 
+        {% if ctx.sampling_ %}<a class="btn btn-outline-secondary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%d')}}</a>
+        {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
+    </div>
+        <canvas id="myChart"></canvas>
+    </div>
+    <div class="col-2">
+
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const ctx = document.getElementById('myChart');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+      datasets: [{
+        label: 'Curah Hujan',
+        data: [12, 19, 3, 5, 2, 3],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+ 
+
 {% endblock %}
