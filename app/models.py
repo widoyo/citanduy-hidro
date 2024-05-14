@@ -2,22 +2,20 @@ import datetime
 from flask_login import UserMixin
 from bcrypt import checkpw, hashpw, gensalt
 import peewee as pw
+from playhouse.flask_utils import FlaskDB
+
 import json
 
 from app.html_table_parser import HTMLTableParser
 from app import config
 
-pg_db = pw.PostgresqlDatabase(config.DBNAME, user=config.DBUSER, password=config.DBPASS,
-                           host=config.DBHOST, port=config.DBPORT)
-sqlite_db = pw.SqliteDatabase('hidro_citanduy.db', pragmas={
-    'journal_mode': 'wal',
-    'cache_size': -1024 * 64})
+
+db_wrapper = FlaskDB()
 
 SUNGAI_LIST = 'Citanduy_Ciseel_Cibeureum_Cijolang_Cileueur'.split('_')
 
-class BaseModel(pw.Model):
-    class Meta:
-        database = pg_db
+class BaseModel(db_wrapper.Model):
+    pass
 
 class Das(BaseModel):
     nama = pw.CharField(max_length=50)

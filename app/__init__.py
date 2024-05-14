@@ -9,7 +9,7 @@ import requests
 import datetime
 import json
 
-from app.models import pg_db, FetchLog, User, Pos, LuwesPos
+from app.models import db_wrapper, FetchLog, User, Pos, LuwesPos
 from app.config import SOURCE_A, SOURCE_B, SOURCE_C
 
 login_manager = LoginManager()
@@ -45,15 +45,8 @@ def create_app():
     app = Flask(__name__)
     app.config.from_pyfile('config.py')
     
-    @app.before_request
-    def before_request():
-        pg_db.connect()
+    db_wrapper.init_app(app)
         
-    @app.after_request
-    def after_request(response):
-        pg_db.close()
-        return response
-    
     @app.cli.command('fetch-sda')
     def fetch_sdatelemetry():
         '''Membaca data pada server SDATELEMETRY'''
