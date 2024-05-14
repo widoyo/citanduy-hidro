@@ -2,15 +2,12 @@ import datetime
 from flask_login import UserMixin
 from bcrypt import checkpw, hashpw, gensalt
 import peewee as pw
-from playhouse.flask_utils import FlaskDB
 
 import json
 
 from app.html_table_parser import HTMLTableParser
-from app import config
+from app import db_wrapper
 
-
-db_wrapper = FlaskDB()
 
 SUNGAI_LIST = 'Citanduy_Ciseel_Cibeureum_Cijolang_Cileueur'.split('_')
 

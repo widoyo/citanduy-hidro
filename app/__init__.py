@@ -4,12 +4,15 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
 from urllib.parse import urlparse, urljoin
+from playhouse.flask_utils import FlaskDB
 
 import requests
 import datetime
 import json
 
-from app.models import db_wrapper, FetchLog, User, Pos, LuwesPos
+db_wrapper = FlaskDB()
+
+from app.models import FetchLog, User, Pos, LuwesPos
 from app.config import SOURCE_A, SOURCE_B, SOURCE_C
 
 login_manager = LoginManager()
