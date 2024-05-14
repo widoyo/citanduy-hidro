@@ -293,8 +293,10 @@ class User(BaseModel, UserMixin):
     
     @property
     def is_admin(self):
-        
-        return (False if self.pos_id is not None else True)
+        if self.pos:
+            return False
+        else:
+            return True
     
     def check_password(self, password):
         return checkpw(password.encode(), self.password.encode())

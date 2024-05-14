@@ -1,32 +1,45 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>PDA <small>({{ pdas|length}})</small></h1>
-<h2>Tanggal</h2>
-<table>
-    <thead>
-        <tr>
-            <th>Nama</th>
-            <th colspan="2">Pagi</th>
-            <th colspan="2">Siang</th>
-            <th colspan="2">Sore</th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for p in pdas %}
-        <tr>
-            <td>{{ p.nama }}{% if p.elevasi %} + {{ p.elevasi }} mdpl{% endif %}</td>
-            <td>{{ p.tma_7}}</td>
-            <td>{{ p.m_tma_7}}</td>
-            <td>{{ p.tma_12}}</td>
-            <td>{{ p.m_tma_12}}</td>
-            <td>{{ p.tma_17}}</td>
-            <td>{{ p.m_tma_17}}</td>
-        </tr>
-    {% else %}
-        <tr>
-            <td colspan="7">Tidak ada data</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<h2 class="border-start border-5 border-danger ps-2 fw-lighter">Pos Duga Air (<b>{{ pdas|length}}</b>)</h2>
+
+<div class="row">
+    <div class="col-10">
+        <div class="text-end mb-3">
+            <a href="?s={{ _sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-secondary me-5">{{ _sampling.strftime('%d')}}</a> <span class="fs-3">{{ sampling.strftime('%d')}}</span> {{ sampling.strftime('%b') }} 
+            {% if sampling_ %}<a class="btn btn-outline-secondary ms-5" href="?s={{ sampling_.strftime('%Y-%m-%d')}}">{{ sampling_.strftime('%d')}}</a>
+            {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
+        </div>
+        <table class="table table-striped table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th colspan="2">Pagi</th>
+                    <th colspan="2">Siang</th>
+                    <th colspan="2">Sore</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for p in pdas %}
+                <tr>
+                    <td><a href="/pda/{{ p.id }}">{{ p.nama }}</a> {% if p.elevasi %} + {{ p.elevasi }} mdpl{% endif %}</td>
+                    <td>{{ p.tma_7}}</td>
+                    <td>{{ p.m_tma_7}}</td>
+                    <td>{{ p.tma_12}}</td>
+                    <td>{{ p.m_tma_12}}</td>
+                    <td>{{ p.tma_17}}</td>
+                    <td>{{ p.m_tma_17}}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7">Tidak ada data</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="col-2">
+
+    </div>
+</div>
+
 {% endblock %}

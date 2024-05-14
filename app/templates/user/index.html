@@ -1,38 +1,49 @@
 {% extends 'base.html' %}
 {% block content %}
+<h2 class="border-start border-5 border-danger ps-2 fw-lighter">User (<b>{{ users|length}}</b>)</h2>
 <form action="">
 
 </form>
-<table>
-    <thead>
-        <tr>
-            <th>Username</th>
-            <th>Pos</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for u in users %}
-        <tr>
-            <td>{{ u.username }}
-                <details class="dropdown" style="float: right">
-                    <summary role="foo" class="secondary">&middot;&middot;&middot;</summary>
-                    <ul>
-                      <li><a href="/password">Atur Password</a></li>
-                      <li><a href="/rpos">Non Aktifkan</a></li>
-                    </ul>
-          
-                  </details>
-            </td>
-            <td>{% if not u.is_admin %}{{ u.pos.nama }}{% else %}Kantor{% endif %}</td>
-            <td>{{ u.last_login.strftime('%d %b %Y %H:%M:%S') }}</td>
-            
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="3">Belum ada User terdaftar</td>
-        </tr>
-        {% endfor %}        
-    </tbody>
-</table>
+<div class="row">
+    <div class="col-10">
+        <table class="table table-bordered table-hover table-striped">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Pos</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.username }}
+                        <div class="dropdown float-end">
+                            <a haref="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                              ...
+                            </a>
+                            <ul class="dropdown-menu">
+                              <li><a class="dropdown-item" href="#">Ganti Password</a></li>
+                              <li><a class="dropdown-item" href="#">Another action</a></li>
+                              <li><a class="dropdown-item" href="#">Something else here</a></li>
+                            </ul>
+                          </div>
+                    </td>
+                    <td>{% if not u.is_admin %}{{ u.pos.nama }}{% else %}Kantor{% endif %}</td>
+                    <td>{{ u.last_login.strftime('%d %b %Y %H:%M:%S') }}</td>
+                    
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3">Belum ada User terdaftar</td>
+                </tr>
+                {% endfor %}        
+            </tbody>
+        </table>
+    </div>
+    <div class="col-2">
+
+    </div>
+</div>
+
 {% endblock %}

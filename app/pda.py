@@ -5,6 +5,29 @@ from app.models import Pos
 bp = Blueprint('pda', __name__, url_prefix='/pda')
 
 
+@bp.route('/<int:id>')
+def show(id):
+    pos = Pos.get(id)
+    s = request.args.get('s', None)
+    try:
+        sampling = datetime.datetime.strptime(s, '%Y-%m-%d')
+        _sampling = sampling - datetime.timedelta(days=1)
+        sampling_ = sampling + datetime.timedelta(days=1)
+    except:
+        sampling = datetime.datetime.now()
+        _sampling = sampling - datetime.timedelta(days=1)
+        sampling_ = None
+    if sampling.date() >= datetime.date.today():
+        sampling_ = None
+    ctx = {
+        'pos': pos,
+        'sampling': sampling,
+        'sampling_': sampling_,
+        '_sampling': _sampling
+    }
+    return render_template('pda/show.html', ctx=ctx)        
+
+    
 @bp.route('/')
 def index():
     s = request.args.get('s', None)

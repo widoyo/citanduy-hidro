@@ -5,101 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}BBWS Citanduy{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">Navbar</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0 end-50">
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">Home</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Link</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link disabled" aria-disabled="true">Disabled</a>
-            </li>
-          </ul>
-        </div>
-        <div class="collapse navbar-collapse justify-content-end" id="navbarTogglerDemo03">
-          <form class="d-flex" role="search">
-            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success" type="submit">Search</button>
-          </form>
-        </div>
-      </div>
-    </nav>
-    <!--<div class="container">
-      <header class="navbar d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-1 mb-4 fixed-top border-bottom bg-light bg-opacity-75">
-        <div class="navbar-brand col-md-3 mb-2 mb-md-0 ps-3">
-          <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">
-            <span class="fs-5 text-secondary">bbwscitanduy</span>
-          </a>
-        </div>
-  
-        <ul class="navbar-nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-          <li><a href="/" class="nav-link px-2 link-secondary">Home</a></li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle link-secondary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt me-1" viewBox="0 0 16 16">
-                <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10"/>
-                <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
-              </svg> Pos Hidrologi
-            </a>
-            <ul class="dropdown-menu">
-              <li><a href="/pch" class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain me-1" viewBox="0 0 16 16">
-                <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317m3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 0 1-.948-.316l1-3a.5.5 0 0 1 .632-.317m3 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317m3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317m.247-6.998a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973M8.5 2a4 4 0 0 1 3.976 3.555.5.5 0 0 0 .5.445H13a2 2 0 0 1 0 4H3.5a2.5 2.5 0 1 1 .605-4.926.5.5 0 0 0 .596-.329A4 4 0 0 1 8.5 2"/>
-              </svg> Pos Curah Hujan</a></li>
-              <li><a href="/pda" class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-water me-2" viewBox="0 0 16 16">
-                <path d="M.036 3.314a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0L.314 3.964a.5.5 0 0 1-.278-.65m0 3a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0L.314 6.964a.5.5 0 0 1-.278-.65m0 3a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0L.314 9.964a.5.5 0 0 1-.278-.65m0 3a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.757-.703a.5.5 0 0 1-.278-.65"/>
-              </svg> Pos Duga Air</a></li>
-            </ul>
-          </li>
-          <li><a href="/map" class="nav-link px-2 link-secondary"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-map me-2" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.5.5 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103M10 1.91l-4-.8v12.98l4 .8zm1 12.98 4-.8V1.11l-4 .8zm-6-.8V1.11l-4 .8v12.98z"/>
-          </svg> Peta</a></li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle link-secondary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-grid-3x3-gap me-1" viewBox="0 0 16 16">
-                <path d="M4 2v2H2V2zm1 12v-2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1m0-5V7a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1m0-5V2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1m5 10v-2a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1m0-5V7a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1m0-5V2a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1M9 2v2H7V2zm5 0v2h-2V2zM4 7v2H2V7zm5 0v2H7V7zm5 0h-2v2h2zM4 12v2H2v-2zm5 0v2H7v-2zm5 0v2h-2v-2zM12 1a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zm-1 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zm1 4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1z"/>
-              </svg> Telemetri
-            </a>
-            <ul class="dropdown-menu">
-              <li><a href="/rdaily" class="dropdown-item link-secondary">Data Hidrologi</a></li>
-              <li><a href="/rpos" class="dropdown-item">Pos Menurut Vendor</a></li>
-              <li><a href="/flog" class="dropdown-item">Riwayat Ambil Data</a></li>
-            </ul>
-          </li>
-        </ul>
-  
-        <div class="col-md-3 text-end">
-          {% if current_user.is_authenticated %}
-          <ul class="nav col-12 col-md-auto mb-2 justify-content-end mb-md-0">
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                {{ current_user.username }}
-              </a>
-              <ul class="dropdown-menu">
-                <li><a href="/logout" class="dropdown-item">Logout</a></li>
+    <div class="container-fluid border-bottom mb-4">
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+          <a class="navbar-brand" href="/">bbws citanduy</a>
+          
+          <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="navbar-collapse collapse" id="navbarText">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+              <li class="nav-item px-2">
+                <a class="nav-link" aria-current="page" href="/"><i class="bi bi-cup-hot me-1"></i> Home</a>
+              </li>
+              <li class="nav-item dropdown px-2">
+                <a class="nav-link dropdown-toggle" role="button" id="dropdownRtdMenuLink" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-geo-alt me-1"></i> Pos Hidrologi</a>
+                <ul class="dropdown-menu" araia-labelledby="dropdownRtdMenuLink">
+                  <li><a class="dropdown-item navlink" href="/pch"><i class="bi bi-cloud-rain me-2 text-danger"></i> Curah Hujan</a>
+                  </li>
+                  <li><a class="dropdown-item navlink" href="/pda"><i class="bi bi-water me-2 text-danger"></i> Duga Air</a>
+                  </li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item navlink" href="/pos"><i class="bi bi-geo-alt me-2 text-danger"></i> Semua Pos</a>
+                  </li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown px-2">
+                <a class="nav-link dropdown-toggle" role="button" id="dropdownRtdMenuLink" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-cpu me-1"></i> Telemetri</a>
+                <ul class="dropdown-menu" araia-labelledby="dropdownRtdMenuLink">
+                  <li><a class="dropdown-item navlink" href="/rdaily"><i class="bi bi-clipboard2-pulse me-2 text-danger"></i> Sehat</a>
+                  </li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item navlink" href="/rpos"><i class="bi bi-list-ul me-2 text-danger"></i> Pos Vendor</a>
+                  </li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown px-2">
+                <a class="nav-link dropdown-toggle" role="button" id="dropdownMapMenuLink" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-map me-1"></i> Peta</a>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMapMenuLink">
+                  <li><a href="/map?" class="dropdown-item navlink"><i class="bi bi-geo-alt me-2 text-danger"></i> Semua Pos</a></li>
+                </ul>
+              </li>
               </ul>
-            </li>
-          </ul>
-          {% else %}
-          <ul class="nav pe-3 justify-content-end">
-            <li class="nav-item"><a class="nav-link link-secondary" href="/login"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
-              <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-              <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
-            </svg> Login</a></li>
-          </ul>
-          {% endif %}
+              <ul class="navbar-nav">
+                {% if current_user.is_authenticated %}
+              <li class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-person-fill {% if current_user.is_admin %}text-danger {% endif %}me-1"></i> {{ current_user.username }}</a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink">
+                  
+                  <li><a href="/user" class="dropdown-item navlink"><i class="bi bi-person me-2 text-danger"></i> User</a></li>
+                  <li><a href="/petugas" class="dropdown-item navlink"><i class="bi bi-person me-2 text-danger"></i> Petugas Pos</a></li>
+                  <li><a href="/pos" class="dropdown-item navlink"><i class="bi bi-geo-alt me-2 text-danger"></i> Pos Hidrologi</a></li>
+                  
+                  <li>
+                    <hr class="dropdown-divider">
+                  </li>
+                  <li><a href="/logout" class="dropdown-item navlink"><i class="bi bi-power text-danger me-2"></i> Logout</a></li>   
+                </ul>
+              </li>
+              {% else %}
+              <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+              {% endif %}
+            </ul>
+          </div>
         </div>
-      </header>
-    </div>-->
+      </nav>
+    </div>
     <div class="container">
       {% block content %}{% endblock %}
     </div>
