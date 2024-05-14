@@ -5,10 +5,13 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
 from urllib.parse import urlparse, urljoin
 from playhouse.flask_utils import FlaskDB
+from dotenv import load_dotenv
 
 import requests
 import datetime
 import json
+
+load_dotenv()
 
 db_wrapper = FlaskDB()
 
@@ -42,14 +45,14 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
-
     
 def create_app():
     app = Flask(__name__)
+    #app.config['DATABASE'] = 'postgresql://citauser:thispass@localhost:5432/citadb'
     app.config.from_pyfile('config.py')
-    
     db_wrapper.init_app(app)
-        
+
+    
     @app.cli.command('fetch-sda')
     def fetch_sdatelemetry():
         '''Membaca data pada server SDATELEMETRY'''
@@ -166,8 +169,6 @@ def create_app():
         else:
             return render_template('index.html')
                 
-
-
     return app
 
 
