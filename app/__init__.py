@@ -136,6 +136,13 @@ def create_app():
         logout_user()
         return redirect('/')    
 
+    @app.route('/me')
+    def profile():
+        user = User.get(User.username==current_user.username)
+        ctx = {
+            'me': user
+        }
+        return render_template('profile.html', ctx=ctx)
     
     @app.route('/')
     def homepage():
