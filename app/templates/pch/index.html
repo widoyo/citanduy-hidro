@@ -18,7 +18,7 @@
                     <th class="bg-light fw-lighter">Sore</th>
                     <th class="bg-light fw-lighter">Malam</th>
                     <th class="bg-light fw-lighter" style="background-color:#F1F1F1">Telemetri</th>
-                    <th class="bg-light fw-lighter" style="background-color: #D7FBC1;">Petugas</th>
+                    <th class="bg-light fw-lighter" style="background-color: #D7FBC1;">Manual</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,7 +30,10 @@
                     <td></td>
                     <td></td>
                     <td style="background-color:#F1F1F1"></td>
-                    <td style="background-color: #D7FBC1;"></td>
+                    <td style="background-color: #D7FBC1;">
+                        {% if editable %}Hallo
+                        {% else %}<span x-data="UpSertManual({{p.id}})"><span x-html="cnt" @click.outside="closeForm()" x-on:click="openForm()"></span></span>
+                        {% endif %}</td>
                 </tr>
             {% else %}
             {% endfor %}
@@ -40,5 +43,49 @@
     <div class="col-2">
     </div>
 </div>
+<script>
+    function UpSertManual(id) {
+        return {
+            formData: {
+                sampling: "{{ sampling.strftime('%Y-%m-%d') }}",
+                ch: 0,
+                pos_id: id,
+            },
+            cnt: "...",
+            openForm() {
+                this.cnt = `<form @submit.prevent='submitForm'>
+                    <input type='text' name='ch' size='3' style='text-align:right' x-model='formData.ch'>
+                    <input type='submit' value='&gt;' class='ms-2 px-3'>
+                    </form>`;
+            },
+            times: {
+                ['@click']() {
+                    console.log('close');
+                    this.closeForm();
+                }
+            },
+            submitForm() {
+                fetch('/pos/'+id+'/manual', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token() }}",
+                        Accept: "application/json"
+                    },
+                    body: JSON.stringify(this.formData),
+                }).then((e) => {
+                    console.log('sukses');
+                    console.log(e);
+                }).catch((e) => {
+                    console.log('error');
+                    console.log(e);
+                });
+            }, 
+            closeForm() {
+                this.cnt = '<span>...</span>';
+            },
 
+        }
+    }
+</script>
 {% endblock %}

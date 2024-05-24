@@ -1,7 +1,9 @@
-from flask import Blueprint, render_template, request
 import datetime
+from flask import Blueprint, render_template, request
+from flask_login import current_user
 
 from app.models import Pos
+from app import get_sampling
 bp = Blueprint('pch', __name__, url_prefix='/pch')
 
 
@@ -9,17 +11,7 @@ bp = Blueprint('pch', __name__, url_prefix='/pch')
 def show(id):
     pos = Pos.get(int(id))
     
-    s = request.args.get('s', None)
-    try:
-        sampling = datetime.datetime.strptime(s, '%Y-%m-%d')
-        _sampling = sampling - datetime.timedelta(days=1)
-        sampling_ = sampling + datetime.timedelta(days=1)
-    except:
-        sampling = datetime.datetime.now()
-        _sampling = sampling - datetime.timedelta(days=1)
-        sampling_ = None
-    if sampling.date() >= datetime.date.today():
-        sampling_ = None
+    (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     ctx = {'pos': pos,
            'sampling': sampling,
            '_sampling': _sampling,
@@ -29,16 +21,10 @@ def show(id):
 
 @bp.route('/')
 def index():
-    s = request.args.get('s', None)
-    try:
-        sampling = datetime.datetime.strptime(s, '%Y-%m-%d')
-        _sampling = sampling - datetime.timedelta(days=1)
-        sampling_ = sampling + datetime.timedelta(days=1)
-    except:
-        sampling = datetime.datetime.now()
-        _sampling = sampling - datetime.timedelta(days=1)
-        sampling_ = None
-    if sampling.date() >= datetime.date.today():
-        sampling_ = None
-    pchs = Pos.select().where(Pos.tipe=='1').order_by(Pos.elevasi.desc())
-    return render_template('pch/index.html', pchs=pchs, sampling=sampling, _sampling=_sampling, sampling_=sampling_)
+    (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
+    user = current_user
+    editable = user.is_admin and sampling.date() < datetime.date.today()
+    pchs = Pos.select().where(Pos.tipe=='1').order_by(Pos.nama)
+    return render_template('pch/index.html', pchs=pchs, 
+                           sampling=sampling, _sampling=_sampling, 
+                           sampling_=sampling_, editable=editable)

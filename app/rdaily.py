@@ -1,40 +1,29 @@
 from flask import Blueprint, render_template, request
 import datetime
 from app.models import RDaily, OPos
+from app import get_sampling
 
 bp = Blueprint('rdaily', __name__, url_prefix='/rdaily')
 
 @bp.route('/<pos_name>/')
 def show(pos_name):
-    s = request.args.get('s', None)
-    try:
-        sampling = datetime.datetime.strptime(s, '%Y-%m-%d')
-        _sampling = sampling - datetime.timedelta(days=1)
-        sampling_ = sampling + datetime.timedelta(days=1)
-    except:
-        sampling = datetime.datetime.now()
-        _sampling = sampling - datetime.timedelta(days=1)
-        sampling_ = None
-    if sampling.date() >= datetime.date.today():
-        sampling_ = None
+    (_s, s, s_) = get_sampling(request.args.get('s', None))
+    
     pos = OPos.get(OPos.nama==pos_name)    
-    this_day = RDaily.select().where(RDaily.nama==pos_name, RDaily.sampling==sampling).first()
+    this_day = RDaily.select().where(RDaily.nama==pos_name, RDaily.sampling==s).first()
     this_day.tipe = pos.tipe
-    return render_template('rdaily/show.html', sampling=sampling, this_day=this_day)
+    ctx = {
+        '_sampling': _s,
+        'sampling': s,
+        'sampling_': s_,
+        'this_day': this_day
+    }
+    return render_template('rdaily/show.html', ctx=ctx)
 
 @bp.route('/')
 def index():
-    s = request.args.get('s', None)
-    try:
-        sampling = datetime.datetime.strptime(s, '%Y-%m-%d')
-        _sampling = sampling - datetime.timedelta(days=1)
-        sampling_ = sampling + datetime.timedelta(days=1)
-    except:
-        sampling = datetime.datetime.now()
-        _sampling = sampling - datetime.timedelta(days=1)
-        sampling_ = None
-    if sampling.date() >= datetime.date.today():
-        sampling_ = None
+    (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
+    
     poses = dict([(p.nama, p) for p in OPos.select()])
     sa_dailies = RDaily.select().where(RDaily.source=='SA', 
                                        RDaily.sampling.year==sampling.year, 

@@ -17,8 +17,8 @@
             {% for p in poses %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ p.nama }}</td>
-                    <td>{% if p.tipe == '1' %} <span class="badge rounded-pill text-bg-primary">PCH</span>{% else %} <span class="badge rounded-pill text-bg-danger">PDA</span>{% endif %}</td>
+                    <td>{{ p.nama }} {{ p.id }}</td>
+                    <td>{% if p.tipe == '1' %} <span class="badge rounded-pill text-bg-info">PCH</span>{% elif p.tipe=='2' %} <span class="badge rounded-pill" style="background-color: var(--bs-orange);">PDA</span>{% else %} <span class="badge rounded-pill text-bg-primary">Klimat</span>{% endif %}</td>
                     <td><code>{{ p.elevasi }}</code></td>
                     <td><code>{{ p.ll }}</code></td>
                 </tr>

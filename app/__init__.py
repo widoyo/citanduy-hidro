@@ -1,6 +1,7 @@
 from flask import Flask, render_template, flash, redirect, request, url_for
 from flask_login import LoginManager, current_user, login_user, logout_user
 from flask_wtf import FlaskForm
+from flask_wtf.csrf import CSRFProtect
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
 from urllib.parse import urlparse, urljoin
@@ -14,9 +15,25 @@ import json
 load_dotenv()
 
 db_wrapper = FlaskDB()
+csrf = CSRFProtect()
 
-from app.models import FetchLog, User, Pos, LuwesPos
+from app.models import FetchLog, User, Pos, LuwesPos, ManualDaily
 from app.config import SOURCE_A, SOURCE_B, SOURCE_C
+from app.forms import CurahHujanForm, TmaForm
+
+def get_sampling(s: str = None) -> list:
+    try:
+        sampling = datetime.datetime.strptime(s, '%Y-%m-%d')
+        _sampling = sampling - datetime.timedelta(days=1)
+        sampling_ = sampling + datetime.timedelta(days=1)
+    except:
+        sampling = datetime.datetime.now()
+        _sampling = sampling - datetime.timedelta(days=1)
+        sampling_ = None
+    if sampling.date() >= datetime.date.today():
+        sampling_ = None
+    
+    return (_sampling, sampling, sampling_)
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
@@ -51,7 +68,7 @@ def create_app():
     #app.config['DATABASE'] = 'postgresql://citauser:thispass@localhost:5432/citadb'
     app.config.from_pyfile('config.py')
     db_wrapper.init_app(app)
-
+    csrf.init_app(app)
     
     @app.cli.command('fetch-sda')
     def fetch_sdatelemetry():
@@ -104,7 +121,6 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
-        print('load_user: ', user_id)
         try:
             return User.get(user_id)
         except User.DoesNotExist:
@@ -152,23 +168,30 @@ def create_app():
         '''
         if current_user.is_authenticated:
             try:
+                formhujan = CurahHujanForm()
+                formtma = TmaForm()
                 pos = current_user.pos
-                s = request.args.get('s', None)
-                try:
-                    sampling = datetime.datetime.strptime(s, '%Y-%m-%d')
-                    _sampling = sampling - datetime.timedelta(days=1)
-                    sampling_ = sampling + datetime.timedelta(days=1)
-                except:
-                    sampling = datetime.datetime.now()
-                    _sampling = sampling - datetime.timedelta(days=1)
-                    sampling_ = None
-                if sampling.date() >= datetime.date.today():
-                    sampling_ = None
+                    
+                (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
+                list_data = dict([(i+1, {}) for i in range(sampling.day)])
+                _sampling = _sampling.replace(day=1) - datetime.timedelta(days=1)
+                formhujan.sampling.data = sampling
+                formtma.sampling.data = sampling
+                data_manual = dict([(md.sampling.day, {'ch': md.ch, 'tma': md.tma}) for md in ManualDaily.select().where(ManualDaily.sampling.year==sampling.year,
+                                                       ManualDaily.sampling.month==sampling.month,
+                                                       ManualDaily.pos==pos)])
+                for i, d in list_data.items():
+                    if i in data_manual:
+                        list_data[i].update(data_manual.get(i))
                 ctx = {
                     'pos': pos,
+                    'list_data': list_data,
                     'sampling': sampling,
                     '_sampling': _sampling,
-                    'sampling_': sampling_
+                    'sampling_': sampling_,
+                    'formhujan': formhujan,
+                    'formtma': formtma,
+                    'data_manual': data_manual
                 }
                 return render_template('home_petugas.html', ctx=ctx)
             except Pos.DoesNotExist:

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+        <h2 class="border-start border-5 border-danger ps-2 fw-lighter">User (<b>{{ users|length}}</b>)
+            <a href="#userform" data-bs-toggle="collapse" class="ms-5 btn btn-outline-primary btn-sm">tambah</a>
+        </h2>
+        
+        <form class="collapse px-5 py-5" id="userform" action="/user/add" method="POST">
+            {{ form.hidden_tag() }}
+            {% if form.errors %}
+            {% for field, e_msgs in form.errors.items() %}
+{% for m in e_msgs %}
+{{ field }} {{ m }}
+{% endfor %}
+            {% endfor %}
+            {% endif %}
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                {{ form.username(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                {{ form.password(class="form-control") }}
+                <div class="form-text">Bisa diganti nanti</div>
+            </div>
+            <div class="mb-3">
+                {{ form.pos(class="form-select") }}
+            </div>
+            
+<input type="submit" class="btn btn-primary">
+        </form>
+{% endblock %}

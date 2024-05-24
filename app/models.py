@@ -313,6 +313,7 @@ class Petugas(BaseModel):
     pendidikan = pw.CharField(max_length=5, null=True)
     pos = pw.ForeignKeyField(Pos, null=True)
     tipe = pw.CharField(max_length=2, null=True) # 1: PCH, 2: PDA, 3: Klimat
+    username = pw.CharField(max_length=20, null=True)
 
 
 class PosMap(BaseModel):
@@ -330,6 +331,16 @@ class LuwesPos(BaseModel):
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
 
-class Session(BaseModel):
-    username = pw.ForeignKeyField(User)
-    expiresat = pw.DateTimeField()
+class ManualDaily(BaseModel):
+    '''Data Harian TMA & CH dari Petugas'''
+    pos = pw.ForeignKeyField(Pos)
+    username = pw.CharField(max_length=20)
+    sampling = pw.DateField()
+    ch = pw.FloatField(null=True)
+    tma = pw.TextField(null=True) # JSON {'pagi': ?, 'siang': ? 'sore': ?}
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        indexes = (
+            (('pos', 'sampling'), True),
+        )

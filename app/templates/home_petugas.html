@@ -1,9 +1,69 @@
 {% extends 'base.html' %}
 {% block content %}
-{{ ctx.pos.nama }}
-<ul>
-    <li>Form Isi {{ current_user.pos.tipe }}</li>
-    <li>Chart selama bulan ini</li>
-    <li>List Data bulan ini</li>
-</ul>
+<h2 class="fw-lighter">{{ ctx.pos.nama }} <span>{{ ctx.sampling.strftime('%d %b %Y') }}</span></h2>
+
+{% if ctx.pos.tipe == "1" %}
+<table id="table_ch" class="table table-bordered table-hover table-striped">
+    <thead>
+        <tr>
+            <th>Tanggal Hujan</th>
+            <th>Curah Hujan</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tanggal, data in ctx.list_data.items()|reverse %}
+        {% if tanggal|string != ctx.sampling.strftime('%d') %}
+        <tr>
+            <td>{{ tanggal }}</td>
+            <td x-data="formHujan({{ tanggal }}, {{data.ch}})">
+                <span @click.stop="openForm()">
+                    {% if data.ch %}
+                    {{ data.ch }}
+                    {% else %}
+                    <form><input type="text" name="ch" size="3"> <input type="submit" value="Simpan"></form>
+                    {% endif %}
+                </span>
+            </td>
+        </tr>
+        {% endif %}
+        {% endfor %}    
+    </tbody>
+    </table>
+{% elif ctx.pos.tipe == '2' %}
+
+<table>
+    <tbody>
+    {% for d in ctx.data_manual %}
+        <tr>
+            <td>{{ d.sampling }}</td>
+            <td>{{ d.tma }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+
+<script>
+    function formHujan(sampling, ch) {
+        return {
+            init() {
+                if (ch === undefined) {
+                    console.log(sampling, 'undefined');
+                    this.formOpen = true;
+                } else {
+                    console.log(sampling, ch);
+                }
+            },
+            formOpen: false,
+            openForm() {
+                self.formOpen = true;
+                console.log('formOpen');
+                console.log(formOpen);
+            }
+        }
+    }
+
+</script>
+
 {% endblock %}

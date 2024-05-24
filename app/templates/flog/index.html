@@ -1,24 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="grid">
-    <hgroup>
-        <h1>Fetch Log</h1>
-        <small>Hasil membaca dari server lain</small>    
-    </hgroup>
-    <div class="grid"><a href="?s={{ _sampling.strftime('%Y-%m-%d') }}">{{ _sampling.strftime('%d') }} &lt;</a> <span>{{ sampling.strftime('%Y-%m-%d') }} ({{ flogs|length }})</span> {% if sampling_ %}<a href="?s={{ sampling_.strftime('%Y-%m-%d') }}">&gt; {{ sampling_.strftime('%d') }}</a>{% else %}-{% endif %}</div>    
-</div>
-<table>
+<h2 class="border-start border-5 border-primary ps-2 fw-lighter">Riwayat Ambil Data</h2>
+
+<table class="table table-bordered table-hover table-striped">
     <thead>
         <tr>
             <th>Waktu</th>
             <th>Hasil</th>    
+            <th>URL</th>
         </tr>
     </thead>
     <tbody>
     {% for f in flogs %}
         <tr>
             <td>{{ f.cdate.strftime('%Y-%m-%d %H:%M') }}</td>
-            <td><pre>{{ f.body }}</pre></td>
+            <td>{{ f.response }} {{ f.body|length }}</td>
+            <td>{{ f.url }}</td>
         </tr>
     {% endfor %}
     </tbody>
