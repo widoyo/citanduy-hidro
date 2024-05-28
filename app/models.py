@@ -272,6 +272,20 @@ class RDaily(BaseModel):
                 out[jam]['wlevel'] = d['wlevel']
         return out
     
+    def _rain(self):
+        if not 'rain' in self.raw:
+            return None
+        data = json.loads(self.raw)
+        next_day = self.sampling + datetime.timedelta(days=1)
+        next = RDaily.select().where(RDaily.nama==self.nama, 
+                                   RDaily.sampling.year==next_day.year,
+                                   RDaily.sampling.month == next_day.month,
+                                   RDaily.sampling.day == next_day.day).first()
+        data2 = []
+        if next:
+            data2 = json.loads(next.raw)
+        return len(data), len(data2)
+        
     class Meta:
         indexes = (
             ('nama'),

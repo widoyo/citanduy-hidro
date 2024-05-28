@@ -7,6 +7,29 @@ from app import get_sampling
 bp = Blueprint('pch', __name__, url_prefix='/pch')
 
 
+@bp.route('/<int:id>/<int:tahun>/<int:bulan>')
+def show_month(id, tahun, bulan):
+    samp = "{}-{}-1".format(tahun, bulan)
+    print('samp', samp)
+    (_sampling, sampling, sampling_) = get_sampling(samp)
+    _sampling = sampling - datetime.timedelta(days=2)
+    
+    if sampling.strftime('%Y%m') >= datetime.date.today().strftime('%Y%m'):
+        sampling_ = None
+    else:
+        delta = 31 - sampling.day
+        sampling_ = sampling + datetime.timedelta(days=delta + 2)
+    
+    pos = Pos.get(id)
+    ctx = {
+        '_sampling': _sampling,
+        'sampling': sampling,
+        'sampling_': sampling_,
+        'pos': pos
+    }
+    return render_template('pch/month.html', ctx=ctx)
+
+
 @bp.route('/<id>')
 def show(id):
     pos = Pos.get(int(id))

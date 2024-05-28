@@ -20,8 +20,8 @@
         <table class="table table-bordered table-hover table-striped mt-3">
             <thead>
                 <tr>
-                    <th>Pos</th>
-                    <th>CH</th>
+                    <th class="bg-info-subtle">Pos Curah Hujan</th>
+                    <th>CH <small class="fw-lighter text-sm">{{ ctx._sampling.strftime('%d %b %Y') }}</small></th>
                 </tr>
             </thead>
             <tbody>
@@ -35,10 +35,10 @@
         </table>
     </div>
     <div class="col-6">
-        <table class="table table-bordered table-hover table-striped">
+        <table class="table table-bordered table-hover table-striped mt-3">
             <thead>
                 <tr>
-                    <th>Pos</th>
+                    <th class="bg-warning-subtle"><span>Pos Duga Air</span></th>
                     <th>TMA Pagi</th>
                     <th>TMA Siang</th>
                     <th>TMA Sore</th>

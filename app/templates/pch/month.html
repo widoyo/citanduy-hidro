@@ -6,8 +6,8 @@
     </div>
     <div class="col text-end">
         <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-outline-secondary disabled">Sehari</button>
-            <a href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y/%m') }}" role="button" class="btn btn-outline-primary">Sebulan</a>
+            <a  href="/pch/{{ ctx.pos.id }}" role="button" class="btn btn-outline-primary">Sehari</a>
+            <a disabled href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y/%m') }}" role="button" class="btn btn-outline-secondary">Sebulan</a>
           </div>
     
     </div>
@@ -16,8 +16,8 @@
 <div class="row">
 <div class="col-10">
     <div class="text-end mb-3">
-        <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-secondary me-5">{{ ctx._sampling.strftime('%d')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%d')}}</span> {{ ctx.sampling.strftime('%b') }} 
-        {% if ctx.sampling_ %}<a class="btn btn-outline-secondary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%d')}}</a>
+        <a href="/pch/{{ ctx.pos.id }}/{{ ctx._sampling.strftime('%Y/%m')}}" class="btn btn-outline-secondary me-5">{{ ctx._sampling.strftime('%b')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%b %Y')}}</span> 
+        {% if ctx.sampling_ %}<a class="btn btn-outline-secondary ms-5" href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling_.strftime('%Y/%m')}}">{{ ctx.sampling_.strftime('%b')}}</a>
         {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
     </div>
         <canvas id="myChart"></canvas>

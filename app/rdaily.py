@@ -9,7 +9,7 @@ bp = Blueprint('rdaily', __name__, url_prefix='/rdaily')
 def show(pos_name):
     (_s, s, s_) = get_sampling(request.args.get('s', None))
     
-    pos = OPos.get(OPos.nama==pos_name)    
+    pos = OPos.get(OPos.nama==pos_name)
     this_day = RDaily.select().where(RDaily.nama==pos_name, RDaily.sampling==s).first()
     this_day.tipe = pos.tipe
     ctx = {

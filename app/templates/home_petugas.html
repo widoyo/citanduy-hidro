@@ -1,12 +1,19 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2 class="fw-lighter">{{ ctx.pos.nama }} <span>{{ ctx.sampling.strftime('%d %b %Y') }}</span></h2>
+<h2 class="fw-lighter">{{ ctx.pos.nama }} <span class="fw-normal ms-3">{{ ctx.sampling.strftime('%d %b %Y') }}</span></h2>
 
 {% if ctx.pos.tipe == "1" %}
+<div class="text-end mb-3">
+    <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-secondary me-5">{{ ctx._sampling.strftime('%b')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%b %Y')}}</span>
+    {% if ctx.sampling_ %}<a class="btn btn-outline-secondary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%d')}}</a>
+    {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
+</div>
+
 <table id="table_ch" class="table table-bordered table-hover table-striped">
     <thead>
         <tr>
             <th>Tanggal Hujan</th>
+            <th>Tanggal Periksa</th>
             <th>Curah Hujan</th>
         </tr>
     </thead>
@@ -14,15 +21,18 @@
         {% for tanggal, data in ctx.list_data.items()|reverse %}
         {% if tanggal|string != ctx.sampling.strftime('%d') %}
         <tr>
-            <td>{{ tanggal }}</td>
-            <td x-data="formHujan({{ tanggal }}, {{data.ch}})">
-                <span @click.stop="openForm()">
-                    {% if data.ch %}
-                    {{ data.ch }}
-                    {% else %}
-                    <form><input type="text" name="ch" size="3"> <input type="submit" value="Simpan"></form>
-                    {% endif %}
-                </span>
+            <td>{{ tanggal }} {{ ctx.sampling.strftime('%b')}}</td>
+            <td>{{ tanggal + 1 }} {{ ctx.sampling.strftime('%b')}}</td>
+            <td class="text-end">
+                {% if data.ch %}
+                {{ data.ch }}
+                {% else %}
+                <form method="POST" action="/pos/{{ ctx.pos.id }}/manual">
+                    {{ ctx.formhujan.csrf_token }}
+                    <input type="hidden" name="pos_id" value="{{ ctx.pos.id }}">
+                    <input type="hidden" name="sampling" value="{{ ctx.sampling.strftime('%Y-%m-') }}{{ tanggal }}">
+                    <input type="text" class="text-end" name="ch" size="3"> <input type="submit" value="Simpan"></form>
+                {% endif %}
             </td>
         </tr>
         {% endif %}

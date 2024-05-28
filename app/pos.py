@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify, request, abort
+from flask import Blueprint, render_template, jsonify, request, abort, redirect
 from flask_login import current_user
 
 from app.models import Pos, ManualDaily
@@ -48,15 +48,18 @@ def upsert_manual(id):
         form = CurahHujanForm()
         if form.validate_on_submit():
             ret = {'ok': True, 'ch': form.ch.data, 
-                   'sampling': form.sampling.data, 
-                   'pos': pos.id,
-                   'username': current_user.username}
+                'sampling': form.sampling.data, 
+                'pos': pos.id,
+                'username': current_user.username}
             md = ManualDaily.create(**ret)
             print('ret', ret)
         else:
             print(form.errors)
             ret = {'ok': False, 'error': form.errors}
-    return jsonify(ret)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify(ret)
+    else:
+        return redirect('/')
 
 @bp.route('/')
 def index():
