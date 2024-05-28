@@ -145,7 +145,11 @@
         let popUpContent = `<p>${feature.properties.TOPONIMI}</p>`;
         layer.bindPopup(popUpContent);
       }
-      let lDas = L.geoJSON(null, {onEachFeature: onEachFeature}).addTo(map);
+
+      const dasStyle = (geoJsonFeature) => {
+        return {weight: 1, fillOpacity: 0.1}
+      }
+      let lDas = L.geoJSON(null, {onEachFeature: onEachFeature, style: dasStyle}).addTo(map);
       let lPch = L.layerGroup(listPch);
       let lPda = L.layerGroup(listPda);
       lPch.addTo(map);
