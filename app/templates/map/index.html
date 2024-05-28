@@ -15,7 +15,7 @@
     <style>
       img.pda { filter: hue-rotate(120deg); }
 
-      #mymap {height: 100vh; width: 100%}
+      #mymap {height: 89vh; width: 100%}
       .go-up {
         display: inline-block;
       }
@@ -31,19 +31,20 @@
       }
     </style>
   </head>
-  <body>
+  <body style="padding-top: 60px;">
     <header style="z-index: 999" class="bg-light text-white">
       <div class="container-fluid">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light border-bottom" style="box-shadow: 0px 6px 15px -5px #888;">
           <div class="container">
             <a class="navbar-brand" href="/">bbws citanduy</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            
+            <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarText">
+            <div class="navbar-collapse collapse" id="navbarText">
               <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                 <li class="nav-item px-2">
-                  <a class="nav-link" aria-current="page" href="/"><i class="bi bi-cup-hot me-1"></i> Home</a>
+                  <a class="nav-link" aria-current="page" href="/"><i class="bi bi-house me-1"></i> Home</a>
                 </li>
                 <li class="nav-item dropdown px-2">
                   <a class="nav-link dropdown-toggle" role="button" id="dropdownRtdMenuLink" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-geo-alt me-1"></i> Pos Hidrologi</a>
@@ -52,8 +53,7 @@
                     </li>
                     <li><a class="dropdown-item navlink" href="/pda"><i class="bi bi-water me-2 text-danger"></i> Duga Air</a>
                     </li>
-                    <li class="dropdown-divider"></li>
-                    <li><a class="dropdown-item navlink" href="/pos"><i class="bi bi-geo-alt me-2 text-danger"></i> Semua Pos</a>
+                    <li><a class="dropdown-item navlink" href="/pklimat"><i class="bi bi-thermometer-half me-2 text-danger"></i> Klimatologi</a>
                     </li>
                   </ul>
                 </li>
@@ -62,42 +62,48 @@
                   <ul class="dropdown-menu" araia-labelledby="dropdownRtdMenuLink">
                     <li><a class="dropdown-item navlink" href="/rdaily"><i class="bi bi-clipboard2-pulse me-2 text-danger"></i> Sehat</a>
                     </li>
+                    <li><a class="dropdown-item navlink" href="/flog"><i class="bi bi-clipboard2-pulse me-2 text-danger"></i> Riwayat Ambil Data</a>
+                    </li>
                     <li class="dropdown-divider"></li>
                     <li><a class="dropdown-item navlink" href="/rpos"><i class="bi bi-list-ul me-2 text-danger"></i> Pos Vendor</a>
                     </li>
                   </ul>
                 </li>
-                <li class="nav-item dropdown px-2">
-                  <a class="nav-link dropdown-toggle" role="button" id="dropdownMapMenuLink" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-map me-1"></i> Peta</a>
-                  <ul class="dropdown-menu" aria-labelledby="dropdownMapMenuLink">
-                    <li><a href="/map?show=pch" class="dropdown-item navlink"><i class="bi bi-cloud-rain me-2 text-danger"></i> Pos Curah Hujan</a></li>
-                    <li><a href="/map?show=pda" class="dropdown-item navlink"><i class="bi bi-water me-2 text-danger"></i> Pos Duga Air</a></li>
-                    <li class="dropdown-divider"></li>
-                    <li><a href="/map?" class="dropdown-item navlink"><i class="bi bi-geo-alt me-2 text-danger"></i> Semua Pos</a></li>
-                  </ul>
+                <li class="nav-item px-2">
+                  <a href="/map" class="nav-link"><i class="bi bi-geo-alt me-1"></i> Peta</a>
                 </li>
-                </ul>
-                <ul class="navbar-nav">
-                {% if current_user.is_authenticated %}
+              </ul>
+              <ul class="navbar-nav">
+                  {% if current_user.is_authenticated %}
                 <li class="nav-item dropdown">
-                  <a href="#" class="nav-link dropdown-toggle" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-person-fill me-1"></i> {{ current_user.username }}</a>
+                  <a href="#" class="nav-link dropdown-toggle" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-person-fill {% if current_user.is_admin %}text-danger {% endif %}me-1"></i> {{ current_user.username }}</a>
                   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink">
+                    {% if current_user.is_admin %}
+                    
+                    <li><a href="/pos/manual" class="dropdown-item navlink"><i class="bi bi-geo-alt me-2 text-danger"></i> Data Manual</a></li>
                     <li>
                       <hr class="dropdown-divider">
                     </li>
+                    <li><a href="/user" class="dropdown-item navlink"><i class="bi bi-person me-2 text-danger"></i> User</a></li>
+                    <li><a href="/petugas" class="dropdown-item navlink"><i class="bi bi-person me-2 text-danger"></i> Petugas Pos</a></li>
+                    <li><a href="/pos" class="dropdown-item navlink"><i class="bi bi-geo-alt me-2 text-danger"></i> Pos Hidrologi</a></li>
+                    {% else %}
+                    <li><a href="/me" class="dropdown-item navlink"><i class="bi bi-person me-2 text-danger"></i> Profile</a></li>
+                    <li>
+                      <hr class="dropdown-divider">
+                    </li>
+                    {% endif %}
                     <li><a href="/logout" class="dropdown-item navlink"><i class="bi bi-power text-danger me-2"></i> Logout</a></li>   
                   </ul>
                 </li>
-              {% else %}
-                <li class="nav-item">
-                  <a class="nav-link btn btn-outline-secondary py-1" href="/login">Login</a>
-                </li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="/login"><i class="bi bi-power text-danger me-2"></i> Login</a></li>
                 {% endif %}
               </ul>
             </div>
           </div>
-        </nav>        
-      </div>
+        </nav>
+        </div>
     </header>
     <div class="w-100" id="mymap">hello</div>
     <!-- Back to top button -->
@@ -123,12 +129,22 @@
         popupAnchor: [1, -34],
         shadowSize: [41, 41]
       });
+      const klimatIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
       let pchs = [{% for p in ctx.pos_ch %}{% if p.ll %}{name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elev: {{ p.elevasi or 0 }}},{% endif %}{% endfor %}];
       let pdas = [{% for p in ctx.pos_da %}{% if p.ll %}{name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elev: {{ p.elevasi or 0 }}},{% endif %}{% endfor %}];
+      let pklimats = [{% for p in ctx.pos_klimats %}{% if p.ll %}{name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elev: {{ p.elevasi or 0 }}},{% endif %}{% endfor %}];
       let map = L.map('mymap');
       let all_poses = L.featureGroup().addTo(map);
       let listPch = [];
       let listPda = [];
+      let listKlimat = [];
       for (let i =0; i < pchs.length; i++) {
         let marker = L.marker(pchs[i].ll, {title: pchs[i].name});
         marker.bindPopup(pchs[i].name);
@@ -141,6 +157,12 @@
         all_poses.addLayer(marker);
         listPda.push(marker);
       }
+      for (let i =0; i < pklimats.length; i++) {
+        let marker = L.marker(pklimats[i].ll, {title: pklimats[i].name, icon: klimatIcon});
+        marker.bindPopup(pklimats[i].name)
+        all_poses.addLayer(marker);
+        listKlimat.push(marker);
+      }
       const onEachFeature = (feature, layer) => {
         let popUpContent = `<p>${feature.properties.TOPONIMI}</p>`;
         layer.bindPopup(popUpContent);
@@ -152,8 +174,10 @@
       let lDas = L.geoJSON(null, {onEachFeature: onEachFeature, style: dasStyle}).addTo(map);
       let lPch = L.layerGroup(listPch);
       let lPda = L.layerGroup(listPda);
+      let lKlimat = L.layerGroup(listKlimat);
       lPch.addTo(map);
       lPda.addTo(map);
+      lKlimat.addTo(map);
       loadDas(lDas);
 
       let posMap = {"Pos Curah Hujan": lPch, 
