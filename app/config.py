@@ -9,6 +9,7 @@ SECRET_KEY = environ.get('SECRET')
 SOURCE_A = environ.get('SDATELEMETRY_URL')
 SOURCE_B = environ.get('TELEMET_URL')
 SOURCE_C = environ.get('LUWES_URL')
+SDATELEMETRY_POS_EXCLUDES = environ.get('SDATELEMETRY_POS_EXCLUDES')
 DATABASE = {
     'engine': 'playhouse.pool.PooledPostgresqlDatabase',
     'name': DBNAME,

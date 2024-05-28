@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request
 import datetime
 from app.models import RDaily, OPos
 from app import get_sampling
+from app.config import SDATELEMETRY_POS_EXCLUDES
 
 bp = Blueprint('rdaily', __name__, url_prefix='/rdaily')
 
@@ -29,6 +30,9 @@ def index():
                                        RDaily.sampling.year==sampling.year, 
                                        RDaily.sampling.month==sampling.month, 
                                        RDaily.sampling.day==sampling.day)
+    
+    pos_excludes = SDATELEMETRY_POS_EXCLUDES.split(';')
+    sa_dailies = [s for s in sa_dailies if s.nama not in pos_excludes]
     for s in sa_dailies:
         s.tipe = poses[s.nama].tipe
     sb_dailies = RDaily.select().where(RDaily.source=='SB', 
