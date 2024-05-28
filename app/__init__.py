@@ -212,6 +212,7 @@ def register_bluprint(app):
     from app.user import bp as bp_user
     from app.map import bp as bp_map
     from app.petugas import bp as bp_petugas
+    from app.pklimat import bp as bp_klimat
     
     app.register_blueprint(bp_pch)
     app.register_blueprint(bp_pda)
@@ -222,3 +223,4 @@ def register_bluprint(app):
     app.register_blueprint(bp_user)
     app.register_blueprint(bp_map)
     app.register_blueprint(bp_petugas)
+    app.register_blueprint(bp_klimat)
