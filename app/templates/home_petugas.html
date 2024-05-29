@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2 class="fw-lighter">{{ ctx.pos.nama }} <span class="fw-normal ms-3">{{ ctx.sampling.strftime('%d %b %Y') }}</span></h2>
+<h2 class="fw-lighter">{{ ctx.pos.nama }}</h2>
 
 {% if ctx.pos.tipe == "1" %}
 <div class="text-end mb-3">
     <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-secondary me-5">{{ ctx._sampling.strftime('%b')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%b %Y')}}</span>
-    {% if ctx.sampling_ %}<a class="btn btn-outline-secondary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%d')}}</a>
+    {% if ctx.sampling_ %}<a class="btn btn-outline-secondary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%b')}}</a>
     {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
 </div>
 
@@ -19,34 +19,43 @@
     </thead>
     <tbody>
         {% for tanggal, data in ctx.list_data.items()|reverse %}
-        {% if tanggal|string != ctx.sampling.strftime('%d') %}
         <tr>
             <td>{{ tanggal }} {{ ctx.sampling.strftime('%b')}}</td>
             <td>{{ tanggal + 1 }} {{ ctx.sampling.strftime('%b')}}</td>
-            <td class="text-end">
-                {% if data.ch %}
-                {{ data.ch }}
+            {% if data.ch %}
+            <td class="text-end" x-data="FormHujan({{ctx.pos.id}}, {{ tanggal }}, {{ data.ch }})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                 {% else %}
-                <form method="POST" action="/pos/{{ ctx.pos.id }}/manual">
-                    {{ ctx.formhujan.csrf_token }}
-                    <input type="hidden" name="pos_id" value="{{ ctx.pos.id }}">
-                    <input type="hidden" name="sampling" value="{{ ctx.sampling.strftime('%Y-%m-') }}{{ tanggal }}">
-                    <input type="text" class="text-end" name="ch" size="3"> <input type="submit" value="Simpan"></form>
+                <td class="text-end" x-data="FormHujan({{ctx.pos.id}}, {{ tanggal }}, {{ data.ch }})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                 {% endif %}
-            </td>
         </tr>
-        {% endif %}
         {% endfor %}    
     </tbody>
     </table>
 {% elif ctx.pos.tipe == '2' %}
 
-<table>
-    <tbody>
-    {% for d in ctx.data_manual %}
+<table class="table table-bordered table-hover table-striped">
+    <thead>
         <tr>
-            <td>{{ d.sampling }}</td>
-            <td>{{ d.tma }}</td>
+            <th>Tanggal</th>
+            <th>Jam 7</th>
+            <th>Jam 12</th>
+            <th>Jam 17</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tanggal, d in ctx.list_data.items()|reverse %}
+        <tr>
+            <td>{{ tanggal }}</td>
+            {% if d.get('tma') %}
+            <td class="text-end" x-data="formTma({{ctx.pos.id}}, '{{tanggal}}', '07', {{ d.get('tma').get('07') or undefined }})" x-html="cnt" @click="openForm()" @click.outside="closeForm()">{{ d.get('tma').get('07') or '' }}</td>
+            <td class="text-end" x-data="formTma({{ctx.pos.id}}, '{{tanggal}}', '12', {{ d.get('tma').get('12') or undefined }})" x-html="cnt" @click="openForm()" @click.outside="closeForm()">{{ d.get('tma').get('12') or '' }}</td>
+            <td class="text-end" x-data="formTma({{ctx.pos.id}}, '{{tanggal}}', '17', {{ d.get('tma').get('17') or undefined }})" x-html="cnt" @click="openForm()" @click.outside="closeForm()">{{ d.get('tma').get('17') or '' }}</td>
+            {% else %}
+            <td class="text-end" x-data="formTma({{ctx.pos.id}}, '{{tanggal}}', '07', )" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
+            <td class="text-end" x-data="formTma({{ctx.pos.id}}, '{{tanggal}}', '12', )" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
+            <td class="text-end" x-data="formTma({{ctx.pos.id}}, '{{tanggal}}', '17', )" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
+    {% endif %}
+            
         </tr>
     {% endfor %}
     </tbody>
@@ -55,25 +64,89 @@
 
 
 <script>
-    function formHujan(sampling, ch) {
+    // Form TMA
+    function formTma(id, tgl, jam, tma) {
         return {
-            init() {
-                if (ch === undefined) {
-                    console.log(sampling, 'undefined');
-                    this.formOpen = true;
-                } else {
-                    console.log(sampling, ch);
-                }
+            cnt: tma === undefined ? '...': tma,
+            prevVal: tma,
+            formData: {
+                tma: undefined,
+                jam: jam,
+                sampling: '{{ ctx.sampling.strftime('%Y-%m-')}}'.concat(tgl) 
             },
-            formOpen: false,
             openForm() {
-                self.formOpen = true;
-                console.log('formOpen');
-                console.log(formOpen);
+                this.cnt = `<form @submit.prevent='submitForm'>
+                    <input type='hidden' name='jam' x-model='formData.jam'>
+                    <input type='text' name='tma' size='3' autofous style='text-align:right' x-model='formData.tma'>
+                    <input type='submit' value='>' class='ms-2 px-3'>
+                    </form>`;
+            },
+            submitForm() {
+                fetch('/pos/'+id+'/manual', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token() }}",
+                        Accept: "application/json"
+                    },
+                    body: JSON.stringify(this.formData),
+                }).then((e) => {
+                    this.cnt = this.formData.tma;
+                    this.prevVal = this.formData.tma;
+                    console.log('sukses');
+                    console.log(e);
+                }).catch((e) => {
+                    console.log('error');
+                    console.log(e);
+                });
+            },
+            closeForm() {
+                this.cnt = this.prevVal === undefined ? '...': this.prevVal;
             }
+
         }
     }
 
+    // Form Curah Hujan
+    function FormHujan(id, tgl, ch, opened=false) {
+        return {
+            opened: opened,
+            curVal: ch,
+            cnt: ch === undefined ? '...': ch,
+            formData: {
+                ch,
+                sampling: '{{ ctx.sampling.strftime('%Y-%m-')}}'.concat(tgl) 
+            },
+            openForm() {
+                this.cnt = `<form @submit.prevent='submitForm'>
+                    <input type='text' name='ch' size='3' style='text-align:right' autofocus x-model='formData.ch'>
+                    <input type='submit' value='&gt;' class='ms-2 px-3'>
+                    </form>`;
+            },
+            submitForm() {
+                fetch('/pos/'+id+'/manual', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token() }}",
+                        Accept: "application/json"
+                    },
+                    body: JSON.stringify(this.formData),
+                }).then((e) => {
+                    this.cnt = this.formData.ch;
+                    this.curVal = this.formData.ch;
+                    console.log('sukses');
+                    console.log(e);
+                }).catch((e) => {
+                    console.log('error');
+                    console.log(e);
+                });
+            },
+            closeForm() {
+                this.cnt = this.curVal===undefined ? '...' : this.curVal;
+            }
+        }
+    }
 </script>
 
 {% endblock %}

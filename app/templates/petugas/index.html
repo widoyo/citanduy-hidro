@@ -8,6 +8,7 @@
             <th>Nama</th>
             <th>HP</th>
             <th>Alamat</th>
+            <th>Kabupaten</th>
             <th>Pos</th>
         </tr>
     </thead>
@@ -18,8 +19,9 @@
             <td>{{ p.nama }}</td>
             <td>{{ p.hp }}</td>
             <td>{{ p.dusun }}, RT {{ p.rt}} RW {{ p.rw }}<br>
-            {{ p.desa }}, {{ p.kecamatan }}, {{ p.kabupaten }}</td>
-            <td>{% if p.tipe == '1' %}<span class="badgepch">PCH</span>{% else %}<span class="badgepda">PDA</span>{% endif %}</td>
+            {{ p.desa }}, {{ p.kecamatan }}</td>
+            <td>{{ p.kabupaten }}</td>
+            <td>{{ p.pos.nama }}</td>
 
         </tr>
     {% endfor %}

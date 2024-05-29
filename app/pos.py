@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, jsonify, request, abort, redirect
 from flask_login import current_user
+import json
 
 from app.models import Pos, ManualDaily
 from app import get_sampling
@@ -14,23 +15,26 @@ def manual():
     if not current_user.is_admin:
         abort(404)
     (_s, s, s_) = get_sampling(request.args.get('s', None))
-    data = ManualDaily.select().where(ManualDaily.sampling==s)
-    data_manual_pch = dict([(p.pos.id, p.ch) for p in data if p.pos.tipe=='1'])
-    data_manual_pda = dict([(p.pos.id, p.tma) for p in data if p.pos.tipe=='2'])
+    data_pch = ManualDaily.select().where(ManualDaily.sampling==_s.strftime('%Y-%m-%d'))
+    data_other = ManualDaily.select().where(ManualDaily.sampling==s.strftime('%Y-%m-%d'))
+
+    data_manual_pch = dict([(p.pos.id, p.ch) for p in data_pch if p.pos.tipe=='1'])
+    data_manual_pda = dict([(p.pos.id, p._tma) for p in data_other if p.pos.tipe=='2'])
+
     data = Pos.select().order_by(Pos.tipe, Pos.nama)
     pch = [p for p in data if p.tipe=='1']
+
     for p in pch:
         if p.id in data_manual_pch:
             p.ch = data_manual_pch[p.id]
         else:
-            p.ch = '-99'
+            p.ch = ''
     pda = [p for p in data if p.tipe=='2']
     for p in pda:
         if p.id in data_manual_pda:
             p.tma = data_manual_pda[p.id]
         else:
-            p.tma = '-99'
-        
+            p.tma = None
     ctx = {
         '_sampling': _s,
         'sampling': s,
@@ -56,7 +60,32 @@ def upsert_manual(id):
         else:
             print(form.errors)
             ret = {'ok': False, 'error': form.errors}
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    elif pos.tipe == '2':
+        form = TmaForm()
+        if form.validate_on_submit():
+            md = ManualDaily.select().where(
+                ManualDaily.pos==pos, 
+                ManualDaily.sampling==form.sampling.data).first()
+            if md:
+                tma = json.loads(md.tma)
+                tma.update({str(form.jam.data): form.tma.data})
+                md.tma = json.dumps(tma)
+                md.save()
+                ret = {'ok': True, 'tma': tma,
+                    'sampling': form.sampling.data,
+                    'pos': pos.id,
+                    'username': current_user.username}
+            else:
+                tma = json.dumps({str(form.jam.data): form.tma.data})
+                ret = {'ok': True, 'tma': tma,
+                    'sampling': form.sampling.data,
+                    'pos': pos.id,
+                    'username': current_user.username}
+                md = ManualDaily.create(**ret)
+        else:
+            print(form.errors)
+            ret = {'ok': False, 'error': form.errors}
+    if request.headers.get('Content-Type') == 'application/json':
         return jsonify(ret)
     else:
         return redirect('/')

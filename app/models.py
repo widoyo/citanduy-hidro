@@ -10,6 +10,7 @@ from app import db_wrapper
 
 
 SUNGAI_LIST = 'Citanduy_Ciseel_Cibeureum_Cijolang_Cileueur'.split('_')
+PCH_MAP = dict([(44, 'PCH Ciamis'), (45, 'PCH Cibariwal')])
 
 class BaseModel(db_wrapper.Model):
     pass
@@ -275,7 +276,9 @@ class RDaily(BaseModel):
     def _rain(self):
         if not 'rain' in self.raw:
             return None
+        rain24 = dict([(i, {'count': 0, 'rain': 0.0}) for i in range(7,24)] + [(i, {'count': 0, 'rain': 0.0}) for i in range(7)])
         data = json.loads(self.raw)
+        data = [d for d in data if datetime.datetime.fromisoformat(d.get('sampling')).hour > 6]
         next_day = self.sampling + datetime.timedelta(days=1)
         next = RDaily.select().where(RDaily.nama==self.nama, 
                                    RDaily.sampling.year==next_day.year,
@@ -284,7 +287,22 @@ class RDaily(BaseModel):
         data2 = []
         if next:
             data2 = json.loads(next.raw)
-        return len(data), len(data2)
+            data2 = [d for d in data2 if datetime.datetime.fromisoformat(d.get('sampling')).hour < 7]
+        data += data2
+        j, c, r = '', 0, 0.0
+        for d in data:
+            jam = d.get('sampling')[11:13]
+            if j != jam:
+                if j != '':
+                    rain24[int(j)] = {'count': c, 'rain': r}
+                j = jam
+                c = 1
+                r = 0.0
+            else:
+                c += 1
+                r += float(d.get('rain'))
+        
+        return rain24
         
     class Meta:
         indexes = (
@@ -351,9 +369,15 @@ class ManualDaily(BaseModel):
     username = pw.CharField(max_length=20)
     sampling = pw.DateField()
     ch = pw.FloatField(null=True)
-    tma = pw.TextField(null=True) # JSON {'pagi': ?, 'siang': ? 'sore': ?}
+    tma = pw.TextField(null=True) # JSON {'7': ?, '12': ? '17': ?}
     cdate = pw.DateTimeField(default=datetime.datetime.now)
 
+    @property
+    def _tma(self):
+        if not self.tma:
+            return None
+        return json.loads(self.tma)
+    
     class Meta:
         indexes = (
             (('pos', 'sampling'), True),

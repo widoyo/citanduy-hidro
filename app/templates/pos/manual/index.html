@@ -20,13 +20,14 @@
         <table class="table table-bordered table-hover table-striped mt-3">
             <thead>
                 <tr>
-                    <th class="bg-info-subtle">Pos Curah Hujan</th>
-                    <th>CH <small class="fw-lighter text-sm">{{ ctx._sampling.strftime('%d %b %Y') }}</small></th>
+                    <th colspan="2" class="bg-info-subtle">Pos Curah Hujan</th>
+                    <th>CH <small class="fw-bold text-danger text-sm">{{ ctx._sampling.strftime('%d %b %Y') }}</small></th>
                 </tr>
             </thead>
             <tbody>
             {% for d in ctx.pch %}
                 <tr>
+                    <td>{{ loop.index }}</td>
                     <td>{{ d.nama }}</td>
                     <td class="text-end" x-data="FormHujan({{d.id}}, {{d.ch}})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                 </tr>
@@ -38,7 +39,7 @@
         <table class="table table-bordered table-hover table-striped mt-3">
             <thead>
                 <tr>
-                    <th class="bg-warning-subtle"><span>Pos Duga Air</span></th>
+                    <th colspan="2" class="bg-warning-subtle"><span>Pos Duga Air</span></th>
                     <th>TMA Pagi</th>
                     <th>TMA Siang</th>
                     <th>TMA Sore</th>
@@ -47,10 +48,11 @@
             <tbody>
             {% for p in ctx.pda %}
                 <tr>
+                    <td>{{ loop.index }}</td>
                     <td>{{ p.nama }}</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td class="text-end" x-data="formTma({{p.id}}, '07', {% if p.tma %}{{ p.tma['07'] }}{% endif %})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
+                    <td class="text-end" x-data="formTma({{p.id}}, '12', {% if p.tma %}{{ p.tma['12'] }}{% endif %})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
+                    <td class="text-end" x-data="formTma({{p.id}}, '17', {% if p.tma %}{{ p.tma['17'] }}{% endif %})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -59,16 +61,62 @@
     </div>
 </div>
 <script>
-    function FormHujan(id, ch) {
+    // Form TMA
+    function formTma(id, jam, tma) {
         return {
-            cnt: ch == '' ? '?': ch,
+            cnt: tma === undefined ? '...': tma,
+            prevVal: tma,
             formData: {
-                ch,
+                tma: undefined,
+                jam: jam,
                 sampling: '{{ ctx.sampling.strftime('%Y-%m-%d')}}'
             },
             openForm() {
                 this.cnt = `<form @submit.prevent='submitForm'>
-                    <input type='text' name='ch' size='3' style='text-align:right' x-model='formData.ch'>
+                    <input type='hidden' name='jam' x-model='formData.jam'>
+                    <input type='text' name='tma' size='3' autofous style='text-align:right' x-model='formData.tma'>
+                    <input type='submit' value='>' class='ms-2 px-3'>
+                    </form>`;
+            },
+            submitForm() {
+                fetch('/pos/'+id+'/manual', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token() }}",
+                        Accept: "application/json"
+                    },
+                    body: JSON.stringify(this.formData),
+                }).then((e) => {
+                    this.cnt = this.formData.tma;
+                    this.prevVal = this.formData.tma;
+                    console.log('sukses');
+                    console.log(e);
+                }).catch((e) => {
+                    console.log('error');
+                    console.log(e);
+                });
+            },
+            closeForm() {
+                this.cnt = this.prevVal === undefined ? '...': this.prevVal;
+            }
+
+        }
+    }
+
+    // Form Curah Hujan
+    function FormHujan(id, ch, opened=false) {
+        return {
+            opened: opened,
+            curVal: ch,
+            cnt: ch === undefined ? '...': ch,
+            formData: {
+                ch,
+                sampling: '{{ ctx._sampling.strftime('%Y-%m-%d')}}'
+            },
+            openForm() {
+                this.cnt = `<form @submit.prevent='submitForm'>
+                    <input type='text' name='ch' size='3' style='text-align:right' autofocus x-model='formData.ch'>
                     <input type='submit' value='&gt;' class='ms-2 px-3'>
                     </form>`;
             },
@@ -83,6 +131,7 @@
                     body: JSON.stringify(this.formData),
                 }).then((e) => {
                     this.cnt = this.formData.ch;
+                    this.curVal = this.formData.ch;
                     console.log('sukses');
                     console.log(e);
                 }).catch((e) => {
@@ -91,7 +140,7 @@
                 });
             },
             closeForm() {
-                
+                this.cnt = this.curVal===undefined ? '...' : this.curVal;
             }
         }
     }

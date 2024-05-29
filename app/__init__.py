@@ -173,11 +173,20 @@ def create_app():
                 pos = current_user.pos
                     
                 (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
-                list_data = dict([(i+1, {}) for i in range(sampling.day)])
-                _sampling = _sampling.replace(day=1) - datetime.timedelta(days=1)
+                today = datetime.date.today()
+                list_data = {}
+                if sampling.strftime('%Y%m') == today.strftime('%Y%m'):
+                    list_data = dict([(i+1, {}) for i in range(today.day)])
+                    sampling_ = None
+                elif sampling.strftime('%Y%m') < today.strftime('%Y%m'):
+                    sampling_ = (sampling.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
+                    list_data = dict([(i+1, {}) for i in range((sampling_ - datetime.timedelta(days=1)).day)])
+                    
+                _sampling = sampling.replace(day=1) - datetime.timedelta(days=1)
+
                 formhujan.sampling.data = sampling
                 formtma.sampling.data = sampling
-                data_manual = dict([(md.sampling.day, {'ch': md.ch, 'tma': md.tma}) for md in ManualDaily.select().where(ManualDaily.sampling.year==sampling.year,
+                data_manual = dict([(md.sampling.day, {'ch': md.ch, 'tma': md._tma}) for md in ManualDaily.select().where(ManualDaily.sampling.year==sampling.year,
                                                        ManualDaily.sampling.month==sampling.month,
                                                        ManualDaily.pos==pos)])
                 for i, d in list_data.items():
