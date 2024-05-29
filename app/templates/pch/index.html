@@ -30,10 +30,8 @@
                     <td></td>
                     <td></td>
                     <td style="background-color:#F1F1F1"></td>
-                    <td style="background-color: #D7FBC1;">
-                        {% if editable %}Hallo
-                        {% else %}<span x-data="UpSertManual({{p.id}})"><span x-html="cnt" @click.outside="closeForm()" x-on:click="openForm()"></span></span>
-                        {% endif %}</td>
+                    <td class="text-end" style="background-color: #D7FBC1;">
+                        {{ p.ch }}
                 </tr>
             {% else %}
             {% endfor %}

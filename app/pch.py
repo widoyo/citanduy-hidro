@@ -2,7 +2,7 @@ import datetime
 from flask import Blueprint, render_template, request
 from flask_login import current_user
 
-from app.models import Pos, RDaily, PCH_MAP
+from app.models import Pos, RDaily, ManualDaily, PCH_MAP
 from app import get_sampling
 bp = Blueprint('pch', __name__, url_prefix='/pch')
 
@@ -53,8 +53,15 @@ def show(id):
 def index():
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     user = current_user
-    editable = user.is_admin and sampling.date() < datetime.date.today()
+    if user.is_anonymous:
+        editable = False
+    else:
+        editable = user.is_admin and sampling.date() < datetime.date.today()
     pchs = Pos.select().where(Pos.tipe=='1').order_by(Pos.nama)
+    data_manual = dict([(m.pos.id, m.ch) for m in ManualDaily.select().where(ManualDaily.sampling==sampling.strftime('%Y-%m-%d'))])
+    for p in pchs:
+        if p.id in data_manual:
+            p.ch = data_manual[p.id]
     return render_template('pch/index.html', pchs=pchs, 
                            sampling=sampling, _sampling=_sampling, 
                            sampling_=sampling_, editable=editable)
