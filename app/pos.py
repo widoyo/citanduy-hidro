@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, jsonify, request, abort, redirect
 from flask_login import current_user
 import json
 
-from app.models import Pos, ManualDaily
+from app.models import Pos, ManualDaily, PosMap
 from app import get_sampling
 from app.forms import CurahHujanForm, TmaForm
 bp = Blueprint('pos', __name__, url_prefix='/pos')
@@ -92,5 +92,9 @@ def upsert_manual(id):
 
 @bp.route('/')
 def index():
+    pm = dict([(p.pos.id, p.source) for p in PosMap.select()])
     poses = Pos.select().order_by(Pos.tipe, Pos.nama, Pos.elevasi.desc())
+    for p in poses:
+        if p.id in pm:
+            p.source = pm[p.id]
     return render_template('pos/index.html', poses=poses)

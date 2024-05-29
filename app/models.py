@@ -349,10 +349,8 @@ class Petugas(BaseModel):
 
 
 class PosMap(BaseModel):
-    source = pw.CharField(max_length=3)
-    dari = pw.CharField(max_length=50)
-    ke = pw.CharField(max_length=50)
-    ke_id = pw.IntegerField(null=True)
+    pos = pw.ForeignKeyField(Pos, unique=True)
+    source = pw.CharField(max_length=30)
     
     
 class LuwesPos(BaseModel):
