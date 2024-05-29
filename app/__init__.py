@@ -166,45 +166,41 @@ def create_app():
         background: -webkit-linear-gradient(to right, #6dd5ed, #2193b0);  /* Chrome 10-25, Safari 5.1-6 */
         background: linear-gradient(to right, #6dd5ed, #2193b0); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
         '''
-        if current_user.is_authenticated:
-            try:
-                formhujan = CurahHujanForm()
-                formtma = TmaForm()
-                pos = current_user.pos
-                    
-                (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
-                today = datetime.date.today()
-                list_data = {}
-                if sampling.strftime('%Y%m') == today.strftime('%Y%m'):
-                    list_data = dict([(i+1, {}) for i in range(today.day)])
-                    sampling_ = None
-                elif sampling.strftime('%Y%m') < today.strftime('%Y%m'):
-                    sampling_ = (sampling.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
-                    list_data = dict([(i+1, {}) for i in range((sampling_ - datetime.timedelta(days=1)).day)])
-                    
-                _sampling = sampling.replace(day=1) - datetime.timedelta(days=1)
+        if current_user.is_authenticated and current_user.pos is not None:
+            formhujan = CurahHujanForm()
+            formtma = TmaForm()
+            pos = current_user.pos
+                
+            (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
+            today = datetime.date.today()
+            list_data = {}
+            if sampling.strftime('%Y%m') == today.strftime('%Y%m'):
+                list_data = dict([(i+1, {}) for i in range(today.day)])
+                sampling_ = None
+            elif sampling.strftime('%Y%m') < today.strftime('%Y%m'):
+                sampling_ = (sampling.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
+                list_data = dict([(i+1, {}) for i in range((sampling_ - datetime.timedelta(days=1)).day)])
+                
+            _sampling = sampling.replace(day=1) - datetime.timedelta(days=1)
 
-                formhujan.sampling.data = sampling
-                formtma.sampling.data = sampling
-                data_manual = dict([(md.sampling.day, {'ch': md.ch, 'tma': md._tma}) for md in ManualDaily.select().where(ManualDaily.sampling.year==sampling.year,
-                                                       ManualDaily.sampling.month==sampling.month,
-                                                       ManualDaily.pos==pos)])
-                for i, d in list_data.items():
-                    if i in data_manual:
-                        list_data[i].update(data_manual.get(i))
-                ctx = {
-                    'pos': pos,
-                    'list_data': list_data,
-                    'sampling': sampling,
-                    '_sampling': _sampling,
-                    'sampling_': sampling_,
-                    'formhujan': formhujan,
-                    'formtma': formtma,
-                    'data_manual': data_manual
-                }
-                return render_template('home_petugas.html', ctx=ctx)
-            except Pos.DoesNotExist:
-                return render_template('index.html')
+            formhujan.sampling.data = sampling
+            formtma.sampling.data = sampling
+            data_manual = dict([(md.sampling.day, {'ch': md.ch, 'tma': md._tma}) for md in ManualDaily.select().where(ManualDaily.sampling.year==sampling.year,
+                                                    ManualDaily.sampling.month==sampling.month,
+                                                    ManualDaily.pos==pos)])
+            for i, d in list_data.items():
+                if i in data_manual:
+                    list_data[i].update(data_manual.get(i))
+            ctx = {
+                'pos': pos,
+                'list_data': list_data,
+                'sampling': sampling,
+                '_sampling': _sampling,
+                'sampling_': sampling_,
+                'formhujan': formhujan,
+                'formtma': formtma,
+            }
+            return render_template('home_petugas.html', ctx=ctx)
         else:
             return render_template('index.html')
                 
