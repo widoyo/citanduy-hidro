@@ -276,7 +276,7 @@ class RDaily(BaseModel):
     def _rain(self):
         if not 'rain' in self.raw:
             return None
-        rain24 = dict([(i, {'count': 0, 'rain': 0.0}) for i in range(7,24)] + [(i, {'count': 0, 'rain': 0.0}) for i in range(7)])
+        rain_hourly = dict([(i, {'count': 0, 'rain': 0.0}) for i in range(7,24)] + [(i, {'count': 0, 'rain': 0.0}) for i in range(7)])
         data = json.loads(self.raw)
         data = [d for d in data if datetime.datetime.fromisoformat(d.get('sampling')).hour > 6]
         next_day = self.sampling + datetime.timedelta(days=1)
@@ -290,19 +290,22 @@ class RDaily(BaseModel):
             data2 = [d for d in data2 if datetime.datetime.fromisoformat(d.get('sampling')).hour < 7]
         data += data2
         j, c, r = '', 0, 0.0
+        count, rain24 = 0, 0
         for d in data:
             jam = d.get('sampling')[11:13]
             if j != jam:
                 if j != '':
-                    rain24[int(j)] = {'count': c, 'rain': r}
+                    rain_hourly[int(j)] = {'count': c, 'rain': r}
                 j = jam
                 c = 1
-                r = 0.0
+                r = float(d.get('rain'))
             else:
                 c += 1
                 r += float(d.get('rain'))
+            count += 1
+            rain24 += float(d.get('rain'))
         
-        return rain24
+        return {'count24': count, 'rain24': rain24, 'hourly': rain_hourly}
         
     class Meta:
         indexes = (

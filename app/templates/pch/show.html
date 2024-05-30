@@ -37,44 +37,67 @@
   new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: [{%if ctx.this_day %}{% for k, r in ctx.this_day._rain().items() %}{% if k == 7 %}'{{ ctx.sampling.strftime("%Y-%m-%d") }} {{k}}'{% elif k== 0 and ctx.sampling_ %}'{{ ctx.sampling_.strftime("%Y-%m-%d") }} {{k}}'{% else %}{{k}} {% endif %},{% endfor %}{% endif %}],
+      labels: [{%if ctx.this_day %}{% for k, r in ctx.this_day._rain().get('hourly').items() %}{% if k == 7 %}'{{ ctx.sampling.strftime("%Y-%m-%d") }} {{k}}'{% elif k== 0 and ctx.sampling_ %}'{{ ctx.sampling_.strftime("%Y-%m-%d") }} {{k}}'{% else %}{{k}} {% endif %},{% endfor %}{% endif %}],
       datasets: [{
-        label: 'Curah Hujan',
+        label: 'CH Telemetri',
         backgroundColor: 'rgb(0,191,255)',
-        borderColor: 'rgb(255, 99, 132)',
-        data: [{%if ctx.this_day %}{% for k, r in ctx.this_day._rain().items() %}{{ r.rain }},{% endfor %}{% endif %}],
-        borderWidth: 1,
+        data: [{%if ctx.this_day %}{% for k, r in ctx.this_day._rain().get('hourly').items() %}{{ r.rain }},{% endfor %}{% endif %}],
+        borderWidth: 0,
         yAxisID: 'yrain'
       },
       {
         label: 'Banyak Data',
         backgroundColor: 'rgba(211, 211, 211, 0.5)',
-        borderColor: 'rgb(99, 99, 99)',
-        data: [{%if ctx.this_day %}{% for k, r in ctx.this_day._rain().items() %}{{ r.count }},{% endfor %}{% endif %}],
-        borderWidth: 1,
+        data: [{%if ctx.this_day %}{% for k, r in ctx.this_day._rain().get('hourly').items() %}{{ r.count }},{% endfor %}{% endif %}],
+        borderWidth: 0,
         yAxisID: 'ycount'
       }
       ]
     },
     options: {
+      plugins: {
+        title: {
+          display: true,
+          font: {
+            size: '32pt',
+            weight: 'lighter'
+          },
+          text: 'Hujan per Jam'
+      },
+
+      },
       scales: {
         x: {
           title: {
             display: true,
             text: 'Jam',
-            align: 'end'
+            align: 'end',
+            font: {
+              size: '32pt'
+            }
           }
         },
         yrain: {
           title: {
             display: true,
             text: 'mm',
-            align: 'end'
+            align: 'end',
+            font: {
+              size: '32pt'
+            }
           },
           beginAtZero: true,
           max: 20
         },
         ycount: {
+          grid: {
+            display: false
+          },
+          title: {
+            display: true,
+            text: 'Banyak Data',
+            align: 'end',
+          },
           position: 'right',
           max: 12
         }
