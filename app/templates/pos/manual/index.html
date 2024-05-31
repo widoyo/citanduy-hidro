@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="row mb-3">
-    <div class="col-6">
+    <div class="col-sm-6">
         <h2 class="border-start border-5 border-danger ps-2 fw-lighter">Data Manual</h2>
     </div>
-    <div class="col-6">
+    <div class="col-sm-6">
         <div class="text-end">
             <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-secondary me-5">{{ ctx._sampling.strftime('%d')}}</a> 
             <span class="fs-3">{{ ctx.sampling.strftime('%d')}}</span> {{ ctx.sampling.strftime('%b') }} 
@@ -16,7 +16,7 @@
 </div>
 
 <div class="row">
-    <div class="col-6">
+    <div class="col-sm-6">
         <table class="table table-bordered table-hover table-striped mt-3">
             <thead>
                 <tr>
@@ -35,7 +35,7 @@
             </tbody>
         </table>
     </div>
-    <div class="col-6">
+    <div class="col-sm-6">
         <table class="table table-bordered table-hover table-striped mt-3">
             <thead>
                 <tr>
