@@ -20,14 +20,13 @@
         <table class="table table-bordered table-hover table-striped mt-3">
             <thead>
                 <tr>
-                    <th colspan="2" class="bg-info-subtle">Pos Curah Hujan</th>
+                    <th class="bg-info-subtle">Pos Curah Hujan</th>
                     <th>CH <small class="fw-bold text-danger text-sm">{{ ctx._sampling.strftime('%d %b %Y') }}</small></th>
                 </tr>
             </thead>
             <tbody>
             {% for d in ctx.pch %}
                 <tr>
-                    <td>{{ loop.index }}</td>
                     <td>{{ d.nama }}</td>
                     <td class="text-end" x-data="FormHujan({{d.id}}, {{d.ch}})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                 </tr>
@@ -36,19 +35,19 @@
         </table>
     </div>
     <div class="col-sm-6">
+        <span class="text-end">dalam Centimeter</span>
         <table class="table table-bordered table-hover table-striped mt-3">
             <thead>
                 <tr>
-                    <th colspan="2" class="bg-warning-subtle"><span>Pos Duga Air</span></th>
-                    <th>TMA Pagi</th>
-                    <th>TMA Siang</th>
-                    <th>TMA Sore</th>
+                    <th class="bg-warning-subtle"><span>Pos Duga Air</span></th>
+                    <th>Jam 7</th>
+                    <th>Jam 12</th>
+                    <th>Jam 17</th>
                 </tr>
             </thead>
             <tbody>
             {% for p in ctx.pda %}
                 <tr>
-                    <td>{{ loop.index }}</td>
                     <td>{{ p.nama }}</td>
                     <td class="text-end" x-data="formTma({{p.id}}, '07', {% if p.tma %}{{ p.tma['07'] }}{% endif %})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                     <td class="text-end" x-data="formTma({{p.id}}, '12', {% if p.tma %}{{ p.tma['12'] }}{% endif %})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
@@ -67,18 +66,34 @@
             cnt: tma === undefined ? '...': tma,
             prevVal: tma,
             formData: {
-                tma: undefined,
+                tma,
+                fetch: true,
                 jam: jam,
                 sampling: '{{ ctx.sampling.strftime('%Y-%m-%d')}}'
+            },
+            validateForm(e) {
+                if (e.key == '.') {
+                    if (this.formData.tma === undefined) {
+                        e.preventDefault();
+                    }
+                } else if (e.key == 'Enter') {
+                    return true
+                } else if (e.key == 'Escape') {
+                    this.closeForm();
+                } else if (e.key < '0' || e.key > '9') {
+                    e.preventDefault();
+                }
             },
             openForm() {
                 this.cnt = `<form @submit.prevent='submitForm'>
                     <input type='hidden' name='jam' x-model='formData.jam'>
-                    <input type='text' name='tma' size='3' autofous style='text-align:right' x-model='formData.tma'>
-                    <input type='submit' value='>' class='ms-2 px-3'>
+                    <input type='text' size='3' style='text-align:right;' @keypress='validateForm' name='tma' autofocus x-model='formData.tma'>
                     </form>`;
             },
             submitForm() {
+                if (this.formData.tma===undefined) {
+                    return false;
+                }
                 fetch('/pos/'+id+'/manual', {
                     method: "POST",
                     headers: {
@@ -88,10 +103,15 @@
                     },
                     body: JSON.stringify(this.formData),
                 }).then((e) => {
+                    return e.json()
+                }).then(y => {
+                    if (! y.ok) {
+                        this.formData.tma = this.curVal;
+                        this.cnt = this.curVal;
+                    }
                     this.cnt = this.formData.tma;
                     this.prevVal = this.formData.tma;
-                    console.log('sukses');
-                    console.log(e);
+
                 }).catch((e) => {
                     console.log('error');
                     console.log(e);
@@ -105,22 +125,37 @@
     }
 
     // Form Curah Hujan
-    function FormHujan(id, ch, opened=false) {
+    function FormHujan(id, ch) {
         return {
-            opened: opened,
             curVal: ch,
             cnt: ch === undefined ? '...': ch,
             formData: {
                 ch,
+                fetch: true,
                 sampling: '{{ ctx._sampling.strftime('%Y-%m-%d')}}'
+            },
+            validateForm(e) {
+                if (e.key == '.') {
+                    if (this.formData.ch === undefined) {
+                        e.preventDefault();
+                    }
+                } else if (e.key == 'Enter') {
+                    return true
+                } else if (e.key == 'Escape') {
+                    this.closeForm();
+                } else if (e.key < '0' || e.key > '9') {
+                    e.preventDefault();
+                }
             },
             openForm() {
                 this.cnt = `<form @submit.prevent='submitForm'>
-                    <input type='text' name='ch' size='3' style='text-align:right' autofocus x-model='formData.ch'>
-                    <input type='submit' value='&gt;' class='ms-2 px-3'>
+                    <input type='text' @keypress="validateForm" name='ch' size='3' style='text-align:right' autofocus x-model='formData.ch'>
                     </form>`;
             },
             submitForm() {
+                if (this.formData.ch === undefined) {
+                    return false
+                }
                 fetch('/pos/'+id+'/manual', {
                     method: "POST",
                     headers: {
@@ -129,11 +164,14 @@
                         Accept: "application/json"
                     },
                     body: JSON.stringify(this.formData),
-                }).then((e) => {
+                }).then((e) => { return e.json()
+                }).then(y => {
+                    if (! y.ok) {
+                        this.formData.ch = this.curVal;
+                        this.cnt = this.curVal;
+                    }
                     this.cnt = this.formData.ch;
                     this.curVal = this.formData.ch;
-                    console.log('sukses');
-                    console.log(e);
                 }).catch((e) => {
                     console.log('error');
                     console.log(e);

@@ -9,6 +9,7 @@
     {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
 </div>
 
+<i class="text-end">Curah Hujan dalam Milimeter (Mm)</i>
 <table id="table_ch" class="table table-bordered table-hover table-striped">
     <thead>
         <tr>
@@ -21,7 +22,7 @@
         {% for tanggal, data in ctx.list_data.items()|reverse %}
         <tr>
             <td>{{ tanggal }} {{ ctx.sampling.strftime('%b')}}</td>
-            <td>{{ tanggal + 1 }} {{ ctx.sampling.strftime('%b')}}</td>
+            <td>{{ data.tgl.strftime('%d %b') }}</td>
             {% if data.ch %}
             <td class="text-end" x-data="FormHujan({{ctx.pos.id}}, {{ tanggal }}, {{ data.ch }})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                 {% else %}
@@ -32,7 +33,13 @@
     </tbody>
     </table>
 {% elif ctx.pos.tipe == '2' %}
+<div class="text-end mb-3">
+    <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-secondary me-5">{{ ctx._sampling.strftime('%b')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%b %Y')}}</span>
+    {% if ctx.sampling_ %}<a class="btn btn-outline-secondary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%b')}}</a>
+    {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
+</div>
 
+<i class="text-end">TMA dalam Centimeter (Cm)</i>
 <table class="table table-bordered table-hover table-striped">
     <thead>
         <tr>
@@ -45,7 +52,7 @@
     <tbody>
         {% for tanggal, d in ctx.list_data.items()|reverse %}
         <tr>
-            <td>{{ tanggal }}</td>
+            <td>{{ tanggal }} {{ ctx.sampling.strftime('%b') }}</td>
             {% if d.get('tma') %}
             <td class="text-end" x-data="formTma({{ctx.pos.id}}, '{{tanggal}}', '07', {{ d.get('tma').get('07') or undefined }})" x-html="cnt" @click="openForm()" @click.outside="closeForm()">{{ d.get('tma').get('07') or '' }}</td>
             <td class="text-end" x-data="formTma({{ctx.pos.id}}, '{{tanggal}}', '12', {{ d.get('tma').get('12') or undefined }})" x-html="cnt" @click="openForm()" @click.outside="closeForm()">{{ d.get('tma').get('12') or '' }}</td>
@@ -70,18 +77,34 @@
             cnt: tma === undefined ? '...': tma,
             prevVal: tma,
             formData: {
-                tma: undefined,
+                tma,
                 jam: jam,
+                fetch: true,
                 sampling: '{{ ctx.sampling.strftime('%Y-%m-')}}'.concat(tgl) 
+            },
+            validateForm(e) {
+                if (e.key == '.') {
+                    if (this.formData.tma === undefined) {
+                        e.preventDefault();
+                    }
+                } else if (e.key == 'Enter') {
+                    return true
+                } else if (e.key == 'Escape') {
+                    this.closeForm();
+                } else if (e.key < '0' || e.key > '9') {
+                    e.preventDefault();
+                }
             },
             openForm() {
                 this.cnt = `<form @submit.prevent='submitForm'>
                     <input type='hidden' name='jam' x-model='formData.jam'>
-                    <input type='text' name='tma' size='3' autofous style='text-align:right' x-model='formData.tma'>
-                    <input type='submit' value='>' class='ms-2 px-3'>
+                    <input type='text' @keypress='validateForm' name='tma' size='3' autofocus style='text-align:right' x-model='formData.tma'>
                     </form>`;
             },
             submitForm() {
+                if (this.formData.tma===undefined) {
+                    return false;
+                }
                 fetch('/pos/'+id+'/manual', {
                     method: "POST",
                     headers: {
@@ -91,10 +114,19 @@
                     },
                     body: JSON.stringify(this.formData),
                 }).then((e) => {
+                    return e.json();
+                }).then(y => {
+                    if (! y.ok) {
+                        if (this.curVal === undefined) {
+                            this.formData.tma = undefined;
+                            this.cnt = '...';
+                        } else {
+                            this.formData.tma = this.curVal;
+                            this.cnt = this.curVal;
+                        }
+                    }
                     this.cnt = this.formData.tma;
                     this.prevVal = this.formData.tma;
-                    console.log('sukses');
-                    console.log(e);
                 }).catch((e) => {
                     console.log('error');
                     console.log(e);
@@ -115,12 +147,26 @@
             cnt: ch === undefined ? '...': ch,
             formData: {
                 ch,
+                fetch: true,
                 sampling: '{{ ctx.sampling.strftime('%Y-%m-')}}'.concat(tgl) 
+            },
+            validateForm(e) {
+                console.log('validateForm')
+                if (e.key == '.') {
+                    if (this.formData.ch === undefined) {
+                        e.preventDefault();
+                    }
+                } else if (e.key == 'Enter') {
+                    return true
+                } else if (e.key == 'Escape') {
+                    this.closeForm();
+                } else if (e.key < '0' || e.key > '9') {
+                    e.preventDefault();
+                }
             },
             openForm() {
                 this.cnt = `<form @submit.prevent='submitForm'>
-                    <input type='text' name='ch' size='3' style='text-align:right' autofocus x-model='formData.ch'>
-                    <input type='submit' value='&gt;' class='ms-2 px-3'>
+                    <input type='text' @keypress='validateForm' name='ch' size='3' style='text-align:right' autofocus x-model='formData.ch'>
                     </form>`;
             },
             submitForm() {
@@ -133,6 +179,12 @@
                     },
                     body: JSON.stringify(this.formData),
                 }).then((e) => {
+                    return e.json()
+                }).then(y => {
+                    if (!y.ok) {
+                        this.cnt = this.prevVal;
+                        this.formData.ch = this.prevVal;
+                    }
                     this.cnt = this.formData.ch;
                     this.curVal = this.formData.ch;
                     console.log('sukses');

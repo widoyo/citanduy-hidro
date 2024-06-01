@@ -55,8 +55,14 @@ def upsert_manual(id):
                 'sampling': form.sampling.data, 
                 'pos': pos.id,
                 'username': current_user.username}
-            md = ManualDaily.create(**ret)
-            print('ret', ret)
+            md = ManualDaily.select().where(
+                ManualDaily.pos==pos, 
+                ManualDaily.sampling==form.sampling.data).first()
+            if md:
+                md.ch = form.ch.data
+                md.save()
+            else:
+                md = ManualDaily.create(**ret)
         else:
             print(form.errors)
             ret = {'ok': False, 'error': form.errors}
@@ -85,9 +91,11 @@ def upsert_manual(id):
         else:
             print(form.errors)
             ret = {'ok': False, 'error': form.errors}
-    if request.headers.get('Content-Type') == 'application/json':
+    if form.fetch.data == True:
+        print('fetch True')
         return jsonify(ret)
     else:
+        print('redirect /')
         return redirect('/')
 
 @bp.route('/')

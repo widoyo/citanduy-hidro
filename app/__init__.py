@@ -173,15 +173,19 @@ def create_app():
                 
             (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
             today = datetime.date.today()
+            if current_user.pos.tipe == '1' and sampling.strftime('%Y%m') == today.strftime('%Y%m') and today.day == 1:
+                sampling -= datetime.timedelta(days=1)
+            sampling = sampling.replace(day=1)
+            _sampling = (sampling - datetime.timedelta(days=1)).replace(day=1)
             list_data = {}
             if sampling.strftime('%Y%m') == today.strftime('%Y%m'):
-                list_data = dict([(i+1, {}) for i in range(today.day)])
+                list_data = dict([(i+1, {'tgl': sampling + datetime.timedelta(days=i+1)}) for i in range(today.day)])
                 sampling_ = None
             elif sampling.strftime('%Y%m') < today.strftime('%Y%m'):
                 sampling_ = (sampling.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
-                list_data = dict([(i+1, {}) for i in range((sampling_ - datetime.timedelta(days=1)).day)])
+                list_data = dict([(i+1, {'tgl': sampling + datetime.timedelta(days=i+1)}) for i in range((sampling_ - datetime.timedelta(days=1)).day)])
                 
-            _sampling = sampling.replace(day=1) - datetime.timedelta(days=1)
+            
 
             formhujan.sampling.data = sampling
             formtma.sampling.data = sampling

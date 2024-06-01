@@ -17,9 +17,11 @@ class CurahHujanForm(FlaskForm):
     pos = HiddenField('pos_id')
     sampling = HiddenField('sampling')
     ch = FloatField('curahhujan')
+    fetch = HiddenField('fetch')
     
 class TmaForm(FlaskForm):
     pos = HiddenField('pos_id')
     sampling = HiddenField('sampling')
     jam = SelectField('jam', choices=['07', '12', '17'])
     tma = FloatField('tma')
+    fetch = HiddenField('fetch')
