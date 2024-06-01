@@ -141,7 +141,7 @@ def create_app():
             if user is None or not user.check_password(form.password.data):
                 flash('Invalid username or password')
                 return redirect(url_for('login'))
-            login_user(user, remember=True, force=True)
+            login_user(user)
             user.last_login = datetime.datetime.now()
             user.save()
             return redirect_back('homepage')
