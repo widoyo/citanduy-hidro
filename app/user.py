@@ -3,6 +3,7 @@ from flask_login import login_required
 
 from app.models import User, Pos
 from app.forms import UserForm
+from app import admin_required
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -31,6 +32,7 @@ def add():
 
 @bp.route('/')
 @login_required
+@admin_required
 def index():
     users = User.select().order_by(User.username)
     users_kantor = [u for u in users if u.pos_id is None]

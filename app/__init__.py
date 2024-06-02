@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash, redirect, request, url_for
+from flask import Flask, render_template, flash, redirect, abort, request, url_for
 from flask_login import LoginManager, current_user, login_user, logout_user
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
@@ -57,6 +57,13 @@ def redirect_back(endpoint, **values):
         target = url_for(endpoint, **values)
     return redirect(target)
 
+def admin_required(func):
+    def myinner(*args, **kwargs):
+        if current_user.pos:
+            abort(404)
+        return func(*args, **kwargs)
+    return myinner
+        
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -160,6 +167,10 @@ def create_app():
         }
         return render_template('profile.html', ctx=ctx)
     
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('404.html'), 404
+    
     @app.route('/')
     def homepage():
         '''background: #2193b0;  /* fallback for old browsers */
@@ -184,9 +195,9 @@ def create_app():
             elif sampling.strftime('%Y%m') < today.strftime('%Y%m'):
                 sampling_ = (sampling.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
                 list_data = dict([(i+1, {'tgl': sampling + datetime.timedelta(days=i+1)}) for i in range((sampling_ - datetime.timedelta(days=1)).day)])
-                
+            if current_user.pos.tipe == '1':
+                list_data = dict([(k, v) for k, v in list_data.items() if v['tgl'].date() <= today])    
             
-
             formhujan.sampling.data = sampling
             formtma.sampling.data = sampling
             data_manual = dict([(md.sampling.day, {'ch': md.ch, 'tma': md._tma}) for md in ManualDaily.select().where(ManualDaily.sampling.year==sampling.year,

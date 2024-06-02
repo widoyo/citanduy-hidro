@@ -273,6 +273,11 @@ class RDaily(BaseModel):
                 out[jam]['wlevel'] = d['wlevel']
         return out
     
+    def _tma(self):
+        jams = (7, 12, 17)
+        data = dict([(k, v) for k, v in self._24jam().items() if k in jams])
+        return data            
+    
     def _rain(self):
         if not 'rain' in self.raw:
             return None

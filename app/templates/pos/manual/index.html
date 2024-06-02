@@ -1,4 +1,10 @@
 {% extends 'base.html' %}
+{% block extra_head %}
+<!-- Plugin -->
+<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.14.0/dist/cdn.min.js"></script>
+<!-- Alpine Core -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
+{% endblock %}
 {% block content %}
 <div class="row mb-3">
     <div class="col-sm-6">
@@ -11,7 +17,6 @@
             {% if ctx.sampling_ %}
             <a class="btn btn-outline-secondary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%d')}}</a>
             {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span></div>
-            
     </div>
 </div>
 
@@ -60,128 +65,130 @@
 
     </div>
 </div>
+{% endblock %}
+{% block js_foot %}
 <script>
-    // Form TMA
-    function formTma(id, jam, tma) {
-        return {
-            cnt: tma === undefined ? '...': tma,
-            prevVal: tma,
-            formData: {
-                tma,
-                fetch: true,
-                jam: jam,
-                sampling: '{{ ctx.sampling.strftime('%Y-%m-%d')}}'
-            },
-            validateForm(e) {
-                if (e.key == '.') {
-                    if (this.formData.tma === undefined) {
-                        e.preventDefault();
-                    }
-                } else if (e.key == 'Enter') {
-                    return true
-                } else if (e.key == 'Escape') {
-                    this.closeForm();
-                } else if (e.key < '0' || e.key > '9') {
+// Form TMA
+function formTma(id, jam, tma) {
+    return {
+        cnt: tma === undefined ? '...': tma,
+        prevVal: tma,
+        formData: {
+            tma,
+            fetch: true,
+            jam: jam,
+            sampling: '{{ ctx.sampling.strftime('%Y-%m-%d')}}'
+        },
+        validateForm(e) {
+            if (e.key == '.') {
+                if (this.formData.tma === undefined) {
                     e.preventDefault();
                 }
-            },
-            openForm() {
-                this.cnt = `<form @submit.prevent='submitForm'>
-                    <input type='hidden' name='jam' x-model='formData.jam'>
-                    <input type='text' size='3' style='text-align:right;' @keypress='validateForm' name='tma' autofocus x-model='formData.tma'>
-                    </form>`;
-            },
-            submitForm() {
-                if (this.formData.tma===undefined) {
-                    return false;
-                }
-                fetch('/pos/'+id+'/manual', {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": "{{ csrf_token() }}",
-                        Accept: "application/json"
-                    },
-                    body: JSON.stringify(this.formData),
-                }).then((e) => {
-                    return e.json()
-                }).then(y => {
-                    if (! y.ok) {
-                        this.formData.tma = this.curVal;
-                        this.cnt = this.curVal;
-                    }
-                    this.cnt = this.formData.tma;
-                    this.prevVal = this.formData.tma;
-
-                }).catch((e) => {
-                    console.log('error');
-                    console.log(e);
-                });
-            },
-            closeForm() {
-                this.cnt = this.prevVal === undefined ? '...': this.prevVal;
+            } else if (e.key == 'Enter') {
+                return true
+            } else if (e.key == 'Escape') {
+                this.closeForm();
+            } else if (e.key < '0' || e.key > '9') {
+                e.preventDefault();
             }
-
-        }
-    }
-
-    // Form Curah Hujan
-    function FormHujan(id, ch) {
-        return {
-            curVal: ch,
-            cnt: ch === undefined ? '...': ch,
-            formData: {
-                ch,
-                fetch: true,
-                sampling: '{{ ctx._sampling.strftime('%Y-%m-%d')}}'
-            },
-            validateForm(e) {
-                if (e.key == '.') {
-                    if (this.formData.ch === undefined) {
-                        e.preventDefault();
-                    }
-                } else if (e.key == 'Enter') {
-                    return true
-                } else if (e.key == 'Escape') {
-                    this.closeForm();
-                } else if (e.key < '0' || e.key > '9') {
-                    e.preventDefault();
+        },
+        openForm() {
+            this.cnt = `<form @submit.prevent='submitForm'>
+                <input type='hidden' name='jam' x-model='formData.jam'>
+                <input type='text' size='3' style='text-align:right;' @keypress='validateForm' name='tma' autofocus x-model='formData.tma'>
+                </form>`;
+        },
+        submitForm() {
+            if (this.formData.tma===undefined) {
+                return false;
+            }
+            fetch('/pos/'+id+'/manual', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token() }}",
+                    Accept: "application/json"
+                },
+                body: JSON.stringify(this.formData),
+            }).then((e) => {
+                return e.json()
+            }).then(y => {
+                if (! y.ok) {
+                    this.formData.tma = this.curVal;
+                    this.cnt = this.curVal;
                 }
-            },
-            openForm() {
-                this.cnt = `<form @submit.prevent='submitForm'>
-                    <input type='text' @keypress="validateForm" name='ch' size='3' style='text-align:right' autofocus x-model='formData.ch'>
-                    </form>`;
-            },
-            submitForm() {
+                this.cnt = this.formData.tma;
+                this.prevVal = this.formData.tma;
+
+            }).catch((e) => {
+                console.log('error');
+                console.log(e);
+            });
+        },
+        closeForm() {
+            this.cnt = this.prevVal === undefined ? '...': this.prevVal;
+        }
+
+    }
+}
+
+// Form Curah Hujan
+function FormHujan(id, ch) {
+    return {
+        curVal: ch,
+        cnt: ch === undefined ? '...': ch,
+        formData: {
+            ch,
+            fetch: true,
+            sampling: '{{ ctx._sampling.strftime('%Y-%m-%d')}}'
+        },
+        validateForm(e) {
+            if (e.key == '.') {
                 if (this.formData.ch === undefined) {
-                    return false
+                    e.preventDefault();
                 }
-                fetch('/pos/'+id+'/manual', {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": "{{ csrf_token() }}",
-                        Accept: "application/json"
-                    },
-                    body: JSON.stringify(this.formData),
-                }).then((e) => { return e.json()
-                }).then(y => {
-                    if (! y.ok) {
-                        this.formData.ch = this.curVal;
-                        this.cnt = this.curVal;
-                    }
-                    this.cnt = this.formData.ch;
-                    this.curVal = this.formData.ch;
-                }).catch((e) => {
-                    console.log('error');
-                    console.log(e);
-                });
-            },
-            closeForm() {
-                this.cnt = this.curVal===undefined ? '...' : this.curVal;
+            } else if (e.key == 'Enter') {
+                return true
+            } else if (e.key == 'Escape') {
+                this.closeForm();
+            } else if (e.key < '0' || e.key > '9') {
+                e.preventDefault();
             }
+        },
+        openForm() {
+            this.cnt = `<form @submit.prevent='submitForm'>
+                <input type='text' @keypress="validateForm" name='ch' size='3' style='text-align:right' autofocus x-model='formData.ch'>
+                </form>`;
+        },
+        submitForm() {
+            if (this.formData.ch === undefined) {
+                return false
+            }
+            fetch('/pos/'+id+'/manual', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token() }}",
+                    Accept: "application/json"
+                },
+                body: JSON.stringify(this.formData),
+            }).then((e) => { return e.json()
+            }).then(y => {
+                if (! y.ok) {
+                    this.formData.ch = this.curVal;
+                    this.cnt = this.curVal;
+                }
+                this.cnt = this.formData.ch;
+                this.curVal = this.formData.ch;
+            }).catch((e) => {
+                console.log('error');
+                console.log(e);
+            });
+        },
+        closeForm() {
+            this.cnt = this.curVal===undefined ? '...' : this.curVal;
         }
     }
+}    
 </script>
 {% endblock %}

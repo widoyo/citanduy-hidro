@@ -1,8 +1,9 @@
 import datetime
 from flask import Blueprint, render_template, request
 from flask_login import current_user
+from peewee import DoesNotExist
 
-from app.models import Pos, RDaily, ManualDaily, PosMap, PCH_MAP
+from app.models import Pos, RDaily, ManualDaily, PosMap
 from app import get_sampling
 bp = Blueprint('pch', __name__, url_prefix='/pch')
 
@@ -42,8 +43,6 @@ def show_month(id, tahun, bulan):
             days[r.sampling.day]['count'] = r._rain().get('count24')
             days[r.sampling.day]['rain'] = r._rain().get('rain24')
         
-    for k, v in days.items():
-        print(k, v)
     ctx = {
         '_sampling': _sampling,
         'sampling': sampling,
@@ -58,14 +57,18 @@ def show_month(id, tahun, bulan):
 def show(id):
     pos = Pos.get(int(id))
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
-    pm = PosMap.get(PosMap.pos==pos)
-    nama = pm.source
     this_day = None
-    if nama:
+    nama = None
+    try:
+        pm = PosMap.get(PosMap.pos==pos)
+        nama = pm.source
         this_day = RDaily.select().where(RDaily.nama==nama, 
                                      RDaily.sampling.year == sampling.year,
                                      RDaily.sampling.month == sampling.month,
                                      RDaily.sampling.day == sampling.day).first()
+    except DoesNotExist:
+        pass
+    
     ctx = {'pos': pos,
            'sampling': sampling,
            '_sampling': _sampling,
@@ -76,17 +79,26 @@ def show(id):
 
 @bp.route('/')
 def index():
-    (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
-    user = current_user
-    if user.is_anonymous:
-        editable = False
+    if not request.args.get('s'):
+        yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+        (_sampling, sampling, sampling_) = get_sampling(yesterday)
     else:
-        editable = user.is_admin and sampling.date() < datetime.date.today()
+        (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
+
+    pos_sources = dict([(p.source, p.pos.id) for p in PosMap.select() if p.pos.tipe=='1'])
+    rdailies = dict([(pos_sources[r.nama], r) for r in RDaily.select()
+                     .where(RDaily.nama.in_(list(pos_sources.keys())), 
+                            RDaily.sampling==sampling.strftime('%Y-%m-%d'))])
+
     pchs = Pos.select().where(Pos.tipe=='1').order_by(Pos.nama)
-    data_manual = dict([(m.pos.id, m.ch) for m in ManualDaily.select().where(ManualDaily.sampling==sampling.strftime('%Y-%m-%d'))])
+    data_manual = dict([(m.pos.id, m.ch) for m in ManualDaily.select().where(ManualDaily.pos.in_([p for p in pchs]), ManualDaily.sampling==sampling.strftime('%Y-%m-%d'))])
     for p in pchs:
         if p.id in data_manual:
-            p.ch = data_manual[p.id]
+            p.m_ch = data_manual[p.id]
+        if p.id in rdailies:
+            p.ch = rdailies[p.id]._rain().get('rain24')
+            p.count = rdailies[p.id]._rain().get('count24')
+
     return render_template('pch/index.html', pchs=pchs, 
                            sampling=sampling, _sampling=_sampling, 
-                           sampling_=sampling_, editable=editable)
+                           sampling_=sampling_)

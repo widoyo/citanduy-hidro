@@ -2,7 +2,7 @@
 {% block content %}
 <div class="row">
     <div class="col">
-        <h1 class="fw-lighter">{{ ctx.pos.nama }} <small class="fs-6 fw-normal badge rounded-pill text-bg-info">PCH</small></h1>
+        <h1 class="fw-lighter">{{ ctx.pos.nama }} <small class="fs-6 fw-normal badge rounded-pill text-light text-bg-info">PCH</small></h1>
     </div>
     <div class="col text-end">
         <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
@@ -18,8 +18,8 @@
   </div>
   <div class="col-sm-6">
     <div class="text-end mb-3">
-      <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-secondary me-5">{{ ctx._sampling.strftime('%d')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%d')}}</span> {{ ctx.sampling.strftime('%b') }} 
-      {% if ctx.sampling_ %}<a class="btn btn-outline-secondary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%d')}}</a>
+      <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%d')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%d')}}</span> {{ ctx.sampling.strftime('%b') }} 
+      {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%d')}}</a>
       {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
     </div>
   </div>

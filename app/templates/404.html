@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Halaman Tidak Ditemukan{% endblock %}
+{% block content %}
+<div class="px-4 py-5 my-5 text-center">
+    <img class="d-block mx-auto mb-4" src="/static/img/cty-logo-gray.png" alt="" width="140" height="100">
+    <h1 class="display-5 fw-bold text-secondary">404</h1>
+    <p class="fs-5 text-secondary">halaman tidak ditemukan</p>
+    <div class="col-lg-6 mx-auto mt-5">
+      <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+        <a href="/" role="button" class="btn btn-primary btn-lg px-4 gap-3">Kembali ke awal</a>
+        <a href="/login" role="button" class="btn btn-outline-secondary btn-lg px-4">Login</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,30 +1,34 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2 class="border-start border-5 border-secondary ps-2 fw-lighter">Petugas (<b>{{ petugas|length }}</b>)</h2>
-<table class="table table-bordered table-hover table-striped">
-    <thead>
-        <tr>
-            <th>No</th>
-            <th>Nama</th>
-            <th>HP</th>
-            <th>Alamat</th>
-            <th>Kabupaten</th>
-            <th>Pos</th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for p in petugas %}
-        <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ p.nama }}</td>
-            <td>{{ p.hp }}</td>
-            <td>{{ p.dusun }}, RT {{ p.rt}} RW {{ p.rw }}<br>
-            {{ p.desa }}, {{ p.kecamatan }}</td>
-            <td>{{ p.kabupaten }}</td>
-            <td>{{ p.pos.nama }}</td>
+<div class="table-responsive">
+    <table class="table table-bordered table-hover table-striped">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Nama</th>
+                <th>Username</th>
+                <th>Pos</th>
+                <th>HP</th>
+                <th>Alamat</th>
+                <th>Kabupaten</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in petugas %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ p.nama }}</td>
+                <td><code>{{ p.username }}</code></td>
+                <td>{{ p.pos.nama }}</td>
+                <td>{{ p.hp }}</td>
+                <td>{{ p.dusun }}, RT {{ p.rt}} RW {{ p.rw }}<br>
+                {{ p.desa }}, {{ p.kecamatan }}</td>
+                <td>{{ p.kabupaten }}</td>
+    
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
 
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
 {% endblock %}

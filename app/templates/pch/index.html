@@ -1,33 +1,38 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2 class="border-start border-5 border-primary ps-2 fw-lighter">Pos Curah Hujan (<b>{{ pchs|length }}</b>)</h1>
-
 <div class="row">
     <div class="col-sm-10">
         <div class="text-end mb-3">
-            <a href="?s={{ _sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-secondary me-5">{{ _sampling.strftime('%d')}}</a> <span class="fs-3">{{ sampling.strftime('%d')}}</span> {{ sampling.strftime('%b') }} 
-            {% if sampling_ %}<a class="btn btn-outline-secondary ms-5" href="?s={{ sampling_.strftime('%Y-%m-%d')}}">{{ sampling_.strftime('%d')}}</a>
+            <a href="?s={{ _sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5">{{ _sampling.strftime('%d')}}</a> <span class="fs-3">{{ sampling.strftime('%d')}}</span> {{ sampling.strftime('%b') }} 
+            {% if sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ sampling_.strftime('%Y-%m-%d')}}">{{ sampling_.strftime('%d')}}</a>
             {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
         </div>
+    </div>
+    <div class="col-sm-2"></div>
+</div>
+<div class="row">
+    <div class="col-sm-10">
         <div class="table-responsive">
+        <small class="text-secondary">satuan Milimeter (mm)</small>
         <table class="table table-striped table-hover table-bordered">
             <thead>
                 <tr class="bg-secondary">
-                    <th class="bg-light fw-lighter">Nama</th>
-                    <th class="bg-light fw-lighter" style="background-color: #D7FBC1;">Manual</th>
-                    <th class="bg-light fw-lighter" style="background-color:#F1F1F1">Telemetri</th>
-                    <th class="bg-light fw-lighter">Pagi</th>
-                    <th class="bg-light fw-lighter">Siang</th>
-                    <th class="bg-light fw-lighter">Sore</th>
-                    <th class="bg-light fw-lighter">Malam</th>
+                    <th style="background-color: var(--bs-info-bg-subtle)">Nama</th>
+                    <th style="background-color: var(--bs-info-bg-subtle)">Manual</th>
+                    <th style="background-color: var(--bs-info-bg-subtle)">Telemetri</th>
+                    <th style="background-color: var(--bs-info-bg-subtle)">Pagi</th>
+                    <th style="background-color: var(--bs-info-bg-subtle)">Siang</th>
+                    <th style="background-color: var(--bs-info-bg-subtle)">Sore</th>
+                    <th style="background-color: var(--bs-info-bg-subtle)">Malam</th>
                 </tr>
             </thead>
             <tbody>
             {% for p in pchs %}
                 <tr>
                     <td><a href="/pch/{{ p.id }}" class="text-decoration-none">{{ p.nama }}</a></td>
-                    <td class="text-end" style="background-color: #D7FBC1;">{{ p.ch }}</td>
-                    <td style="background-color:#F1F1F1"></td>
+                    <td class="text-end" style="background-color: #D7FBC1;">{{ p.m_ch }}</td>
+                    <td class="text-end" style="background-color:#F1F1F1">{% if p.ch %}{{ p.ch|round(1) }}{% endif %}</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -40,6 +45,21 @@
         </div>
     </div>
     <div class="col-sm-2">
-    </div>
+        <small class="fw-bold">Skala Curah Hujan per&nbsp;hari (24 jam)</small>
+        <table class="table table-sm" style="font-size: 0.8rem;">
+            <tr>
+            <td>100&nbsp;-&nbsp;150</td><th style="color: rgb(255, 32, 32)">Hujan Sangat Lebat</th>
+            </tr>
+          <tr>
+            <td>50 - 100</td><th style="color: rgb(255, 165, 0)">Hujan Lebat</th>
+          </tr>
+          <tr>
+            <td>20 - 50</td><th style="color: rgb(214, 193, 54)">Hujan Sedang</th>
+          </tr>
+          <tr>
+            <td>0,5 - 20</td><th style="color: rgb(32, 255, 32)">Hujan Ringan</th>
+          </tr>
+        </table>      
+      </div>
 </div>
 {% endblock %}
