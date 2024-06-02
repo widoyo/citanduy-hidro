@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2 class="border-start border-5 border-primary ps-2 fw-lighter">Pos Vendor (<b>{{ poses|length}}</b>)</h2>
-
+  <div class="table-responsive">
   <table id="rpos" class="table table-striped table-bordered table-hover">
     <thead>
         <tr>
             <th onClick="sortTable('rpos', 0)">Nama</th>
             <th>Tipe</th>
-            <th>Sumber Server</th>
             <th onClick="sortTable('rpos', 3)">Data Terakhir</th>    
+            <th>Sumber Server</th>
         </tr>
     </thead>
     <tbody>
@@ -16,6 +16,7 @@
         <tr>
             <td>{{ p.nama }}</td>
             <td><span class="{% if p.tipe in ('Rain Fall', 'PCH') %}badgepch{% else %}badgepda{% endif %}">{{ p.tipe }}</span></td>
+            <td><span class="timeago" datetime="{{ p.latest_sampling }}"></span></td>
             {% if p.source == 'SA' %}
             <td style="color: #D93526">SDATelemetry.com</td> 
             {% elif p.source == 'SB' %}
@@ -23,11 +24,11 @@
             {% else %}
             <td style="color: #B78800">Luwes</td>
             {%endif %}
-            <td><span class="timeago" datetime="{{ p.latest_sampling }}"></span></td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
+</div>
 {% endblock %}
 {% block js_foot %}
 <script>
