@@ -1,5 +1,5 @@
 import datetime
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, abort
 from flask_login import current_user
 from peewee import DoesNotExist
 
@@ -10,7 +10,10 @@ bp = Blueprint('pch', __name__, url_prefix='/pch')
 
 @bp.route('/<int:id>/<int:tahun>/<int:bulan>')
 def show_month(id, tahun, bulan):
-    pos = Pos.get(id)
+    try:
+        pos = Pos.get(id)
+    except DoesNotExist:
+        abort(404)
     samp = "{}-{}-1".format(tahun, bulan)
     pm = PosMap.get(PosMap.pos==pos)
     nama = pm.source
@@ -55,7 +58,10 @@ def show_month(id, tahun, bulan):
 
 @bp.route('/<id>')
 def show(id):
-    pos = Pos.get(int(id))
+    try:
+        pos = Pos.get(int(id))
+    except DoesNotExist:
+        abort(404)
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     this_day = None
     nama = None

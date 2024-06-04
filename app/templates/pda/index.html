@@ -3,7 +3,7 @@
 <h2 class="border-start border-5 border-danger ps-2 fw-lighter">Pos Duga Air (<b>{{ ctx.pdas|length}}</b>)</h2>
 
 <div class="row">
-    <div class="col-10">
+    <div class="col-sm-10">
         <div class="text-end mb-3">
             <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%d')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%d')}}</span> {{ ctx.sampling.strftime('%b') }} 
             {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%d')}}</a>
@@ -48,7 +48,7 @@
             </table>
             </div>
     </div>
-    <div class="col-2">
+    <div class="col-sm-2">
 
     </div>
 </div>
