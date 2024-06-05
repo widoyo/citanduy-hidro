@@ -10,11 +10,14 @@ bp = Blueprint('pda', __name__, url_prefix='/pda')
 @bp.route('/<int:id>')
 def show(id):
     pos = Pos.get(id)
+    rdailies = []
     try:
         pm = PosMap.select().where(PosMap.pos==pos).first()
-        rdailies = RDaily.select().where(RDaily.nama==pm.nama)
+        if pm:
+            rdailies = RDaily.select().where(RDaily.nama==pm.nama)            
     except DoesNotExist:
-        rdailies = []
+        pass
+        
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     ctx = {
         'pos': pos,
