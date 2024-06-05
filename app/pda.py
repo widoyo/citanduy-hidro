@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request
+from peewee import DoesNotExist
 import json
 
 from app.models import Pos, ManualDaily, RDaily, PosMap
@@ -9,8 +10,11 @@ bp = Blueprint('pda', __name__, url_prefix='/pda')
 @bp.route('/<int:id>')
 def show(id):
     pos = Pos.get(id)
-    pm = PosMap.select().where(PosMap.pos==pos).first()
-    rdailies = RDaily.select().where(RDaily.nama==pm.nama)
+    try:
+        pm = PosMap.select().where(PosMap.pos==pos).first()
+        rdailies = RDaily.select().where(RDaily.nama==pm.nama)
+    except DoesNotExist:
+        rdailies = []
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     ctx = {
         'pos': pos,
