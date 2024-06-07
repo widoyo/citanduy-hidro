@@ -14,7 +14,7 @@ def show(id):
     try:
         pm = PosMap.select().where(PosMap.pos==pos).first()
         if pm:
-            rdailies = RDaily.select().where(RDaily.nama==pm.nama)            
+            rdailies = RDaily.select().where(RDaily.nama==pm.source)            
     except DoesNotExist:
         pass
         

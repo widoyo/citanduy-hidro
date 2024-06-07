@@ -18,11 +18,11 @@ def manual():
     data_pch = ManualDaily.select().where(ManualDaily.sampling==_s.strftime('%Y-%m-%d'))
     data_other = ManualDaily.select().where(ManualDaily.sampling==s.strftime('%Y-%m-%d'))
 
-    data_manual_pch = dict([(p.pos.id, p.ch) for p in data_pch if p.pos.tipe=='1'])
+    data_manual_pch = dict([(p.pos.id, p.ch) for p in data_pch if p.pos.tipe in ('1', '3')])
     data_manual_pda = dict([(p.pos.id, p._tma) for p in data_other if p.pos.tipe=='2'])
 
     data = Pos.select().order_by(Pos.tipe, Pos.nama)
-    pch = [p for p in data if p.tipe=='1']
+    pch = [p for p in data if p.tipe in ('1', '3')]
 
     for p in pch:
         if p.id in data_manual_pch:
@@ -48,7 +48,7 @@ def manual():
 @bp.route('/<int:id>/manual', methods=['POST'])
 def upsert_manual(id):
     pos = Pos.get(id)
-    if pos.tipe == '1':
+    if pos.tipe in ('1', '3'):
         form = CurahHujanForm()
         if form.validate_on_submit():
             ret = {'ok': True, 'ch': form.ch.data, 

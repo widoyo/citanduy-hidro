@@ -96,7 +96,7 @@ def index():
                      .where(RDaily.nama.in_(list(pos_sources.keys())), 
                             RDaily.sampling==sampling.strftime('%Y-%m-%d'))])
 
-    pchs = Pos.select().where(Pos.tipe=='1').order_by(Pos.nama)
+    pchs = Pos.select().where(Pos.tipe.in_(('1', '3'))).order_by(Pos.nama)
     data_manual = dict([(m.pos.id, m.ch) for m in ManualDaily.select().where(ManualDaily.pos.in_([p for p in pchs]), ManualDaily.sampling==sampling.strftime('%Y-%m-%d'))])
     for p in pchs:
         if p.id in data_manual:
