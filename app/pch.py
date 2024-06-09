@@ -98,12 +98,25 @@ def index():
 
     pchs = Pos.select().where(Pos.tipe.in_(('1', '3'))).order_by(Pos.nama)
     data_manual = dict([(m.pos.id, m.ch) for m in ManualDaily.select().where(ManualDaily.pos.in_([p for p in pchs]), ManualDaily.sampling==sampling.strftime('%Y-%m-%d'))])
+
     for p in pchs:
         if p.id in data_manual:
             p.m_ch = data_manual[p.id]
         if p.id in rdailies:
-            p.ch = rdailies[p.id]._rain().get('rain24')
-            p.count = rdailies[p.id]._rain().get('count24')
+            rd = rdailies[p.id]._rain()
+            p.pagi = sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=7 and k < 13])
+            p.siang = sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=13 and k < 19])
+            p.malam = sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=19 and k < 24]) + \
+                sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=0 and k < 1])
+            p.dini = sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=1 and k < 7])
+            p.ch = rd.get('rain24')
+            p.count = rd.get('count24')
+            p.source = rdailies[p.id].source
+            p.v_name = rdailies[p.id].nama
+            max_count = 288
+            if rdailies[p.id].source == 'SB':
+                max_count = 96
+            p.sehat = (p.count / max_count) * 100
 
     return render_template('pch/index.html', pchs=pchs, 
                            sampling=sampling, _sampling=_sampling, 

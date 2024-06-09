@@ -296,21 +296,31 @@ class RDaily(BaseModel):
         data += data2
         j, c, r = '', 0, 0.0
         count, rain24 = 0, 0
+        latest_rain = 0
         for d in data:
             jam = d.get('sampling')[11:13]
             if j != jam:
                 if j != '':
-                    rain_hourly[int(j)] = {'count': c, 'rain': r}
+                    if self.source == 'SC':
+                        this_rain = r - sum([v.get('rain') for v in rain_hourly.values()])
+                    else:
+                        this_rain = r
+                    rain_hourly[int(j)] = {'count': c, 'rain': this_rain}
                 j = jam
                 c = 1
                 r = float(d.get('rain'))
             else:
                 c += 1
-                r += float(d.get('rain'))
+                if self.source != 'SC':
+                    r += float(d.get('rain'))
+                else:
+                    r = float(d.get('rain'))
             count += 1
-            rain24 += float(d.get('rain'))
-        
-        return {'count24': count, 'rain24': rain24, 'hourly': rain_hourly}
+            if self.source == 'SC':
+                rain24 = float(d.get('rain'))
+            else:
+                rain24 += float(d.get('rain'))
+        return {'count24': count, 'rain24': rain24, 'hourly': rain_hourly, 'raw': data}
         
     class Meta:
         indexes = (
