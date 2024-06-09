@@ -296,9 +296,13 @@ class RDaily(BaseModel):
         data += data2
         j, c, r = '', 0, 0.0
         count, rain24 = 0, 0
-        latest_rain = 0
+
         for d in data:
             jam = d.get('sampling')[11:13]
+            try:
+                float(d.get('rain'))
+            except TypeError:
+                continue
             if j != jam:
                 if j != '':
                     if self.source == 'SC':
