@@ -69,9 +69,7 @@ def show(id):
         pm = PosMap.get(PosMap.pos==pos)
         nama = pm.source
         this_day = RDaily.select().where(RDaily.nama==nama, 
-                                     RDaily.sampling.year == sampling.year,
-                                     RDaily.sampling.month == sampling.month,
-                                     RDaily.sampling.day == sampling.day).first()
+                                     RDaily.sampling == sampling.strftime('%Y-%m-%d')).first()
     except DoesNotExist:
         pass
     
@@ -117,11 +115,15 @@ def index():
             if rdailies[p.id].source == 'SB':
                 max_count = 96
             p.sehat = (p.count / max_count) * 100
-
+    kabs = set([p.kabupaten for p in pchs])
+    wils = {}
+    for k in kabs:
+        wils.update({k: [p for p in pchs if p.kabupaten == k]})
     ctx = {
         '_sampling': _sampling,
         'sampling': sampling,
         'sampling_': sampling_,
-        'pchs': pchs
+        'pchs': pchs,
+        'wilayah': wils
     }
     return render_template('pch/index.html', ctx=ctx)

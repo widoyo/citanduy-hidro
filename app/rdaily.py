@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request
 import datetime
-from app.models import RDaily, OPos
+from app.models import RDaily, OPos, PosMap
 from app import get_sampling
 from app.config import SDATELEMETRY_POS_EXCLUDES
 
@@ -25,29 +25,24 @@ def show(pos_name):
 def index():
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     
+    mapped_pos = [p for p in PosMap.select()]
     poses = dict([(p.nama, p) for p in OPos.select()])
     sa_dailies = RDaily.select().where(RDaily.source=='SA', 
-                                       RDaily.sampling.year==sampling.year, 
-                                       RDaily.sampling.month==sampling.month, 
-                                       RDaily.sampling.day==sampling.day)
+                                       RDaily.sampling == sampling.strftime('%Y-%m-%d'))
     
     pos_excludes = SDATELEMETRY_POS_EXCLUDES.split(';')
     sa_dailies = [s for s in sa_dailies if s.nama not in pos_excludes]
     for s in sa_dailies:
         s.tipe = poses[s.nama].tipe
     sb_dailies = RDaily.select().where(RDaily.source=='SB', 
-                                       RDaily.sampling.year==sampling.year, 
-                                       RDaily.sampling.month==sampling.month, 
-                                       RDaily.sampling.day==sampling.day)
+                                       RDaily.sampling == sampling.strftime('%Y-%m-%d'))
     for s in sb_dailies:
         try:
             s.tipe = poses[s.nama].tipe
         except:
             s.tipe = ''
     sc_dailies = RDaily.select().where(RDaily.source=='SC', 
-                                       RDaily.sampling.year==sampling.year, 
-                                       RDaily.sampling.month==sampling.month, 
-                                       RDaily.sampling.day==sampling.day)
+                                       RDaily.sampling == sampling.strftime('%Y-%m-%d'))
     return render_template('rdaily/index.html', 
                            sa_dailies=sa_dailies,
                            sb_dailies=sb_dailies,

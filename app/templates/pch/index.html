@@ -37,9 +37,13 @@
                 </tr>
             </thead>
             <tbody>
-            {% for p in ctx.pchs %}
+            {% for k, pchs in ctx.wilayah.items() %}
                 <tr>
-                    <td><a href="/pch/{{ p.id }}" class="text-decoration-none">{{ p.nama }}</a> <small>{{ p.kab }}</small></td>
+                    <th colspan="8"><i><b style="letter-spacing: 0.1rem;">Kabupaten {{ k }}</b></i></th>
+                </tr>
+                {% for p in pchs %}
+                <tr>
+                    <td><a href="/pch/{{ p.id }}" class="ms-3 text-decoration-none">{{ p.nama[4:] }}</a> <small>{{ p.kab }}</small></td>
                     <td class="text-end" style="background-color: #D7FBC1;">{{ p.m_ch }}</td>
                     <td class="text-end" style="background-color:#F1F1F1">{% if p.ch %}
                         {{ p.ch|round(1) }}{% endif %}</td>
@@ -49,7 +53,7 @@
                     <td class="text-end">{% if p.malam %}{{ p.malam|round(1) }}{% endif %}</td>
                     <td class="text-end">{% if p.dini %}{{ p.dini|round(1) }}{% endif %}</td>
                 </tr>
-            {% else %}
+                {% endfor %}
             {% endfor %}
             </tbody>
         </table>

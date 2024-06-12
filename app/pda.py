@@ -49,8 +49,14 @@ def index():
             for k, v in tma.items():
                 jam = str(k).zfill(2)
                 setattr(p, 'tma_' + jam, v.get('wlevel'))
+    sungai = set([p.sungai for p in pdas])
+    ruas = {}
+    for s in sungai:
+        ruas.update({s: [p for p in pdas if p.sungai==s]})
+    print(ruas)
     ctx = {
         'pdas': pdas,
+        'sungai': ruas,
         'sampling': sampling,
         '_sampling': _sampling,
         'sampling_': sampling_

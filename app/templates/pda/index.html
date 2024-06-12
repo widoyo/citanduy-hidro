@@ -29,20 +29,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                {% for p in ctx.pdas %}
+                {% for k, v in ctx.sungai.items() %}
                     <tr>
-                        <td><a href="/pda/{{ p.id }}">{{ p.nama }}</a></td>
-                        <td class="text-end">{{ p.m_tma_07}}</td>
-                        <td class="text-end">{{ p.tma_07}}</td>
-                        <td class="text-end">{{ p.m_tma_12}}</td>
-                        <td class="text-end">{{ p.tma_12}}</td>
-                        <td class="text-end">{{ p.m_tma_17}}</td>
-                        <td class="text-end">{{ p.tma_17}}</td>
+                        <th colspan="7"><b style="letter-spacing:0.1rem;">Sungai {{ k }}</b></th>
                     </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="7">Tidak ada data</td>
-                    </tr>
+                {% for p in v %}
+                <tr>
+                    <td><a class="ms-3" href="/pda/{{ p.id }}">{{ p.nama[4:] }}</a></td>
+                    <td class="text-end">{{ p.m_tma_07}}</td>
+                    <td class="text-end">{{ p.tma_07}}</td>
+                    <td class="text-end">{{ p.m_tma_12}}</td>
+                    <td class="text-end">{{ p.tma_12}}</td>
+                    <td class="text-end">{{ p.m_tma_17}}</td>
+                    <td class="text-end">{{ p.tma_17}}</td>
+                </tr>
+                {% endfor %}
                 {% endfor %}
                 </tbody>
             </table>

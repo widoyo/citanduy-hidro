@@ -233,6 +233,7 @@ def register_bluprint(app):
     from app.map import bp as bp_map
     from app.petugas import bp as bp_petugas
     from app.pklimat import bp as bp_klimat
+    from app.pka import bp as bp_ka
     
     app.register_blueprint(bp_pch)
     app.register_blueprint(bp_pda)
@@ -244,3 +245,4 @@ def register_bluprint(app):
     app.register_blueprint(bp_map)
     app.register_blueprint(bp_petugas)
     app.register_blueprint(bp_klimat)
+    app.register_blueprint(bp_ka)
