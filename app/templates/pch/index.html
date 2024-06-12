@@ -39,7 +39,7 @@
             <tbody>
             {% for k, pchs in ctx.wilayah.items() %}
                 <tr>
-                    <th colspan="8"><i><b style="letter-spacing: 0.1rem;">Kabupaten {{ k }}</b></i></th>
+                    <th colspan="8"><i><b style="letter-spacing: 0.1rem;">Kabupaten {{ k }}</b></i> ({{ pchs|length }})</th>
                 </tr>
                 {% for p in pchs %}
                 <tr>
