@@ -96,7 +96,7 @@ def index():
                      .where(RDaily.nama.in_(list(pos_sources.keys())), 
                             RDaily.sampling==sampling.strftime('%Y-%m-%d'))])
 
-    pchs = Pos.select().where(Pos.tipe.in_(('1', '3'))).order_by(Pos.nama)
+    pchs = Pos.select().where(Pos.tipe.in_(('1', '3'))).order_by(Pos.kabupaten, Pos.nama)
     data_manual = dict([(m.pos.id, m.ch) for m in ManualDaily.select().where(ManualDaily.pos.in_([p for p in pchs]), ManualDaily.sampling==sampling.strftime('%Y-%m-%d'))])
 
     for p in pchs:
@@ -118,6 +118,10 @@ def index():
                 max_count = 96
             p.sehat = (p.count / max_count) * 100
 
-    return render_template('pch/index.html', pchs=pchs, 
-                           sampling=sampling, _sampling=_sampling, 
-                           sampling_=sampling_)
+    ctx = {
+        '_sampling': _sampling,
+        'sampling': sampling,
+        'sampling_': sampling_,
+        'pchs': pchs
+    }
+    return render_template('pch/index.html', ctx=ctx)
