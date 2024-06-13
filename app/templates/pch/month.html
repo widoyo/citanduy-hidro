@@ -31,18 +31,18 @@
     <thead>
         <tr>
             <th style="font-size:smaller">Tgl</th>
+            <th style="font-size:smaller">CH Man</th>
             <th style="font-size:smaller">CH Tele</th>
             <th style="font-size:smaller"># Data</th>
-            <th style="font-size:smaller">CH Man</th>
         </tr>
     </thead>
     <tbody>
         {% for d, v in ctx.days.items() %}
         <tr>
             <td class=""><a href="/pch/{{ ctx.pos.id}}?s={{ ctx.sampling.strftime('%Y-%m-') }}{{ d }}" class="text-decoration-none">{{ d }} {{ ctx.sampling.strftime("%b")}}</a></td>
-            <td class="text-end">{{ v.rain|round(1, 'ceil') }}</td>
+            <td class="text-end" style="background-color:#D7FBC1;">{{ v.mrain}}</td>
+            <td class="text-end" style="background-color:#F1F1F1;">{{ v.rain|round(1, 'ceil') }}</td>
             <td class="text-end">{{ v.count }}</td>
-            <td class="text-end">{{ v.mrain}}</td>
         </tr>
         {% endfor %}
     </tbody>

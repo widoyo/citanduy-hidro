@@ -19,11 +19,12 @@
                 {% for p in poses %}
                     <tr>
                         <td>{{ loop.index }}</td>
-                        <td>{{ p.nama }} {{ p.id }}</td>
+                        <td>{{ p.nama }} <span class="float-end text-secondary">{{ p.id }}</span></td>
                         <td>
                             {% if p.tipe == '1' %}<span class="fw-normal text-light badge rounded-pill text-bg-info">PCH</span>
                             {% elif p.tipe=='2' %} <span class="fw-normal badge rounded-pill" style="background-color: var(--bs-orange);">PDA</span>
-                            {% else %} <span class="fw-normal badge rounded-pill text-bg-primary">Klimat</span>{% endif %}</td>
+                            {% elif p.tipe=='3' %} <span class="fw-normal badge rounded-pill text-bg-primary">Klimat</span>
+                            {% elif p.tipe=='4' %} <span class="fw-normal badge rounded-pill text-bg-light">Kualitas Air</span>{% endif %}</td>
                         <td>{{ p.source }}</td>
                         <td class="text-end"><code>{{ p.elevasi }}</code></td>
                         <td><code>{{ p.ll }}</code></td>

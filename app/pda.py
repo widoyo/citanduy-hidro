@@ -10,15 +10,23 @@ bp = Blueprint('pda', __name__, url_prefix='/pda')
 @bp.route('/<int:id>')
 def show(id):
     pos = Pos.get(id)
-    rdailies = []
+    rdailies = None
+    (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     try:
         pm = PosMap.select().where(PosMap.pos==pos).first()
         if pm:
-            rdailies = RDaily.select().where(RDaily.nama==pm.source)            
+            rdailies = RDaily.select().where(RDaily.nama==pm.source, 
+                                             RDaily.sampling==sampling.strftime('%Y-%m-%d')).first()
     except DoesNotExist:
         pass
-        
-    (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
+    md = ManualDaily.select().where(ManualDaily.pos==pos,
+                                    ManualDaily.sampling==sampling.strftime('%Y-%m-%d')).first()
+    pos.telemetri = rdailies and rdailies._24jam() or {}
+    pos.manual = {}
+    if md:
+        pos.manual = md._tma
+    print('rdailies: ', pos.telemetri)
+    print('md: ', pos.manual)
     ctx = {
         'pos': pos,
         'sampling': sampling,
