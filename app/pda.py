@@ -22,9 +22,8 @@ def show(id):
     md = ManualDaily.select().where(ManualDaily.pos==pos,
                                     ManualDaily.sampling==sampling.strftime('%Y-%m-%d')).first()
     pos.telemetri = rdailies and rdailies._24jam() or {}
-    pos.manual = {}
-    if md:
-        pos.manual = md._tma
+    pos.manual = md and md._tma or {}
+
     print('rdailies: ', pos.telemetri)
     print('md: ', pos.manual)
     ctx = {

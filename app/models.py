@@ -10,7 +10,18 @@ from app import db_wrapper
 
 
 SUNGAI_LIST = 'Citanduy_Ciseel_Cibeureum_Cijolang_Cileueur'.split('_')
-PCH_MAP = dict([(44, 'PCH Ciamis'), (45, 'PCH Cibariwal')])
+#PCH_MAP = dict([(44, 'PCH Ciamis'), (45, 'PCH Cibariwal')])
+VENDORS = {
+    'SA': {
+        'nama': 'Arindo'
+    },
+    'SB': {
+        'nama': 'Komtronik'
+    },
+    'SC': {
+        'nama': 'Luwes'
+    }
+}
 
 class BaseModel(db_wrapper.Model):
     pass
@@ -216,6 +227,7 @@ class Pos(BaseModel):
     desa = pw.CharField(max_length=30, null=True)
     kecamatan = pw.CharField(max_length=30, null=True)
     kabupaten = pw.CharField(max_length=30, null=True)
+    register = pw.CharField(max_length=20, null=True)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
     
@@ -254,6 +266,10 @@ class RDaily(BaseModel):
     m_wlevel_7 = pw.FloatField(null=True)
     m_wlevel_12 = pw.FloatField(null=True)
     m_wlevel_17 = pw.FloatField(null=True)
+    
+    @property
+    def vendor(self):
+        return VENDORS[self.source]
     
     def _24jam(self):
         out = dict([(i, {'num': 0, 'rain': 0, 'wlevel': 0}) for i in range(24)])

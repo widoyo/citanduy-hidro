@@ -21,7 +21,7 @@
                     <th style="background-color: var(--bs-info-bg-subtle)">Nama</th>
                     <th style="background-color: var(--bs-info-bg-subtle)">Manual</th>
                     <th style="background-color: var(--bs-info-bg-subtle)">Telemetri</th>
-                    <th>Vendor & Data</th>
+                    <th>Vendor, % Data</th>
                     <th class="text-center" style="background-color: var(--bs-info-bg-subtle)">
                         Pagi <br><small>07-13</small>
                     </th>
@@ -39,7 +39,7 @@
             <tbody>
             {% for k, pchs in ctx.wilayah.items() %}
                 <tr>
-                    <th colspan="8"><i><b style="letter-spacing: 0.1rem;">Kabupaten {{ k }} ({{ pchs|length }})</b></i></th>
+                    <th colspan="8"><i><b style="letter-spacing: 0.1rem;">{{ k }} ({{ pchs|length }})</b></i></th>
                 </tr>
                 {% for p in pchs %}
                 <tr>

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request
 import datetime
+from peewee import DoesNotExist
 from app.models import RDaily, OPos, PosMap
 from app import get_sampling
 from app.config import SDATELEMETRY_POS_EXCLUDES
@@ -10,13 +11,21 @@ bp = Blueprint('rdaily', __name__, url_prefix='/rdaily')
 def show(pos_name):
     (_s, s, s_) = get_sampling(request.args.get('s', None))
     
-    pos = OPos.get(OPos.nama==pos_name)
-    this_day = RDaily.select().where(RDaily.nama==pos_name, RDaily.sampling==s).first()
-    this_day.tipe = pos.tipe
+    try:
+        pos = OPos.get(OPos.nama==pos_name)
+    except DoesNotExist:
+        pos = OPos()
+    try:
+        this_day = RDaily.select().where(RDaily.nama==pos_name, 
+                                     RDaily.sampling==s.strftime('%Y-%m-%d')).first()
+        this_day.tipe = (type(pos) != type(OPos())) and pos.tipe or ''
+    except DoesNotExist:
+        this_day = []
     ctx = {
         '_sampling': _s,
         'sampling': s,
         'sampling_': s_,
+        'opos': pos,
         'this_day': this_day
     }
     return render_template('rdaily/show.html', ctx=ctx)
