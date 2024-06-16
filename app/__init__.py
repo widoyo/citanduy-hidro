@@ -1,3 +1,4 @@
+import functools
 from flask import Flask, render_template, flash, redirect, abort, request, url_for
 from flask_login import LoginManager, current_user, login_user, logout_user
 from flask_wtf import FlaskForm
@@ -58,6 +59,7 @@ def redirect_back(endpoint, **values):
     return redirect(target)
 
 def admin_required(func):
+    @functools.wraps(func)
     def myinner(*args, **kwargs):
         if current_user.pos:
             abort(404)
@@ -195,7 +197,7 @@ def create_app():
             elif sampling.strftime('%Y%m') < today.strftime('%Y%m'):
                 sampling_ = (sampling.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
                 list_data = dict([(i+1, {'tgl': sampling + datetime.timedelta(days=i+1)}) for i in range((sampling_ - datetime.timedelta(days=1)).day)])
-            if current_user.pos.tipe == '1':
+            if current_user.pos.tipe in ('1', '3'):
                 list_data = dict([(k, v) for k, v in list_data.items() if v['tgl'].date() <= today])    
             
             formhujan.sampling.data = sampling

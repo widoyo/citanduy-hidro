@@ -23,6 +23,7 @@ def add():
         print(form.data)
         new_user = User.create(**new_data)
         new_user.set_password(new_data.get('password'))
+        new_user.save()
         flash('Sukses')
         return redirect(url_for('user.index'))
     else:
@@ -36,7 +37,7 @@ def add():
 def index():
     users = User.select().order_by(User.username)
     users_kantor = [u for u in users if u.pos_id is None]
-    users_petugas_pch = [u for u in users if u.pos_id is not None and u.pos.tipe == '1']
+    users_petugas_pch = [u for u in users if u.pos_id is not None and (u.pos.tipe == '1' or u.pos.tipe == '3')]
     users_petugas_pda = [u for u in users if u.pos_id is not None and u.pos.tipe == '2']
     userform = UserForm()
     userform.pos.choices = [('', 'Kantor')] + [(p.id, p.nama) for p in Pos.select().order_by(Pos.nama)]
