@@ -15,8 +15,11 @@ def show_month(id, tahun, bulan):
     except DoesNotExist:
         abort(404)
     samp = "{}-{}-1".format(tahun, bulan)
-    pm = PosMap.get(PosMap.pos==pos)
-    nama = pm.source
+    try:
+        pm = PosMap.get(PosMap.pos==pos)
+        nama = pm.source
+    except DoesNotExist:
+        nama = None
     (_sampling, sampling, sampling_) = get_sampling(samp)
     _sampling = sampling - datetime.timedelta(days=2)
     if sampling.strftime('%Y%m') >= datetime.date.today().strftime('%Y%m'):
@@ -29,7 +32,7 @@ def show_month(id, tahun, bulan):
     else:
         days = dict([(i+1, {'count': 0, 'rain': 0, 'mrain': 0}) for i in range(today.day)])
     
-    t_month = None
+    t_month = []
     if nama:
         t_month = RDaily.select().where(RDaily.nama==nama, 
                                      RDaily.sampling.year == sampling.year, 
@@ -119,11 +122,13 @@ def index():
     wils = {}
     for k in kabs:
         wils.update({k: [p for p in pchs if p.kabupaten == k]})
+    kabs = {'b': [], 'xanu': [], 'c': []}
     ctx = {
         '_sampling': _sampling,
         'sampling': sampling,
         'sampling_': sampling_,
         'pchs': pchs,
-        'wilayah': wils
+        'wilayah': wils,
+        'kabs': kabs
     }
     return render_template('pch/index.html', ctx=ctx)

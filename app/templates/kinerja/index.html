@@ -1,0 +1,22 @@
+{#
+    Kinerja
+
+    chart setahun show 12 bulan
+    chart per bulan show hari dalam Bulan
+    per lokasi? Semua lokasi?
+    #}
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="fw-lighter">Kinerja</h2>
+<div class="row">
+    <div class="col-sm-6">
+<h3 class="fw-light">Petugas</h3>
+<h4 class="fw-light">Hari ini Kosong</h4>
+{{ ctx.td }} {{ ctx.atd }} {{ ctx.tm }}
+<h4 class="fw-light">Bulan ini (semua, order by sedikit)</h4>
+    </div>
+    <div class="col-sm-6">
+<h3 class="fw-light">Peralatan Telemetri</h3>
+    </div>
+</div>
+{% endblock %}

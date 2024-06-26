@@ -208,6 +208,7 @@ def create_app():
             for i, d in list_data.items():
                 if i in data_manual:
                     list_data[i].update(data_manual.get(i))
+            num_day = (sampling_ and (sampling_ - datetime.timedelta(days=1)).day or today.day)
             ctx = {
                 'pos': pos,
                 'list_data': list_data,
@@ -216,7 +217,11 @@ def create_app():
                 'sampling_': sampling_,
                 'formhujan': formhujan,
                 'formtma': formtma,
+                'num_day': num_day,
+                'num_ch': len(data_manual),
+                'num_tma': sum([len(v['tma']) for v in data_manual.values() if v['tma']])
             }
+            print((sampling_ and (sampling_ - datetime.timedelta(days=1)).day or today.day))
             return render_template('home_petugas.html', ctx=ctx)
         else:
             return render_template('index.html')
@@ -236,6 +241,7 @@ def register_bluprint(app):
     from app.petugas import bp as bp_petugas
     from app.pklimat import bp as bp_klimat
     from app.pka import bp as bp_ka
+    from app.kinerja import bp as bp_kinerja
     
     app.register_blueprint(bp_pch)
     app.register_blueprint(bp_pda)
@@ -248,3 +254,4 @@ def register_bluprint(app):
     app.register_blueprint(bp_petugas)
     app.register_blueprint(bp_klimat)
     app.register_blueprint(bp_ka)
+    app.register_blueprint(bp_kinerja)

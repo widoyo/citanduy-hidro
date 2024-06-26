@@ -15,37 +15,37 @@
     <div class="col-sm-10">
         <div class="table-responsive">
         <small class="text-secondary">satuan Milimeter (mm)</small>
-        <table class="table table-striped table-hover table-bordered border-success-subtle">
+        <table class="table table-striped table-bordered table-hover">
             <thead>
                 <tr class="bg-secondary">
-                    <th class="text-center bg-success-subtle">Nama</th>
-                    <th class="text-center bg-success-subtle">Manual</th>
-                    <th class="text-center bg-success-subtle">Telemetri</th>
+                    <th class="text-center">Nama</th>
+                    <th class="text-center">Manual</th>
+                    <th class="text-center">Telemetri</th>
                     <th>Vendor, % Data</th>
-                    <th class="text-center bg-success-subtle">
-                        Pagi <br><small>07-13</small>
+                    <th class="text-center">
+                        Pagi <br><small style="font-size:8pt;">07-13</small>
                     </th>
-                    <th class="text-center bg-success-subtle">
-                        Siang-Sore <br><small>13-19</small>
+                    <th class="text-center">
+                        Siang-Sore <br><small style="font-size:8pt;">13-19</small>
                     </th>
-                    <th class="text-center bg-success-subtle">
-                        Malam <br><small>19-01</small>
+                    <th class="text-center">
+                        Malam <br><small style="font-size:8pt;">19-01</small>
                     </th>
-                    <th class="text-center bg-success-subtle">
-                        Dini Hari <br><small>01-07</small>
+                    <th class="text-center">
+                        Dini Hari <br><small style="font-size:8pt;">01-07</small>
                     </th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="table-group-divider">
             {% for k, pchs in ctx.wilayah.items() %}
                 <tr>
-                    <th class="bg-success-subtle" colspan="8"><i><b style="letter-spacing: 0.1rem;">{{ k }} ({{ pchs|length }})</b></i></th>
+                    <th colspan="8" class="bg-success-subtle"><i><b style="letter-spacing: 0.1rem;">{{ k }} ({{ pchs|length }})</b></i></th>
                 </tr>
                 {% for p in pchs %}
                 <tr>
-                    <td><a href="/pch/{{ p.id }}" class="ms-3 text-decoration-none">{{ p.nama[4:] }}</a> <small>{{ p.kab }}</small></td>
-                    <td class="text-end" style="background-color: #D7FBC1;">{{ p.m_ch }}</td>
-                    <td class="text-end" style="background-color:#F1F1F1">{% if p.ch %}
+                    <td><a href="/pch/{{ p.id }}" class="ms-3 text-decoration-none">{{ p.nama.replace('PCH ', '') }}</a></td>
+                    <td class="text-end">{{ p.m_ch }}</td>
+                    <td class="text-end">{% if p.ch %}
                         {{ p.ch|round(1) }}{% endif %}</td>
                     <td class="text-end">{% if p.ch %}<span class="badge rounded-pill text-bg-info float-start text-light">{{ p.source[-1:] }}</span> {{ p.sehat|round(1) }}{% endif %}</td>
                     <td class="text-end">{% if p.pagi %}{{ p.pagi|round(1) }}{% endif %}</td>

@@ -11,13 +11,13 @@
         </div>
         <small class="text-secondary">satuan Centimeter (cm)</small>
         <div class="table-responsive">
-            <table class="table table-striped table-hover table-bordered border-warning rounded">
+            <table class="table table-striped table-hover table-bordered">
                 <thead>
                     <tr>
-                        <th rowspan="2" class="bg-warning text-center">Nama</th>
-                        <th colspan="2" class="bg-warning text-center">Pagi</th>
-                        <th colspan="2" class="bg-warning text-center">Siang</th>
-                        <th colspan="2" class="bg-warning text-center">Sore</th>
+                        <th rowspan="2" class="text-center">Nama</th>
+                        <th colspan="2" class="text-center">Pagi</th>
+                        <th colspan="2" class="text-center">Siang</th>
+                        <th colspan="2" class="text-center">Sore</th>
                     </tr>
                     <tr>
                         <th style="background-color:#D7FBC1;">Manual</th>
@@ -28,7 +28,7 @@
                         <th style="background-color:#F1F1F1;">Telemetri</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="table-group-divider">
                 {% for k, v in ctx.sungai.items() %}
                     <tr>
                         <th colspan="7" class="bg-warning-subtle"><b style="letter-spacing:0.1rem;">Sungai {{ k }} ({{ v|length }})</b></th>
