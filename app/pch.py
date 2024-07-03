@@ -71,7 +71,7 @@ def show(id):
     try:
         pm = PosMap.get(PosMap.pos==pos)
         nama = pm.source
-        this_day = RDaily.select().where(RDaily.nama==nama, 
+        this_day = RDaily.select().where(RDaily.pos==pos, 
                                      RDaily.sampling == sampling.strftime('%Y-%m-%d')).first()
     except DoesNotExist:
         pass
