@@ -8,6 +8,7 @@ import json
 from app.html_table_parser import HTMLTableParser
 from app import db_wrapper
 
+NUM_DAYS = (31,28,31,30,31,30,31,31,30,31,30,31)
 
 SUNGAI_LIST = 'Citanduy_Ciseel_Cibeureum_Cijolang_Cileueur'.split('_')
 #PCH_MAP = dict([(44, 'PCH Ciamis'), (45, 'PCH Cibariwal')])
@@ -342,10 +343,10 @@ class RDaily(BaseModel):
                 if self.source != 'SC':
                     r += float(d.get('rain'))
                 else:
-                    r = float(d.get('rain'))
+                    r = round(float(d.get('rain')), 1)
             count += 1
             if self.source == 'SC':
-                rain24 = float(d.get('rain'))
+                rain24 = round(float(d.get('rain')), 1)
             else:
                 rain24 += float(d.get('rain'))
         return {'count24': count, 'rain24': rain24, 'hourly': rain_hourly, 'raw': data}
