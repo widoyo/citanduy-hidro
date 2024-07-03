@@ -6,7 +6,7 @@ from peewee import DoesNotExist
 from app.models import Pos, RDaily, ManualDaily, PosMap
 from app import get_sampling
 bp = Blueprint('pch', __name__, url_prefix='/pch')
-
+wilayah_adm = 'ciamis_tasikmalaya_kuningan_banjar_pangandaran_cilacap_banyumas'.split('_')
 
 @bp.route('/<int:id>/<int:tahun>/<int:bulan>')
 def show_month(id, tahun, bulan):
@@ -93,11 +93,12 @@ def index():
         (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
 
     pos_sources = dict([(p.source, p.pos.id) for p in PosMap.select() if p.pos.tipe=='1'])
-    rdailies = dict([(pos_sources[r.nama], r) for r in RDaily.select()
-                     .where(RDaily.nama.in_(list(pos_sources.keys())), 
-                            RDaily.sampling==sampling.strftime('%Y-%m-%d'))])
 
-    pchs = Pos.select().where(Pos.tipe.in_(('1', '3'))).order_by(Pos.kabupaten, Pos.nama)
+    pchs = Pos.select().where(Pos.tipe.in_(('1', '3'))).order_by(
+        Pos.kabupaten, Pos.elevasi.desc(), Pos.nama)
+    rdailies = dict([(r.pos.id, r) for r in RDaily.select()
+                     .where(RDaily.pos.in_(list([p.id for p in pchs])), 
+                            RDaily.sampling==sampling.strftime('%Y-%m-%d'))])
     data_manual = dict([(m.pos.id, m.ch) for m in ManualDaily.select().where(ManualDaily.pos.in_([p for p in pchs]), ManualDaily.sampling==sampling.strftime('%Y-%m-%d'))])
 
     for p in pchs:
@@ -122,13 +123,12 @@ def index():
     wils = {}
     for k in kabs:
         wils.update({k: [p for p in pchs if p.kabupaten == k]})
-    kabs = {'b': [], 'xanu': [], 'c': []}
     ctx = {
         '_sampling': _sampling,
         'sampling': sampling,
         'sampling_': sampling_,
         'pchs': pchs,
         'wilayah': wils,
-        'kabs': kabs
+        'kabs': wilayah_adm
     }
     return render_template('pch/index.html', ctx=ctx)

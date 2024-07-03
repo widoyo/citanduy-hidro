@@ -8,7 +8,7 @@
             <th onClick="sortTable('rpos', 0)">Nama</th>
             <th>Tipe</th>
             <th onClick="sortTable('rpos', 3)">Data Terakhir</th>    
-            <th>Sumber Server</th>
+            <th>Vendor</th>
         </tr>
     </thead>
     <tbody>
@@ -18,11 +18,11 @@
             <td><span class="{% if p.tipe in ('Rain Fall', 'PCH') %}badgepch{% else %}badgepda{% endif %}">{{ p.tipe }}</span></td>
             <td><span class="timeago" datetime="{{ p.latest_sampling }}"></span></td>
             {% if p.source == 'SA' %}
-            <td style="color: #D93526">SDATelemetry.com</td> 
+            <td>Arindo</td> 
             {% elif p.source == 'SB' %}
-            <td style="color: #B78800">politeknikpolban.duckdns</td>
+            <td>Komtronik</td>
             {% else %}
-            <td style="color: #B78800">Luwes</td>
+            <td>Luwes</td>
             {%endif %}
         </tr>
     {% endfor %}

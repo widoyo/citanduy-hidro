@@ -70,11 +70,13 @@ class FetchLog(BaseModel):
         pos, pos_created = OPos.get_or_create(
             nama=data['name'], source='SC', 
             defaults={'latest_sampling': this_sampling, 'tipe':tipe})
-        
+        luwespos = LuwesPos.get(LuwesPos.imei==data['imei'])
+        mypos = luwespos.pos
         rd, rdaily_created = RDaily.get_or_create(
             source='SC', nama=data.get('name'),
             sampling=this_sampling.date(), 
-            defaults={'raw': json.dumps([new_raw])})
+            defaults={'raw': json.dumps([new_raw]),
+                      'pos': mypos})
 
         if not pos_created:
             if pos.latest_sampling < this_sampling:
@@ -85,6 +87,7 @@ class FetchLog(BaseModel):
             raw = json.loads(rd.raw)
             raw.append(new_raw)
             rd.raw = json.dumps(raw)
+            rd.pos = mypos
             rd.save()
 
     def sb_to_daily(self):
@@ -231,6 +234,10 @@ class Pos(BaseModel):
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
     
+    @property
+    def s_nama(self):
+        return self.nama
+    
 
 class OPos(BaseModel):
     nama = pw.CharField(max_length=50, unique=True, index=True)
@@ -257,6 +264,7 @@ class Daily(BaseModel):
 
     
 class RDaily(BaseModel):
+    pos = pw.ForeignKeyField(Pos)
     source = pw.CharField(max_length=3) # sumber data
     nama = pw.CharField(max_length=50, index=True)
     sampling = pw.DateField(index=True)
@@ -368,6 +376,7 @@ class User(BaseModel, UserMixin):
     
     def set_password(self, password):
         self.password = hashpw(password.encode('utf-8'), gensalt())
+        self.save()
         
 
 class Petugas(BaseModel):
@@ -396,6 +405,7 @@ class LuwesPos(BaseModel):
     imei = pw.CharField(max_length=30, unique=True)
     pos = pw.ForeignKeyField(Pos, null=True)
     tipe = pw.CharField(max_length=2, default='1') # 1 PCH, 2 PDA, 3 Klimat
+    no_telepon = pw.CharField(max_length=25, null=True)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
 
