@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2 class="border-start border-5 border-primary ps-2 fw-lighter">Kesehatan Data Logger</h2>
-<p class="text-secondary">Banyaknya data <b>sehari</b> yang diterima di Data Center</p>
 <div class="row mb-3">
-    <div class="col text-end">
+    <div class="col-sm-6">
+        <h2 class="border-start border-5 border-primary ps-2 fw-lighter">Kinerja Data Logger</h2>
+        <p class="text-secondary">Banyaknya data <b>sehari</b> yang diterima di Data Center BBWS Citanduy</p>        
+    </div>
+    <div class="col-sm-6 text-end">
         <a href="?s={{ _sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5"><i class="bi bi-chevron-left"></i></a> <span class="fs-3">{{ sampling.strftime('%d')}}</span> {{ sampling.strftime('%b') }} 
         {% if sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ sampling_.strftime('%Y-%m-%d')}}"><i class="bi bi-chevron-right"></i></a>
         {% else %}<button class="btn btn-outline-secondary ms-5" disabled><i class="bi bi-chevron-right"></i></button>{% endif %}</span>        
@@ -15,7 +17,7 @@
         <table class="table table-bordered table-hover table-striped">
             <thead>
                 <tr>
-                    <th colspan="2" style="color:#398712">Server SDATelemetry.com <span style="font-weight:300;">({{ sa_dailies|length }})</span></th>
+                    <th colspan="2"><h5>Arindo <span style="font-weight:300;">({{ sa_dailies|length }})</span></h5></th>
                     {% for i in range(24) %}
                     <th class="_24header">{{i}}</th>
                     {% endfor %}
@@ -40,7 +42,7 @@
         <table class="table table-bordered table-hover table-striped">
             <thead>
                 <tr>
-                    <th colspan="2" style="color: #FFBF00">Server PoliteknikPolban.duckdns.org:8081 <span style="font-weight:300;">({{ sb_dailies|length }})</span></th>
+                    <th colspan="2"><h5>Komtronik <span style="font-weight:300;">({{ sb_dailies|length }})</span></h5> </th>
                     {% for i in range(24) %}
                     <th class="_24header">{{i}}</th>
                     {% endfor %}
@@ -65,7 +67,7 @@
         <table class="table table-bordered table-hover table-striped">
             <thead>
                 <tr>
-                    <th colspan="2" style="color: #FFBF00">Server data4.luweswatersensor.com:8002 <span style="font-weight:300;">({{ sc_dailies|length }})</span></th>
+                    <th colspan="2"><h5>Luwes <span style="font-weight:300;">({{ sc_dailies|length }})</span></h5> </th>
                     {% for i in range(24) %}
                     <th class="_24header">{{i}}</th>
                     {% endfor %}

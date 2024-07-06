@@ -18,7 +18,7 @@ load_dotenv()
 db_wrapper = FlaskDB()
 csrf = CSRFProtect()
 
-from app.models import FetchLog, User, Pos, LuwesPos, ManualDaily
+from app.models import FetchLog, User, RDaily, LuwesPos, ManualDaily
 from app.config import SOURCE_A, SOURCE_B, SOURCE_C
 from app.forms import CurahHujanForm, TmaForm
 
@@ -224,7 +224,14 @@ def create_app():
             print((sampling_ and (sampling_ - datetime.timedelta(days=1)).day or today.day))
             return render_template('home_petugas.html', ctx=ctx)
         else:
-            return render_template('index.html')
+            today = datetime.date.today()
+            hujans = [r for r in RDaily.select().where(
+                RDaily.sampling==today.strftime('%Y-%m-%d'), RDaily.pos!=None)]
+            hujans = [r for r in hujans if r.pos.tipe in ('1', '3')]
+            ctx = {
+                'hujans': hujans
+            }
+            return render_template('index.html', ctx=ctx)
                 
     return app
 

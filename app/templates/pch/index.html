@@ -21,7 +21,7 @@
                     <th class="text-center">Nama</th>
                     <th class="text-center">Manual</th>
                     <th class="text-center">Telemetri</th>
-                    <th>Vendor, % Data</th>
+                    <th>Vendor, <span class="float-end">Data</span></th>
                     <th class="text-center">
                         Pagi <br><small style="font-size:8pt;">07-13</small>
                     </th>
@@ -45,9 +45,9 @@
                 <tr>
                     <td><a href="/pch/{{ p.id }}" class="ms-3 text-decoration-none">{{ p.nama.replace('PCH ', '') }}</a></td>
                     <td class="text-end">{{ p.m_ch }}</td>
-                    <td class="text-end">{% if p.ch %}
-                        {{ p.ch|round(1) }}{% endif %}</td>
-                    <td class="text-end">{% if p.ch %}<span class="badge rounded-pill text-bg-info float-start text-light">{{ p.source[-1:] }}</span> {{ p.sehat|round(1) }}{% endif %}</td>
+                    <td class="text-end">{% if p.ch != None %}
+                        {{ p.ch }}{% endif %}</td>
+                    <td class="text-end">{% if p.ch != None %}<span class="badge rounded-pill text-bg-info float-start text-light">{{ p.vendor }}</span> {% if p.sehat %}{{ p.sehat|round(1) }}%{% endif %}{% endif %}</td>
                     <td class="text-end">{% if p.pagi %}{{ p.pagi|round(1) }}{% endif %}</td>
                     <td class="text-end">{% if p.siang %}{{ p.siang|round(1) }}{% endif %}</td>
                     <td class="text-end">{% if p.malam %}{{ p.malam|round(1) }}{% endif %}</td>

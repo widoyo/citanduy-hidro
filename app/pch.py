@@ -34,7 +34,7 @@ def show_month(id, tahun, bulan):
     
     t_month = []
     if nama:
-        t_month = RDaily.select().where(RDaily.nama==nama, 
+        t_month = RDaily.select().where(RDaily.pos==pos, 
                                      RDaily.sampling.year == sampling.year, 
                                      RDaily.sampling.month == sampling.month)
     m_month = ManualDaily.select().where(ManualDaily.pos==pos,
@@ -101,6 +101,8 @@ def index():
                             RDaily.sampling==sampling.strftime('%Y-%m-%d'))])
     data_manual = dict([(m.pos.id, m.ch) for m in ManualDaily.select().where(ManualDaily.pos.in_([p for p in pchs]), ManualDaily.sampling==sampling.strftime('%Y-%m-%d'))])
 
+    from app.models import VENDORS
+    
     for p in pchs:
         if p.id in data_manual:
             p.m_ch = data_manual[p.id]
@@ -112,9 +114,10 @@ def index():
                 sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=0 and k < 1])
             p.dini = sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=1 and k < 7])
             p.ch = rd.get('rain24')
-            p.count = rd.get('count24')
-            p.source = rdailies[p.id].source
+            p.count = rd.get('count24') or 0
+            p.vendor = VENDORS.get(rdailies[p.id].source).get('nama')
             p.v_name = rdailies[p.id].nama
+
             max_count = 288
             if rdailies[p.id].source == 'SB':
                 max_count = 96

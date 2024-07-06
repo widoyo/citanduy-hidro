@@ -103,6 +103,11 @@ class FetchLog(BaseModel):
                 this_sampling = datetime.datetime.strptime(r[0], '%Y-%m-%d %H:%M:%S')
                 
                 sampling = poses.get(r[1], None)
+                try:
+                    posmap = PosMap.get(PosMap.source==r[1])
+                    pos_id = posmap.pos_id
+                except:
+                    pos_id = None
                 if not sampling:
                     try:
                         OPos.create(source='SB', 
@@ -125,11 +130,13 @@ class FetchLog(BaseModel):
                     rd, created = RDaily.get_or_create(source='SB', 
                                                     nama=r[1], 
                                                     sampling=this_sampling.date(), 
-                                                    defaults={'raw': json.dumps(new_raw)})
+                                                    defaults={'raw': json.dumps(new_raw),
+                                                              'pos_id': pos_id})
                     if not created:
                         raw = json.loads(rd.raw)
                         raw.append(new_raw[0])
                         rd.raw = json.dumps(raw)
+                        rd.pos_id = pos_id
                         rd.save()
                 else:
                     if sampling < this_sampling:
@@ -150,11 +157,13 @@ class FetchLog(BaseModel):
                         rd, created = RDaily.get_or_create(source='SB', 
                                                         nama=r[1], 
                                                         sampling=this_sampling.date(), 
-                                                        defaults={'raw': json.dumps(new_raw)})
+                                                        defaults={'raw': json.dumps(new_raw),
+                                                                  'pos_id': pos_id})
                         if not created:
                             raw = json.loads(rd.raw)
                             raw.append(new_raw[0])
                             rd.raw = json.dumps(raw)
+                            rd.pos_id = pos_id
                             rd.save()
                     
     
@@ -169,6 +178,11 @@ class FetchLog(BaseModel):
                 continue
             
             sampling = poses.get(r['nama_lokasi'], None)
+            try:
+                posmap = PosMap.get(PosMap.source == r['nama_lokasi'])
+                pos_id = posmap.pos_id
+            except:
+                pos_id = None
             if not sampling:
                 try:
                     OPos.create(source='SA', 
@@ -189,11 +203,13 @@ class FetchLog(BaseModel):
                 rd, created = RDaily.get_or_create(source='SA', 
                                                 nama=r['nama_lokasi'], 
                                                 sampling=this_sampling.date(), 
-                                                defaults={'raw': json.dumps(new_raw)})
+                                                defaults={'raw': json.dumps(new_raw),
+                                                          'pos_id': pos_id})
                 if not created:
                     raw = json.loads(rd.raw)
                     raw.append(new_raw[0])
                     rd.raw = json.dumps(raw)
+                    rd.pos_id = pos_id
                     rd.save()
             else:
                 if sampling < this_sampling:
@@ -208,11 +224,13 @@ class FetchLog(BaseModel):
                     rd, created = RDaily.get_or_create(source='SA', 
                                                     nama=r['nama_lokasi'], 
                                                     sampling=this_sampling.date(), 
-                                                    defaults={'raw': json.dumps(new_raw)})
+                                                    defaults={'raw': json.dumps(new_raw),
+                                                              'pos_id': pos_id})
                     if not created:
                         raw = json.loads(rd.raw)
                         raw.append(new_raw[0])
                         rd.raw = json.dumps(raw)
+                        rd.pos_id = pos_id
                         rd.save()
                 
 
@@ -241,6 +259,7 @@ class Pos(BaseModel):
     
 
 class OPos(BaseModel):
+    pos = pw.ForeignKeyField(Pos, null=True)
     nama = pw.CharField(max_length=50, unique=True, index=True)
     tipe = pw.CharField(max_length=10, null=True)
     latest_sampling = pw.DateTimeField(index=True)
