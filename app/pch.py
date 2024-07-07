@@ -108,12 +108,12 @@ def index():
             p.m_ch = data_manual[p.id]
         if p.id in rdailies:
             rd = rdailies[p.id]._rain()
-            p.pagi = sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=7 and k < 13])
-            p.siang = sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=13 and k < 19])
-            p.malam = sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=19 and k < 24]) + \
-                sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=0 and k < 1])
-            p.dini = sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=1 and k < 7])
-            p.ch = rd.get('rain24')
+            p.pagi = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=7 and k < 13]))
+            p.siang = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=13 and k < 19]))
+            p.malam = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=19 and k < 24]) + \
+                sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=0 and k < 1]))
+            p.dini = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=1 and k < 7]))
+            p.ch = '{:.1f}'.format(rd.get('rain24'))
             p.count = rd.get('count24') or 0
             p.vendor = VENDORS.get(rdailies[p.id].source).get('nama')
             p.v_name = rdailies[p.id].nama
@@ -121,7 +121,7 @@ def index():
             max_count = 288
             if rdailies[p.id].source == 'SB':
                 max_count = 96
-            p.sehat = (p.count / max_count) * 100
+            p.sehat = '{:.1f}%'.format((p.count / max_count) * 100)
     kabs = set([p.kabupaten for p in pchs])
     wils = {}
     for k in kabs:

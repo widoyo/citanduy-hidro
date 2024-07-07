@@ -49,12 +49,12 @@ def index():
         if p.id in mds:
             tma = json.loads(mds.get(p.id))
             for k, v in tma.items():
-                setattr(p, 'm_tma_' + k, v)
+                setattr(p, 'm_tma_' + k, '{:.1f}'.format(float(v)))
         if p.id in rdailies:
             tma = rdailies[p.id]._tma()
             for k, v in tma.items():
                 jam = str(k).zfill(2)
-                setattr(p, 'tma_' + jam, v.get('wlevel'))
+                setattr(p, 'tma_' + jam, '{:.1f}'.format(float(v.get('wlevel'))))
     sungai = set([p.sungai for p in pdas])
     ruas = {}
     for s in sungai:
