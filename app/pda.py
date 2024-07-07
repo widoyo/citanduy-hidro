@@ -39,10 +39,9 @@ def show(id):
 def index():
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     pdas = Pos.select().where(Pos.tipe=='2').order_by(Pos.nama, Pos.elevasi.desc())
-    pos_sources = dict([(p.source, p.pos.id) for p in PosMap.select().where(PosMap.pos.in_([p for p in pdas]))])
-    rdailies = dict([(pos_sources[r.nama], r) for r in RDaily.select()
-                     .where(RDaily.nama.in_(list(pos_sources.keys())), 
-                            RDaily.sampling==sampling.strftime('%Y-%m-%d'))])
+
+    rdailies = dict([(r.pos_id, r) for r in RDaily.select()
+                     .where(RDaily.sampling==sampling.strftime('%Y-%m-%d'))])
     mds = dict([(m.pos.id, m.tma) for m in ManualDaily.select().where(
         ManualDaily.sampling==sampling.strftime('%Y-%m-%d'), 
         ManualDaily.tma.is_null(False))])
