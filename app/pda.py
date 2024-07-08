@@ -38,7 +38,7 @@ def show(id):
 @bp.route('/')
 def index():
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
-    pdas = Pos.select().where(Pos.tipe=='2').order_by(Pos.nama, Pos.elevasi.desc())
+    pdas = Pos.select().where(Pos.tipe=='2').order_by(Pos.elevasi.desc())
 
     rdailies = dict([(r.pos_id, r) for r in RDaily.select()
                      .where(RDaily.sampling==sampling.strftime('%Y-%m-%d'))])

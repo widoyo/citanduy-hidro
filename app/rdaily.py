@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request
 import datetime
 from peewee import DoesNotExist
-from app.models import RDaily, OPos, PosMap
+from app.models import RDaily, OPos, Pos, VENDORS
 from app import get_sampling
 from app.config import SDATELEMETRY_POS_EXCLUDES
 
@@ -34,28 +34,35 @@ def show(pos_name):
 def index():
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     
-    mapped_pos = [p for p in PosMap.select()]
-    poses = dict([(p.nama, p) for p in OPos.select()])
-    sa_dailies = RDaily.select().where(RDaily.source=='SA', 
-                                       RDaily.sampling == sampling.strftime('%Y-%m-%d'))
+    our_poses = Pos.select().where(Pos.tipe.in_(('1','2','3'))).order_by(Pos.nama)
+    rdaily = RDaily.select().where(RDaily.sampling == sampling.strftime('%Y-%m-%d'))
+    rd_un_mapped = [r for r in rdaily if r.pos_id == None]
+    for p in our_poses:
+        p.rdailies = [r for r in rdaily if r.pos_id==p.id]
     
     pos_excludes = SDATELEMETRY_POS_EXCLUDES.split(';')
-    sa_dailies = [s for s in sa_dailies if s.nama not in pos_excludes]
-    for s in sa_dailies:
-        s.tipe = poses[s.nama].tipe
-    sb_dailies = RDaily.select().where(RDaily.source=='SB', 
-                                       RDaily.sampling == sampling.strftime('%Y-%m-%d'))
-    for s in sb_dailies:
-        try:
-            s.tipe = poses[s.nama].tipe
-        except:
-            s.tipe = ''
-    sc_dailies = RDaily.select().where(RDaily.source=='SC', 
-                                       RDaily.sampling == sampling.strftime('%Y-%m-%d'))
-    return render_template('rdaily/index.html', 
-                           sa_dailies=sa_dailies,
-                           sb_dailies=sb_dailies,
-                           sc_dailies=sc_dailies, 
-                           sampling=sampling, 
-                           _sampling=_sampling,
-                           sampling_=sampling_)
+    rdaily = [r for r in rdaily if r.nama not in pos_excludes]
+    vendors = set([r.source for r in rdaily])
+    vendors = [(v, len([r for r in rdaily if r.source == v]), sum(r.kinerja for r in rdaily if r.source==v)) for v in vendors]
+    vendors = sorted(vendors, key=lambda x:x[0])
+    
+    ctx = {
+        'bg': ('''background: #FFEFBA;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #FFFFFF, #FFEFBA);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #FFFFFF, #FFEFBA); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+''', '''background: #C9D6FF;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #E2E2E2, #C9D6FF);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #E2E2E2, #C9D6FF); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+''', '''background: #D3CCE3;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #E9E4F0, #D3CCE3);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #E9E4F0, #D3CCE3); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+'''),
+        'VENDORS': VENDORS,
+        'vendors': vendors,
+        'all_pos': our_poses,
+        'unused': rd_un_mapped,
+        's': sampling,
+        '_s': _sampling,
+        's_': sampling_
+    }
+    return render_template('rdaily/index.html', ctx=ctx)

@@ -299,6 +299,21 @@ class RDaily(BaseModel):
     def vendor(self):
         return VENDORS[self.source]
     
+    @property
+    def nums(self):
+        return len(json.loads(self.raw))
+    
+    @property
+    def kinerja(self):
+        ref = self.source == 'SC' and 4 or 12 # data per 5 menit
+        if self.sampling == datetime.date.today():
+            jam = datetime.datetime.now().hour
+            menit = datetime.datetime.now().minute
+            target = jam * ref + int(menit/60 * ref)
+        else:
+            target = (self.source == 'SC') and 96 or 288
+        return int((self.nums / target) * 100)
+    
     def _24jam(self):
         out = dict([(i, {'num': 0, 'rain': 0, 'wlevel': 0}) for i in range(24)])
         for d in json.loads(self.raw):

@@ -6,7 +6,7 @@ from peewee import DoesNotExist
 from app.models import Pos, RDaily, ManualDaily, PosMap
 from app import get_sampling
 bp = Blueprint('pch', __name__, url_prefix='/pch')
-wilayah_adm = 'ciamis_tasikmalaya_kuningan_banjar_pangandaran_cilacap_banyumas'.split('_')
+wilayah_adm = 'ciamis_tasikmalaya_kota tasikmalaya_kuningan_kota banjar_pangandaran_cilacap_banyumas'.split('_')
 
 @bp.route('/<int:id>/<int:tahun>/<int:bulan>')
 def show_month(id, tahun, bulan):
