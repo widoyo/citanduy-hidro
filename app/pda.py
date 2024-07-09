@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, abort
 from peewee import DoesNotExist
 import json
 
@@ -6,6 +6,40 @@ from app.models import Pos, ManualDaily, RDaily, PosMap
 from app import get_sampling
 bp = Blueprint('pda', __name__, url_prefix='/pda')
 
+
+@bp.route('/<int:id>/<int:tahun>')
+def show_year(id, tahun):
+    try:
+        pos = Pos.get(id)
+    except DoesNotExist:
+        abort(404)
+    samp = "{}-1-1".format(tahun)
+    try:
+        pm = PosMap.get(PosMap.pos==pos)
+        nama = pm.source
+    except DoesNotExist:
+        nama = None
+    ctx = {
+        'pos': pos
+    }
+    return render_template('pda/year.html', ctx=ctx)
+
+@bp.route('/<int:id>/<int:tahun>/<int:bulan>')
+def show_month(id, tahun, bulan):
+    try:
+        pos = Pos.get(id)
+    except DoesNotExist:
+        abort(404)
+    samp = "{}-{}-1".format(tahun, bulan)
+    try:
+        pm = PosMap.get(PosMap.pos==pos)
+        nama = pm.source
+    except DoesNotExist:
+        nama = None
+    ctx = {
+        'pos': pos
+    }
+    return render_template('pda/month.html', ctx=ctx)
 
 @bp.route('/<int:id>')
 def show(id):

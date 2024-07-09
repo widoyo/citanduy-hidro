@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col">
+        <h1 class="fw-lighter">{{ ctx.pos.nama }} <small class="fs-6 fw-normal badge rounded-pill text-bg-info text-light">PCH</small></h1>
+    </div>
+    <div class="col text-end">
+        <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
+            <a  href="/pch/{{ ctx.pos.id }}" role="button" class="btn btn-outline-primary">Sehari</a>
+            <a disabled href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y/%m') }}" role="button" class="btn btn-outline-secondary">Sebulan</a>
+          </div>
+    
+    </div>
+</div>
+{% endblock %}

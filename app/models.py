@@ -329,7 +329,7 @@ class RDaily(BaseModel):
                 except KeyError:
                     out[jam]['rain'] = float(d['rain'])
             if d.get('wlevel'):
-                out[jam]['wlevel'] = d['wlevel']
+                out[jam]['wlevel'] = (self.source == 'SC') and d['wlevel'] * 100 or d['wlevel']
         return out
     
     def _tma(self):
