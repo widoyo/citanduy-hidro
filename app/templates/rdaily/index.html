@@ -1,4 +1,13 @@
 {% extends 'base.html' %}
+{% block extra_head %}
+<style>
+.wrapper {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-gap: 10px;
+}
+</style>
+{% endblock %}
 {% block content %}
 <div class="row mb-3">
     <div class="col-sm-6">
@@ -22,10 +31,11 @@
             ">
                 <div class="card-body">
                     <h5 class="card-title"><i class="bi bi-cpu me-2 text-danger"></i> {{ ctx.VENDORS[v[0]].nama }}</h5>
-                            <p class="card-text fs-1 fw-bold text-body-emphasis mb-0"><small class="fw-light fs-6 text-muted">Aktif</small> {{ v[1] }}
-                                </p>
-                            <p class="card-text fs-1 fw-bold text-body-emphasis"><span class="fw-light fs-6 text-muted">data</span> {{ (v[2] / v[1])|round(1) }}%
-                                
+                            <p class="card-text fs-1 fw-bold text-body-emphasis mb-0">
+                                <small class="fw-light fs-6 text-muted">Aktif</small> {{ v[1] }}
+                            </p>
+                            <p class="card-text fs-1 fw-bold text-body-emphasis">
+                                <span class="fw-light fs-6 text-muted">data</span> {{ (v[2]/v[1])|int}} <span class="fw-light fs-6 text-muted">%</span>
                             </p>
                 </div>
             </div>
@@ -39,8 +49,6 @@
                         <th>Pos</th>
                         <th>Tipe</th>
                         <th>Vendor</th>
-                        <th>Nama</th>
-                        <th>Prestasi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,26 +58,35 @@
                 <td>{% if p.tipe=='1' %}<span class="badge rounded-pill text-bg-success text-light">ARR</span>
                     {% elif p.tipe=='2' %}<span class="badge rounded-pill text-bg-warning text-muted">AWLR</span>
                     {% endif %}</td>
-                <td>{% for r in p.rdailies %}<span class="badge rounded-pill text-bg-dark">{{ r.vendor.nama }}</span> {{ r.nama }} {{ r.nums }}{% endfor %}</td>
+                <td>
+                    <table>
+                        {% for r in p.rdailies %}
+                        <tr>
+                            <td><span class="badge rounded-pill text-bg-dark">{{ r.vendor.nama }}</span></td>
+                            <td>{{ r.nama }}</td>  
+                            <td><span class="ms-5">data <b>{{ r.kinerja }}</b> %</span></td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    </div>
+</td>
             </tr>
             {% endfor %}
                 </tbody>
             </table>
             <h2>Data Telemetri Tak Terhubung ke Pos</h2>
-            <table>
+            <table class="table table-striped table-bordered">
                 <thead>
                     <tr>
-                        <th>Tipe</th>
                         <th>Vendor</th>
                         <th>Nama</th>
-                        <th>Prestasi</th>
+                        <th>Data</th>
                     </tr>
                 </thead>
                 <tbody>
             {% for r in ctx.unused %}
             <tr>
                 <td><span class="badge rounded-pill text-bg-dark">{{ r.vendor.nama }}</span></td>
-                <td>{{ r.tipe }}</td>
                 <td>{{ r.nama }}</td>
                 <td class="text-end">{{ r.kinerja }} %</td>
             </tr>
