@@ -2,12 +2,13 @@
 {% block content %}
 <div class="row">
     <div class="col">
-        <h1 class="fw-lighter">{{ ctx.pos.nama[4:] }} <small class="fs-6 fw-normal badge rounded-pill" style="background-color: var(--bs-orange)">PDA</small> <small class="ms-3 fs-5 text-secondary">Sungai {{ ctx.pos.sungai }}</small></h1>
+        <h1 class="fw-lighter">{{ ctx.pos.nama|replace('PDA ', '') }} <small class="fs-6 fw-normal badge rounded-pill" style="background-color: var(--bs-orange)">PDA</small> <small class="ms-3 fs-5 text-secondary">Sungai {{ ctx.pos.sungai }}</small></h1>
     </div>
     <div class="col text-end">
         <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
             <button type="button" class="btn btn-outline-secondary disabled">Sehari</button>
-            <button type="button" class="btn btn-outline-primary">Sebulan</button>
+            <a href="/pda/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y/%m') }}" role="button" class="btn btn-outline-primary">Sebulan</a>
+            <a href="/pda/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y') }}" role="button" class="btn btn-outline-primary">Setahun</a>
           </div>
     
     </div>

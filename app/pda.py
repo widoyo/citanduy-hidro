@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, abort
 from peewee import DoesNotExist
 import json
+import datetime
 
 from app.models import Pos, ManualDaily, RDaily, PosMap
 from app import get_sampling
@@ -16,7 +17,7 @@ def show_year(id, tahun):
     samp = "{}-1-1".format(tahun)
     try:
         pm = PosMap.get(PosMap.pos==pos)
-        nama = pm.source
+        nama = pm.nama
     except DoesNotExist:
         nama = None
     ctx = {
@@ -33,11 +34,20 @@ def show_month(id, tahun, bulan):
     samp = "{}-{}-1".format(tahun, bulan)
     try:
         pm = PosMap.get(PosMap.pos==pos)
-        nama = pm.source
+        nama = pm.nama
     except DoesNotExist:
         nama = None
+    (_sampling, sampling, sampling_) = get_sampling(samp)
+    _sampling = sampling - datetime.timedelta(days=2)
+    if sampling.strftime('%Y%m') >= datetime.date.today().strftime('%Y%m'):
+        sampling_ = None
+    else:
+        sampling_ = (sampling + datetime.timedelta(days=32)).replace(day=1)
     ctx = {
-        'pos': pos
+        'pos': pos,
+        'sampling': sampling,
+        '_sampling': _sampling,
+        'sampling_': sampling_
     }
     return render_template('pda/month.html', ctx=ctx)
 
@@ -49,7 +59,7 @@ def show(id):
     try:
         pm = PosMap.select().where(PosMap.pos==pos).first()
         if pm:
-            rdailies = RDaily.select().where(RDaily.nama==pm.source, 
+            rdailies = RDaily.select().where(RDaily.nama==pm.nama, 
                                              RDaily.sampling==sampling.strftime('%Y-%m-%d')).first()
     except DoesNotExist:
         pass

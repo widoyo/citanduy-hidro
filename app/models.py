@@ -104,7 +104,7 @@ class FetchLog(BaseModel):
                 
                 sampling = poses.get(r[1], None)
                 try:
-                    posmap = PosMap.get(PosMap.source==r[1])
+                    posmap = PosMap.get(PosMap.nama==r[1])
                     pos_id = posmap.pos_id
                 except:
                     pos_id = None
@@ -179,7 +179,7 @@ class FetchLog(BaseModel):
             
             sampling = poses.get(r['nama_lokasi'], None)
             try:
-                posmap = PosMap.get(PosMap.source == r['nama_lokasi'])
+                posmap = PosMap.get(PosMap.nama == r['nama_lokasi'])
                 pos_id = posmap.pos_id
             except:
                 pos_id = None
@@ -284,7 +284,7 @@ class Daily(BaseModel):
 
     
 class RDaily(BaseModel):
-    pos = pw.ForeignKeyField(Pos)
+    pos = pw.ForeignKeyField(Pos, null=True)
     source = pw.CharField(max_length=3) # sumber data
     nama = pw.CharField(max_length=50, index=True)
     sampling = pw.DateField(index=True)
@@ -305,13 +305,13 @@ class RDaily(BaseModel):
     
     @property
     def kinerja(self):
-        ref = self.source == 'SC' and 4 or 12 # data per 5 menit
+        ref = self.source == 'SB' and 15 or 5 # periode data (menit)
         if self.sampling == datetime.date.today():
-            jam = datetime.datetime.now().hour
-            menit = datetime.datetime.now().minute
-            target = jam * ref + int(menit/60 * ref)
+            menits = datetime.datetime.now().hour * 60
+            menits += datetime.datetime.now().minute
+            target = int(menits / ref)
         else:
-            target = (self.source == 'SC') and 96 or 288
+            target = (self.source == 'SB') and 96 or 288
         return int((self.nums / target) * 100)
     
     def _24jam(self):
@@ -432,7 +432,7 @@ class Petugas(BaseModel):
 
 class PosMap(BaseModel):
     pos = pw.ForeignKeyField(Pos, unique=True)
-    source = pw.CharField(max_length=30)
+    nama = pw.CharField(max_length=30)
     
     
 class LuwesPos(BaseModel):

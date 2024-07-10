@@ -2,12 +2,16 @@
 {% block content %}
 <div class="row">
     <div class="col">
-        <h1 class="fw-lighter">{{ ctx.pos.nama }} <small class="fs-6 fw-normal badge rounded-pill text-light text-bg-info">PCH</small></h1>
+        <h1 class="fw-lighter">{{ ctx.pos.nama|replace('PCH ', '') }} 
+          <small class="fs-6 fw-normal badge rounded-pill text-light text-bg-info">PCH</small>
+          <small class="ms-3 fs-5 text-secondary">{{ ctx.pos.kabupaten }}</small>
+        </h1>
     </div>
     <div class="col text-end">
         <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
             <button type="button" class="btn btn-outline-secondary disabled">Sehari</button>
             <a href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y/%m') }}" role="button" class="btn btn-outline-primary">Sebulan</a>
+            <a href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y') }}" role="button" class="btn btn-outline-primary">Setahun</a>
           </div>
     
     </div>

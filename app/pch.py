@@ -8,6 +8,32 @@ from app import get_sampling
 bp = Blueprint('pch', __name__, url_prefix='/pch')
 wilayah_adm = 'ciamis_tasikmalaya_kota tasikmalaya_kuningan_kota banjar_pangandaran_cilacap_banyumas'.split('_')
 
+@bp.route('/<int:id>/<int:tahun>')
+def show_year(id, tahun):
+    try:
+        pos = Pos.get(id)
+    except DoesNotExist:
+        abort(404)
+    samp = "{}-1-1".format(tahun)
+    try:
+        pm = PosMap.get(PosMap.pos==pos)
+        nama = pm.nama
+    except DoesNotExist:
+        nama = None
+    (_sampling, sampling, sampling_) = get_sampling(samp)
+    _sampling = sampling - datetime.timedelta(days=2)
+    if sampling.strftime('%Y%m') >= datetime.date.today().strftime('%Y%m'):
+        sampling_ = None
+    else:
+        sampling_ = (sampling + datetime.timedelta(days=32)).replace(day=1)
+    ctx = {
+        'pos': pos,
+        'sampling': sampling,
+        '_sampling': _sampling,
+        'sampling_': sampling_
+    }
+    return render_template('pch/year.html', ctx=ctx)
+
 @bp.route('/<int:id>/<int:tahun>/<int:bulan>')
 def show_month(id, tahun, bulan):
     try:
@@ -17,7 +43,7 @@ def show_month(id, tahun, bulan):
     samp = "{}-{}-1".format(tahun, bulan)
     try:
         pm = PosMap.get(PosMap.pos==pos)
-        nama = pm.source
+        nama = pm.nama
     except DoesNotExist:
         nama = None
     (_sampling, sampling, sampling_) = get_sampling(samp)
@@ -70,7 +96,7 @@ def show(id):
     nama = None
     try:
         pm = PosMap.get(PosMap.pos==pos)
-        nama = pm.source
+        nama = pm.nama
         this_day = RDaily.select().where(RDaily.pos==pos, 
                                      RDaily.sampling == sampling.strftime('%Y-%m-%d')).first()
     except DoesNotExist:
@@ -92,7 +118,7 @@ def index():
     else:
         (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
 
-    pos_sources = dict([(p.source, p.pos.id) for p in PosMap.select() if p.pos.tipe=='1'])
+    pos_sources = dict([(p.nama, p.pos.id) for p in PosMap.select() if p.pos.tipe=='1'])
 
     pchs = Pos.select().where(Pos.tipe.in_(('1', '3'))).order_by(
         Pos.kabupaten, Pos.elevasi.desc(), Pos.nama)

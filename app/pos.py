@@ -100,7 +100,7 @@ def upsert_manual(id):
 
 @bp.route('/')
 def index():
-    pm = dict([(p.pos.id, p.source) for p in PosMap.select()])
+    pm = dict([(p.pos.id, p.nama) for p in PosMap.select()])
     poses = Pos.select().order_by(Pos.tipe, Pos.nama, Pos.elevasi.desc())
     for p in poses:
         if p.id in pm:
