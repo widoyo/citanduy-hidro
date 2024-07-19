@@ -11,8 +11,8 @@
                         <th>Nama <span class="float-end fw-bold">ID</span></th>
                         <th>Tipe/Jenis</th>
                         <th>Pos Vendor</th>
-                        <th>Elevasi</th>
-                        <th>LonLat</th>
+                        <th>Petugas</th>
+                        <th>Elevasi, LonLat</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,8 +26,8 @@
                             {% elif p.tipe=='3' %} <span class="fw-normal badge rounded-pill text-bg-primary">Klimat</span>
                             {% elif p.tipe=='4' %} <span class="fw-normal badge rounded-pill text-bg-light">Kualitas Air</span>{% endif %}</td>
                         <td>{{ p.source }}</td>
-                        <td class="text-end"><code>{{ p.elevasi }}</code></td>
-                        <td><code>{{ p.ll }}</code></td>
+                        <td>{% if p.petugas_set %}{{ p.petugas_set.0.nama }}{% endif %}</td>
+                        <td>{{ p.elevasi }} <code>{{ p.ll }}</code></td>
                     </tr>
                 {% else %}
                     <tr>

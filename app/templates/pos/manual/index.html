@@ -34,7 +34,7 @@
                 <tbody>
                 {% for d in ctx.pch %}
                     <tr>
-                        <td>{{ d.nama }}</td>
+                        <td>{{ d.nama }} <span class="float-end font-monospace" style="font-size:8pt;">{{ d.petugas or '<b class="text-danger">kosong</b>'|safe}}</span></td>
                         <td class="text-end" x-data="FormHujan({{d.id}}, {{d.ch}})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                     </tr>
                 {% endfor %}
@@ -57,7 +57,7 @@
                 <tbody>
                 {% for p in ctx.pda %}
                     <tr>
-                        <td>{{ p.nama }}</td>
+                        <td>{{ p.nama }} <span class="float-end font-monospace" style="font-size:8pt;">{{ p.petugas or '<b class="text-danger">kosong</b>'|safe}}</span></td>
                         <td class="text-end" x-data="formTma({{p.id}}, '07', {% if p.tma %}{{ p.tma['07'] }}{% endif %})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                         <td class="text-end" x-data="formTma({{p.id}}, '12', {% if p.tma %}{{ p.tma['12'] }}{% endif %})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                         <td class="text-end" x-data="formTma({{p.id}}, '17', {% if p.tma %}{{ p.tma['17'] }}{% endif %})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>

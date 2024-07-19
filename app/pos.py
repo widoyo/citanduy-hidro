@@ -25,12 +25,20 @@ def manual():
     pch = [p for p in data if p.tipe in ('1', '3')]
 
     for p in pch:
+        if p.petugas_set:
+            p.petugas = p.petugas_set[0].nama
+        else:
+            p.petugas = None
         if p.id in data_manual_pch:
             p.ch = data_manual_pch[p.id]
         else:
             p.ch = ''
     pda = [p for p in data if p.tipe=='2']
     for p in pda:
+        if p.petugas_set:
+            p.petugas = p.petugas_set[0].nama
+        else:
+            p.petugas = None
         if p.id in data_manual_pda:
             p.tma = data_manual_pda[p.id]
         else:
