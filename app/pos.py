@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, jsonify, request, abort, redirect
-from flask_login import current_user
+from flask_login import current_user, login_required
 import json
+import datetime
+from peewee import DoesNotExist, fn
 
 from app.models import Pos, ManualDaily, PosMap
 from app import get_sampling
@@ -52,6 +54,59 @@ def manual():
         'formhujan': formhujan
     }
     return render_template('pos/manual/index.html', ctx=ctx)
+
+
+@bp.route('/<int:pos_id>/manual/<int:tahun>/<int:bulan>')
+@login_required
+def show_manual(pos_id, tahun=datetime.date.today().year, bulan=datetime.date.today().month):
+    try:
+        pos = Pos.get(pos_id)
+    except DoesNotExist:
+        return abort(404)
+    samp = "{}-{}-1".format(tahun, bulan)
+    (_s, s, s_) = get_sampling(samp)
+    _s = s - datetime.timedelta(days=2)
+    if s.strftime('%Y%m') >= datetime.date.today().strftime('%Y%m'):
+        s_ = None
+    else:
+        s_ = (s + datetime.timedelta(days=32)).replace(day=1)
+    mdaily = ManualDaily.select().where(ManualDaily.pos_id==pos_id, 
+                                        ManualDaily.sampling.year==s.year,
+                                        ManualDaily.sampling.month==s.month).order_by(ManualDaily.sampling)
+    delta_time = datetime.timedelta()
+    for m in mdaily:
+        m.delta_entry = m.cdate - (datetime.datetime.combine(m.sampling, datetime.time(7, 0)) + datetime.timedelta(days=1)).replace(hour=7, minute=0, second=0)
+        delta_time += m.delta_entry
+    
+    by_petugas = [i for i in mdaily if i.is_by_petugas]
+    by_other = [i for i in mdaily if not i.is_by_petugas]
+
+    entry_count = (ManualDaily
+                   .select(ManualDaily.cdate.year, 
+                           ManualDaily.cdate.month, 
+                           ManualDaily.cdate.day, fn.Count(ManualDaily.cdate))
+                   .where(ManualDaily.pos_id==pos.id, 
+                          ManualDaily.sampling.year==s.year,
+                          ManualDaily.sampling.month==s.month)
+                   .group_by(ManualDaily.cdate.year,
+                             ManualDaily.cdate.month,
+                             ManualDaily.cdate.day)
+                   .order_by(ManualDaily.cdate.day).tuples())
+    ec = [(datetime.date(a, b, c), d) for a, b, c, d in entry_count]
+        
+    ctx = {
+        'pos': pos,
+        'mdaily': mdaily,
+        'num_hari': s_ and (s_ - s) or (datetime.datetime.now() - s),
+        'entry_count': ec,
+        'delta_time': delta_time,
+        'by_petugas': len(mdaily) != 0 and (len(by_petugas) / len(mdaily) * 100, datetime.timedelta(seconds=sum([i.delta_entry.total_seconds() for i in mdaily if i.is_by_petugas]))) or 0,
+        'by_other': len(mdaily) != 0 and (len(by_other) / len(mdaily) * 100,  datetime.timedelta(seconds=sum([i.delta_entry.total_seconds() for i in mdaily if not i.is_by_petugas]))) or 0,
+        '_s': _s,
+        's': s,
+        's_': s_
+    }
+    return render_template('pos/manual/show.html', ctx=ctx)
 
 @bp.route('/<int:id>/manual', methods=['POST'])
 def upsert_manual(id):
@@ -106,7 +161,9 @@ def upsert_manual(id):
         print('redirect /')
         return redirect('/')
 
+
 @bp.route('/')
+@login_required
 def index():
     pm = dict([(p.pos.id, p.nama) for p in PosMap.select()])
     poses = Pos.select().order_by(Pos.tipe, Pos.nama, Pos.elevasi.desc())

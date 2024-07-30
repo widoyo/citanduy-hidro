@@ -60,7 +60,7 @@ class FetchLog(BaseModel):
         '''
         sb = datetime.datetime.fromisoformat(data.get('submitted_at').replace('Z', '+00:00'))
         this_sampling = sb.astimezone(datetime.timezone(datetime.timedelta(hours=7))).replace(tzinfo=None)
-        new_raw = {'sampling': this_sampling.isoformat()}
+        new_raw = {'sampling': this_sampling.isoformat(), 'battery': data.get('power_voltage')}
         if 'PCH' in data['name']:
             tipe = '1'
             new_raw.update({'rain': data.get('raindrop')})
@@ -99,10 +99,11 @@ class FetchLog(BaseModel):
         rows = parser.tables[0]
         poses = dict([(p.nama, p.latest_sampling) for p in OPos.select() if p.source == 'SB'])
         for r in rows:
-            if r[2] in ('Rain Fall', 'Water Level'):
+            if r[2] in ('Rain Fall', 'Water Level', 'Battery'):
                 this_sampling = datetime.datetime.strptime(r[0], '%Y-%m-%d %H:%M:%S')
                 
                 sampling = poses.get(r[1], None)
+                battery = r[3]
                 try:
                     posmap = PosMap.get(PosMap.nama==r[1])
                     pos_id = posmap.pos_id
@@ -257,6 +258,11 @@ class Pos(BaseModel):
     def s_nama(self):
         return self.nama
     
+    @property
+    def dasarian(self, month: str = datetime.date.today().strftime('%Y')) -> dict:
+        if self.tipe not in ('1', '3'):
+            return {}
+        
 
 class OPos(BaseModel):
     pos = pw.ForeignKeyField(Pos, null=True)
@@ -453,6 +459,10 @@ class ManualDaily(BaseModel):
     tma = pw.TextField(null=True) # JSON {'7': ?, '12': ? '17': ?}
     cdate = pw.DateTimeField(default=datetime.datetime.now)
 
+    @property
+    def is_by_petugas(self):
+        return self.username == self.pos.user_set[0].username
+    
     @property
     def _tma(self):
         if not self.tma:

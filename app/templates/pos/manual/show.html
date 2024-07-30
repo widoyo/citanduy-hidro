@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col">
+        <h1 class="fw-lighter">{{ ctx.pos.nama }} 
+          <small class="ms-3 fs-5 text-secondary">{{ ctx.pos.kabupaten }}</small>
+        </h1>
+        {{ ctx.pos.petugas_set.0.nama }}
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <div class="text-end mb-3">
+            <a href="/pos/{{ ctx.pos.id }}/manual/{{ ctx._s.strftime('%Y/%m')}}" class="btn btn-outline-primary me-5">{{ ctx._s.strftime('%b')}}</a> <span class="fs-3">{{ ctx.s.strftime('%b %Y')}}</span> 
+            {% if ctx.s_ %}<a class="btn btn-outline-primary ms-5" href="/pos/{{ ctx.pos.id }}/manual/{{ ctx.s_.strftime('%Y/%m')}}">{{ ctx.s_.strftime('%b')}}</a>
+            {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
+        </div>
+    
+    </div>
+</div>
+<div class="row">
+    <div class="col"><div id="cal-heatmap"></div></div>
+</div>
+<div class="row">
+    <div class="col-sm-6">
+        <p>Num Hari: {{ ctx.num_hari.days }}</p>
+        <p>Banyak Data Entry: {{ ctx.mdaily|length }}</p>
+        <p>By Petugas: {{ (ctx.by_petugas.0 or 0)|int }} % terlambat: {{ ctx.by_petugas.1 }}</p>
+        <p>By Other: {{ (ctx.by_other.0 or 0)|int }} % terlambat: {{ ctx.by_other.1 }}</p>
+        Data Manual {{ ctx.s.strftime('%b %Y') }} Total keterlambatan: {{ ctx.delta_time }}
+        <table class="table table-border table-strip table-hover">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Entry</th>
+                    <th>User</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in ctx.mdaily %}
+                <tr>
+                    <td>{{ d.sampling }}</td><td>{{ d.delta_entry|string }}</td><td><span class="text-{{ d.is_by_petugas and 'success' or 'danger' }}">{{ d.username }}</span></td>
+                </tr>
+                {% endfor %}        
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js"></script>
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+<script src="https://unpkg.com/cal-heatmap/dist/plugins/Tooltip.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/cal-heatmap/dist/cal-heatmap.css">
+{% endblock %}
+
+{% block js_foot %}
+<script>
+    const cal = new CalHeatmap();
+cal.paint({
+    itemSelector: '#cal-heatmap',
+    domain: {
+        type: 'week',
+        gutter: 10
+    },
+    range: 5,
+    subDomain: {
+        type: 'day',
+        radius: 2,
+        width: 25,
+        height: 25,
+        label: (a, b, c) => b
+    },
+    date: { start: new Date('{{ ctx.s.strftime('%Y-%m-1')|safe }}')},
+    scale: {
+        color: { type: 'diverging', scheme: 'PRGn',
+            domain: [0, 3],
+        },
+    },
+    data: {
+        source: [{% for d, c in ctx.entry_count %}
+        { date: '{{ d }}', value: {{ c }} },
+            {% endfor %}
+        ],
+        x: 'date',
+        y: datum => { return +datum['value'] },
+    }
+}, [[Tooltip]]);
+
+</script>
+{% endblock %}
