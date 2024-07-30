@@ -92,7 +92,7 @@ def show_manual(pos_id, tahun=datetime.date.today().year, bulan=datetime.date.to
                              ManualDaily.cdate.month,
                              ManualDaily.cdate.day)
                    .order_by(ManualDaily.cdate.day).tuples())
-    ec = [(datetime.date(a, b, c), d) for a, b, c, d in entry_count]
+    ec = [(datetime.date(int(a), int(b), int(c)), int(d)) for a, b, c, d in entry_count]
         
     ctx = {
         'pos': pos,
