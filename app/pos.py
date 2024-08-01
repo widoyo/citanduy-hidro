@@ -9,6 +9,43 @@ from app import get_sampling
 from app.forms import CurahHujanForm, TmaForm
 bp = Blueprint('pos', __name__, url_prefix='/pos')
 
+
+@bp.route('/manual/kinerja')
+def kinerja_manual():
+    sampling = request.args.get('s', None) == None and \
+        datetime.datetime.now() or \
+            datetime.datetime.strptime(request.args.get('s'), '%Y-%m-%d')
+    
+    (_s, s, s_) = get_sampling(sampling.strftime('%Y-%m-1'))
+    _s = s - datetime.timedelta(days=2)
+    if s.strftime('%Y%m') >= datetime.date.today().strftime('%Y%m'):
+        s_ = None
+    else:
+        s_ = (s + datetime.timedelta(days=32)).replace(day=1)
+        
+    num_hari = (s_ and (s_ - s) or (datetime.datetime.now() - s)).days
+    all_pos = (Pos.select().where(Pos.tipe.in_(('1','2','3')))
+               .order_by(Pos.tipe, Pos.nama))
+    mdaily = (ManualDaily.select()
+              .where(ManualDaily.sampling.year==s.year, 
+                     ManualDaily.sampling.month==s.month)
+              .order_by(ManualDaily.pos, ManualDaily.sampling))
+    for p in all_pos:
+        num_data = len([m for m in mdaily if m.pos_id==p.id])
+        delta_entry = sum([(m.cdate - (datetime.datetime.combine(m.sampling, datetime.time(7, 0)) + datetime.timedelta(days=1)).replace(hour=7, minute=0, second=0)).total_seconds() for m in mdaily if m.pos_id==p.id])
+        p.delta_entry = datetime.timedelta(seconds=delta_entry)
+        p.num_data = num_data
+        p.banyak_data = (num_data / num_hari) * 100
+    ctx = {
+        's': s,
+        '_s': _s,
+        's_': s_,
+        'all_pos': all_pos,
+        'num_hari': num_hari
+    }
+    return render_template('pos/manual/kinerja.html', ctx=ctx)
+
+
 @bp.route('/manual')
 def manual():
     formhujan = CurahHujanForm()

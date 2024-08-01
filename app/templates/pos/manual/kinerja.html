@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row mb-3 sticky-top">
+    <div class="col-sm-6">
+        <h2 class="border-start border-5 border-danger ps-2 fw-lighter">Data Manual</h2>
+    </div>
+    <div class="col-sm-6">
+        <div class="text-end">
+            <a href="?s={{ ctx._s.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5">{{ ctx._s.strftime('%b')}}</a> 
+            <span class="fs-3">{{ ctx.s.strftime('%b %Y')}}</span> 
+            {% if ctx.s_ %}
+            <a class="btn btn-outline-primary ms-5" href="?s={{ ctx.s_.strftime('%Y-%m-%d')}}">{{ ctx.s_.strftime('%b')}}</a>
+            {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        {{ ctx.num_hari }}
+    <table class="table table-striped table-hover table-border">
+        <thead>
+            <tr>
+                <th>Nama Pos</th>
+                <th>Persentase Data</th>
+                <th>Terlambat</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in ctx.all_pos %}
+            <tr>
+                <td>{{ p.nama }}</td>
+                <td>{{ p.banyak_data|round(0) }}%</td>
+                <td>{{ p.delta_entry }}</td>
+            </tr>
+        {% endfor %}    
+        </tbody>
+    
+    </table>
+    </div>
+</div>
+{% endblock %}

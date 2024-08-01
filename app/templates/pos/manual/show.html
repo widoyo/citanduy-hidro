@@ -19,27 +19,42 @@
     </div>
 </div>
 <div class="row">
-    <div class="col"><div id="cal-heatmap"></div></div>
+    <div class="col-sm-4">
+        <div id="cal-heatmap"></div>
+    </div>
+    <div class="col-sm-4">
+        <h2>{{ ((ctx.mdaily|length / ctx.num_hari.days)  * 100)|round(1) }} %</h2>
+        <p>Data terpenuhi</p>
+    </div>
+    <div class="col-sm-4">
+        <h2>{{ (ctx.by_petugas.0 or 0)|int }} %</h2>
+        <p>oleh Petugas<br>
+        terlambat: <b>{{ ctx.by_petugas.1 }}</b></p>
+        <h2>{{ (ctx.by_other.0 or 0)|int }} %</h2>
+        <p>oleh Kantor<br>
+        terlambat: <b>{{ ctx.by_other.1 }}</b></p>
+    </div>
 </div>
-<div class="row">
+<div class="row mt-5">
     <div class="col-sm-6">
-        <p>Num Hari: {{ ctx.num_hari.days }}</p>
-        <p>Banyak Data Entry: {{ ctx.mdaily|length }}</p>
-        <p>By Petugas: {{ (ctx.by_petugas.0 or 0)|int }} % terlambat: {{ ctx.by_petugas.1 }}</p>
-        <p>By Other: {{ (ctx.by_other.0 or 0)|int }} % terlambat: {{ ctx.by_other.1 }}</p>
-        Data Manual {{ ctx.s.strftime('%b %Y') }} Total keterlambatan: {{ ctx.delta_time }}
+        <h3>Data Manual {{ ctx.s.strftime('%b %Y') }}</h3>
+        <p>Total keterlambatan: <b>{{ ctx.delta_time }}</b></p>
         <table class="table table-border table-strip table-hover">
             <thead>
                 <tr>
                     <th>Data</th>
                     <th>Entry</th>
+                    <th>Terlambat</th>
                     <th>User</th>
                 </tr>
             </thead>
             <tbody>
                 {% for d in ctx.mdaily %}
                 <tr>
-                    <td>{{ d.sampling }}</td><td>{{ d.delta_entry|string }}</td><td><span class="text-{{ d.is_by_petugas and 'success' or 'danger' }}">{{ d.username }}</span></td>
+                    <td>{{ d.sampling }}</td>
+                    <td>{{ d.cdate.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="total-seconds" data-seconds={{ d.delta_entry.total_seconds() }}></td>
+                    <td><span class="text-{{ d.is_by_petugas and 'success' or 'danger' }}">{{ d.username }}</span></td>
                 </tr>
                 {% endfor %}        
             </tbody>
@@ -49,6 +64,7 @@
 {% endblock %}
 
 {% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/duration.js"></script>
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js"></script>
 <script src="https://unpkg.com/@popperjs/core@2"></script>
@@ -58,22 +74,23 @@
 
 {% block js_foot %}
 <script>
+    dayjs.extend(window.dayjs_plugin_duration);
     const cal = new CalHeatmap();
 cal.paint({
     itemSelector: '#cal-heatmap',
     domain: {
-        type: 'week',
+        type: 'month',
         gutter: 10
     },
-    range: 5,
+    range: 1,
     subDomain: {
         type: 'day',
         radius: 2,
         width: 25,
         height: 25,
-        label: (a, b, c) => b
+        label: 'DD'
     },
-    date: { start: new Date('{{ ctx.s.strftime('%Y-%m-1')|safe }}')},
+    date: { start: new Date('{{ ctx.s.strftime('%Y/') }}{{ ctx.s.strftime('%m')|int + 1}}')},
     scale: {
         color: { type: 'diverging', scheme: 'PRGn',
             domain: [0, 3],
@@ -88,6 +105,14 @@ cal.paint({
         y: datum => { return +datum['value'] },
     }
 }, [[Tooltip]]);
-
+let late = () => {
+    let el = document.getElementsByClassName('total-seconds');
+    for (let i=0; i < el.length; i++) {
+        console.log(el[i].dataset.seconds);
+        let w = dayjs.duration(el[i].dataset.seconds, 's');
+        console.log(w.days());
+    }
+}
+late();
 </script>
 {% endblock %}

@@ -6,7 +6,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
 {% endblock %}
 {% block content %}
-<div class="row mb-3">
+<div class="row mb-3 sticky-top">
     <div class="col-sm-6">
         <h2 class="border-start border-5 border-danger ps-2 fw-lighter">Data Manual</h2>
     </div>
@@ -34,7 +34,7 @@
                 <tbody>
                 {% for d in ctx.pch %}
                     <tr>
-                        <td>{{ d.nama }} <span class="float-end font-monospace" style="font-size:8pt;">{{ d.petugas or '<b class="text-danger">kosong</b>'|safe}}</span></td>
+                        <td>{{ d.nama }} <a href="/pos/{{ d.id }}/manual/{{ctx.sampling.year}}/{{ ctx.sampling.month - 1}}"><i class="bi bi-graph-up-arrow"></i></a><span class="float-end font-monospace" style="font-size:8pt;">{{ d.petugas or '<b class="text-danger">kosong</b>'|safe}}</span></td>
                         <td class="text-end" x-data="FormHujan({{d.id}}, {{d.ch}})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                     </tr>
                 {% endfor %}
@@ -83,10 +83,18 @@ function formTma(id, jam, tma) {
             sampling: '{{ ctx.sampling.strftime('%Y-%m-%d')}}'
         },
         validateForm(e) {
+            var re = /^-?\d*\.?\d{0,1}$/;
+            console.log(e.key);
+            if (this.formData.tma.match(re) === null) {
+                e.preventDefault();
+            }
+            /*
             if (e.key == '.') {
                 if (this.formData.tma === undefined) {
                     e.preventDefault();
                 }
+            } else if (e.key == '-') {
+                console.log('minus');
             } else if (e.key == 'Enter') {
                 return true
             } else if (e.key == 'Escape') {
@@ -94,6 +102,7 @@ function formTma(id, jam, tma) {
             } else if (e.key < '0' || e.key > '9') {
                 e.preventDefault();
             }
+                */
         },
         openForm() {
             this.cnt = `<form @submit.prevent='submitForm'>
