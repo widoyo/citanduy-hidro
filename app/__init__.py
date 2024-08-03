@@ -113,14 +113,7 @@ def create_app():
         for l in LuwesPos.select():
             data = {'a': 'stat', 'imei': l.imei}
             x = requests.post(SOURCE_C, data=data)
-            rst_body = json.loads(x.text)
-            pch_fields = 'rec;submitted_at;imei;name;power_current;power_voltage;rain_rate;raindrop'.split(';')
-            pda_fields = 'rec;submitted_at;imei;name;power_current;power_voltage;level_sensor'.split(';')
-            if l.tipe == '1':
-                body = dict([(f, rst_body[f])for f in pch_fields])
-            elif l.tipe == '2':
-                body = dict([(f, rst_body[f])for f in pda_fields])
-            fl = FetchLog.create(url=x.url, response=x.status_code, body=json.dumps(body), source='SC')
+            fl = FetchLog.create(url=x.url, response=x.status_code, body=x.text, source='SC')
             fl.sc_to_daily()
     
     
