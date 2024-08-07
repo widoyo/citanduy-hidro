@@ -19,7 +19,7 @@ db_wrapper = FlaskDB()
 csrf = CSRFProtect()
 
 from app.models import FetchLog, User, RDaily, LuwesPos, ManualDaily, Pos
-from app.config import SOURCE_A, SOURCE_B, SOURCE_C
+from app.config import SOURCE_A, SOURCE_B, SOURCE_C, BOT_TOKEN, CTY_OFFICE_ID
 from app.forms import CurahHujanForm, TmaForm
 
 def get_sampling(s: str = None) -> list:
@@ -79,6 +79,23 @@ def create_app():
     db_wrapper.init_app(app)
     csrf.init_app(app)
     
+    @app.cli.command('send-terlambat-pda7')
+    def send_terlambat_pda():
+        today = datetime.date.today()
+        pdas = Pos.select().where(Pos.tipe=='2')
+        mds = ManualDaily.select().where(ManualDaily.sampling==today)
+        #print(','.join([p.nama for p in pchs]))
+        #print('PEMISAH')
+        #print(','.join([m.pos.nama for m in mds if m.pos]))
+        msg = 'Data Manual PDA Belum Diterima\n\n'
+        msg += '*Tanggal: ' + today.strftime('%d %b %Y*\n')
+        late = [p.nama for p in pdas if p.nama not in [m.pos.nama for m in mds if m.pos]]
+        msg += 'Jam: ' + datetime.datetime.now().strftime('%H:%M\n')
+        msg += '{:.1f}'.format((len(late) / pdas.count()) * 100) + '% (' + str(len(late)) + '/'+ str(pdas.count())+') data belum diterima.\n\n'
+        msg += '\n'.join(late)
+        url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CTY_OFFICE_ID + '&text=' + msg
+        resp = requests.get(url)
+
     @app.cli.command('send-terlambat-pch')
     def send_terlambat_pch():
         today = datetime.date.today()
@@ -93,8 +110,6 @@ def create_app():
         msg += 'Jam: ' + datetime.datetime.now().strftime('%H:%M\n')
         msg += '{:.1f}'.format((len(late) / pchs.count()) * 100) + '% (' + str(len(late)) + '/'+ str(pchs.count())+') data belum diterima.\n\n'
         msg += '\n'.join(late)
-        BOT_TOKEN = '7081468060:AAHm0U-OcFpkk9N0osCrjNcLCZfg15bMgQY'
-        CTY_OFFICE_ID = '-4243209213'
         url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CTY_OFFICE_ID + '&text=' + msg
         resp = requests.get(url)
         
