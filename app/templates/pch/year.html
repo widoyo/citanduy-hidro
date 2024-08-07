@@ -16,4 +16,34 @@
     
     </div>
 </div>
+<div class="row">
+    <div class="col">
+        <div class="text-end mb-3">
+            <a href="/pch/{{ ctx.pos.id }}/{{ ctx._sampling.strftime('%Y')}}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%Y')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%Y')}}</span> 
+            {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling_.strftime('%Y')}}">{{ ctx.sampling_.strftime('%Y')}}</a>
+            {% else %}<button class="btn btn-outline-secondary ms-5">{{ ctx.sampling.strftime('%Y')|int + 1 }}</button>{% endif %}</span>
+        </div>
+    
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-8">
+        <ul>
+            {% for d in ctx.months %}
+            <li>{{ d }}</li>
+            {% endfor %}
+            <br><br>
+            {% for d in ctx.this_year %}
+            <li>{{ d.sampling }} {{ d.ch }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="col-sm-4">
+        <ol>
+            {% for y in ctx.all_year %}
+            <li><a href="/pch/{{ ctx.pos.id }}/{{ y.sampling.year }}">{{ y.sampling.year }}</a></li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
 {% endblock %}

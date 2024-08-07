@@ -7,7 +7,17 @@ from app.models import Pos, ManualDaily, RDaily, PosMap
 from app import get_sampling
 bp = Blueprint('pda', __name__, url_prefix='/pda')
 
-
+PDAPCH = {
+    6: (44, 19), # bojongsalawe_6: ciamis_44, janggala_19
+    5: (52, 56, 19, 66), # binangun_5: cineam_52, gnputri_56, janggala_19, sidamulih_66
+    31: (45, 20, 58, 62, 63, 64, 65), # bandaruka_31: cibariwal_45, danasari_20, kawali_58, panawangan_62, panjalu_63, rancah_64, sadananya_65
+    1: (20, 64, 67), # batununggul_1: danasari_20, rancah_64, tanjungjaya_67
+    2: (54, 55, 30, 67), # bebedahan_2: dayeuhluhur_54, gnbabakan_55, kaso_30, tanjungjaya_67
+    3: (86, 50, 56, 25, 66, 60), # bdciputrahaji_3: ciawitali_86, cikupa_50, gnputri_56, pdaherang_25, padaringan_60, sidamulih_66
+    7: (44, 45, 20, 63, 65), # bunar_7: ciamis_44, cibariwal_45, danasari_20, panjalu_63, sadananya_65
+    32: (20, 58, 64, 67), # bunter_32: danasari_20, kawali_58, rancah_64, tanjungjaya_67
+    
+}
 @bp.route('/<int:id>/<int:tahun>')
 def show_year(id, tahun):
     try:
@@ -31,6 +41,7 @@ def show_month(id, tahun, bulan):
         pos = Pos.get(id)
     except DoesNotExist:
         abort(404)
+    pchs = Pos.select().where(Pos.id.in_(PDAPCH[pos.id]))
     samp = "{}-{}-1".format(tahun, bulan)
     try:
         pm = PosMap.get(PosMap.pos==pos)
@@ -45,6 +56,7 @@ def show_month(id, tahun, bulan):
         sampling_ = (sampling + datetime.timedelta(days=32)).replace(day=1)
     ctx = {
         'pos': pos,
+        'pchs': pchs,
         'sampling': sampling,
         '_sampling': _sampling,
         'sampling_': sampling_
@@ -53,7 +65,11 @@ def show_month(id, tahun, bulan):
 
 @bp.route('/<int:id>')
 def show(id):
-    pos = Pos.get(id)
+    try:
+        pos = Pos.get(id)
+    except DoesNotExist:
+        return abort(404)
+    pchs = Pos.select().where(Pos.id.in_(PDAPCH[pos.id]))
     rdailies = None
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     try:
@@ -67,11 +83,10 @@ def show(id):
                                     ManualDaily.sampling==sampling.strftime('%Y-%m-%d')).first()
     pos.telemetri = rdailies and rdailies._24jam() or {}
     pos.manual = md and md._tma or {}
-
-    print('rdailies: ', pos.telemetri)
-    print('md: ', pos.manual)
+    
     ctx = {
         'pos': pos,
+        'pchs': pchs,
         'sampling': sampling,
         'sampling_': sampling_,
         '_sampling': _sampling
@@ -95,6 +110,7 @@ def index():
             for k, v in tma.items():
                 setattr(p, 'm_tma_' + k, '{:.1f}'.format(float(v)))
         if p.id in rdailies:
+            p.source = rdailies[p.id].source
             tma = rdailies[p.id]._tma()
             for k, v in tma.items():
                 jam = str(k).zfill(2)

@@ -21,13 +21,21 @@ def show_year(id, tahun):
     except DoesNotExist:
         nama = None
     (_sampling, sampling, sampling_) = get_sampling(samp)
-    _sampling = sampling - datetime.timedelta(days=2)
-    if sampling.strftime('%Y%m') >= datetime.date.today().strftime('%Y%m'):
+    _sampling = sampling.replace(year=sampling.year - 1)
+    sampling_ = sampling.replace(year=sampling.year + 1)
+    if datetime.date.today().year == sampling.year:
         sampling_ = None
-    else:
-        sampling_ = (sampling + datetime.timedelta(days=32)).replace(day=1)
+    all_years = ManualDaily.select(ManualDaily.sampling).distinct(ManualDaily.sampling.year).where(ManualDaily.pos==pos).order_by(ManualDaily.sampling.year)
+    this_year = ManualDaily.select().where(ManualDaily.pos==pos, ManualDaily.sampling.year==sampling.year).order_by(ManualDaily.sampling)
+    months = set([s.sampling.month for s in this_year])
+    ch = 0
+    dasar_ian = ((1, 10), (11, 20), (21, 31))
+    bulan = this_year[0].sampling.month
     ctx = {
         'pos': pos,
+        'months': months,
+        'all_year': all_years,
+        'this_year': this_year,
         'sampling': sampling,
         '_sampling': _sampling,
         'sampling_': sampling_
@@ -141,6 +149,7 @@ def index():
             p.dini = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=1 and k < 7]))
             p.ch = '{:.1f}'.format(rd.get('rain24'))
             p.count = rd.get('count24') or 0
+            p.source = rdailies[p.id].source
             p.vendor = VENDORS.get(rdailies[p.id].source).get('nama')
             p.v_name = rdailies[p.id].nama
 

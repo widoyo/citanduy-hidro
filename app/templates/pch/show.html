@@ -29,12 +29,31 @@
   </div>
 </div>
 <div class="row">
-  <div class="col">
+  <div class="col-sm-10">
     <canvas id="myChart"></canvas>
-    </div>
   </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <div class="col-sm-2">
+    <small class="fw-bold">Skala Hujan per&nbsp;Jam</small>
+    <table class="table table-sm" style="font-size: 0.8rem;">
+        <tr>
+        <td>&gt; 20</td><th style="color: rgb(255, 32, 32)">Hujan Sangat Lebat</th>
+        </tr>
+      <tr>
+        <td>10 - 20</td><th style="color: rgb(255, 165, 0)">Hujan Lebat</th>
+      </tr>
+      <tr>
+        <td>5 - 10</td><th style="color: rgb(214, 193, 54)">Hujan Sedang</th>
+      </tr>
+      <tr>
+        <td>1 - 5</td><th style="color: rgb(32, 255, 32)">Hujan Ringan</th>
+      </tr>
+    </table>      
+  </div>
 
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <script>
   const ctx = document.getElementById('myChart');
 
@@ -67,7 +86,60 @@
             weight: 'lighter'
           },
           text: 'Hujan per Jam'
-      },
+        },
+        annotation: {
+          annotations: {
+            line1: {
+              type: 'line',
+              yMin: 5,
+              yMax: 5,
+              borderColor: 'rgba(32, 255, 32, 0.5)',
+              borderWidth: 10,
+            },
+            line2: {
+              type: 'line',
+              yMin: 10,
+              yMax: 10,
+              borderColor: 'rgba(245, 223, 77, 0.5)',
+              borderWidth: 10,
+            },
+            line3: {
+              type: 'line',
+              yMin: 20,
+              yMax: 20,
+              borderColor: 'rgba(255, 165, 0, 0.5)',
+              borderWidth: 10,
+            },
+            line4: {
+              type: 'line',
+              yMin: 25,
+              yMax: 25,
+              borderColor: 'rgba(255, 32, 32, 0.2)',
+              borderWidth: 90,
+            },
+            vline1: {
+              type: 'line',
+              xMin: 9,
+              xMax: 9,
+              borderColor: 'rgba(255, 99, 132, 0.1)',
+              borderWidth: 30,
+            },
+            vline2: {
+              type: 'line',
+              xMin: 19,
+              xMax: 19,
+              borderColor: 'rgba(255, 99, 132, 0.1)',
+              borderWidth: 30,
+            },
+            label5: {
+              type: 'label',
+              position: 'start',
+              xValue: 0,
+              yValue: 120,
+              content: ''
+            }
+
+          }}
 
       },
       scales: {
@@ -91,7 +163,7 @@
             }
           },
           beginAtZero: true,
-          max: 20
+          max: 30,
         },
         ycount: {
           grid: {

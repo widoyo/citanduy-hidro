@@ -9,7 +9,7 @@
             {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%d')}}</a>
             {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
         </div>
-        <small class="text-secondary">satuan Centimeter (cm)</small>
+        <small class="text-secondary">satuan Centimeter (cm)<small class="ms-3"> <span class="dot-sa"></span> Arindo, <span class="dot-sb"></span> Komtronik, <span class="dot-sc"></span> Luwes</small>
         <div class="table-responsive">
             <table class="table table-striped table-hover table-bordered">
                 <thead>
@@ -37,11 +37,11 @@
                 <tr>
                     <td><a class="ms-3" href="/pda/{{ p.id }}">{{ p.nama.replace('PDA ', '') }}</a></td>
                     <td class="text-end" style="background-color:#D7FBC1;">{{ p.m_tma_07 }}</td>
-                    <td class="text-end" style="background-color:#F1F1F1;">{{ p.tma_07 }}</td>
+                    <td class="text-end" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_07 }}</td>
                     <td class="text-end" style="background-color:#D7FBC1;">{{ p.m_tma_12}}</td>
-                    <td class="text-end" style="background-color:#F1F1F1;">{{ p.tma_12}}</td>
+                    <td class="text-end" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_12}}</td>
                     <td class="text-end" style="background-color:#D7FBC1;">{{ p.m_tma_17}}</td>
-                    <td class="text-end" style="background-color:#F1F1F1;">{{ p.tma_17}}</td>
+                    <td class="text-end" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_17}}</td>
                 </tr>
                 {% endfor %}
                 {% endfor %}

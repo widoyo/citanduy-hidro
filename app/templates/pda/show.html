@@ -25,8 +25,13 @@
   </div>
 </div>
 <div class="row">
-  <div class="col">
+  <div class="col-sm-10">
         <canvas id="myChart"></canvas>
+  </div>
+  <div class="col-sm-2">
+    {% for p in ctx.pchs %}
+    <li>{{ p.nama }}</li>
+    {% endfor %}
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -35,18 +40,29 @@
   const ctx = document.getElementById('myChart');
 
   new Chart(ctx, {
-    type: 'line',
     data: {
       labels: [{% for jam in range(24) %}{{ jam }}, {% endfor %}],
       datasets: [{
+        type: 'line',
         label: 'Telemetri',
         data: [{% for jam, t in ctx.pos.telemetri.items() %}{{ t.wlevel }}, {% endfor %}],
         fillColor: '#F1F1F1'
       },
       {
+        type: 'line',
         label: 'Manual',
         data: [{% for jam, m in ctx.pos.manual.items() %}{'x': {{jam}}, 'y': {{m}}}, {% endfor %}],
         fillColor: '#D7FBC1'
+      },
+      {
+        type: 'bar',
+        label: 'Curah Hujan',
+        yAxisID: 'yrain',
+        reverse: true,
+        data: [
+          {x: 1, y: 9},
+          {x: 2, y: 10},
+          {x: 3, y: 20}]
       }
     ]
     },
@@ -63,7 +79,23 @@
           }
         },
         y: {
-          beginAtZero: true
+          position: 'right',
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'TMA (cm)'
+          }
+        },
+        yrain: {
+          grid: {
+            display: false
+          },
+          title: {
+            display: true,
+            text: 'Hujan (mm)',
+          },
+          reverse: true,
+          max: 100
         }
       }
     }

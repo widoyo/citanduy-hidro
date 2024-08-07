@@ -85,3 +85,27 @@ transform: rotate(-135deg);
 .navbar-toggler.collapsed .toggler-icon {
 background: linear-gradient( 263deg, rgb(42, 7, 238) 0%, rgb(238, 204, 7) 100% );
 }
+
+.dot-sa {
+  height: 8px;
+  width: 8px;
+  background-color:rgb(42, 7, 238);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-sb {
+  height: 8px;
+  width: 8px;
+  background-color:rgb(238, 111, 7);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-sc {
+  height: 8px;
+  width: 8px;
+  background-color:rgb(7, 238, 42);
+  border-radius: 50%;
+  display: inline-block;
+}
