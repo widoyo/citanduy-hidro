@@ -18,7 +18,7 @@ load_dotenv()
 db_wrapper = FlaskDB()
 csrf = CSRFProtect()
 
-from app.models import FetchLog, User, RDaily, LuwesPos, ManualDaily
+from app.models import FetchLog, User, RDaily, LuwesPos, ManualDaily, Pos
 from app.config import SOURCE_A, SOURCE_B, SOURCE_C
 from app.forms import CurahHujanForm, TmaForm
 
@@ -79,6 +79,25 @@ def create_app():
     db_wrapper.init_app(app)
     csrf.init_app(app)
     
+    @app.cli.command('send-terlambat-pch')
+    def send_terlambat_pch():
+        today = datetime.date.today()
+        pchs = Pos.select().where(Pos.tipe=='1')
+        mds = ManualDaily.select().where(ManualDaily.sampling==today - datetime.timedelta(days=1))
+        #print(','.join([p.nama for p in pchs]))
+        #print('PEMISAH')
+        #print(','.join([m.pos.nama for m in mds if m.pos]))
+        msg = 'Data Manual PCH Belum Diterima\n\n'
+        msg += '*Tanggal: ' + today.strftime('%d %b %Y*\n')
+        late = [p.nama for p in pchs if p.nama not in [m.pos.nama for m in mds if m.pos]]
+        msg += 'Jam: ' + datetime.datetime.now().strftime('%H:%M\n')
+        msg += '{:.1f}'.format((len(late) / pchs.count()) * 100) + '% (' + str(len(late)) + '/'+ str(pchs.count())+') data belum diterima.\n\n'
+        msg += '\n'.join(late)
+        BOT_TOKEN = '7081468060:AAHm0U-OcFpkk9N0osCrjNcLCZfg15bMgQY'
+        CTY_OFFICE_ID = '-4243209213'
+        url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CTY_OFFICE_ID + '&text=' + msg
+        resp = requests.get(url)
+        
     @app.cli.command('fetch-sda')
     def fetch_sdatelemetry():
         '''Membaca data pada server SDATELEMETRY'''
@@ -242,6 +261,7 @@ def register_bluprint(app):
     from app.pklimat import bp as bp_klimat
     from app.pka import bp as bp_ka
     from app.kinerja import bp as bp_kinerja
+    from app.api import bp as bp_api
     
     app.register_blueprint(bp_pch)
     app.register_blueprint(bp_pda)
@@ -255,3 +275,4 @@ def register_bluprint(app):
     app.register_blueprint(bp_klimat)
     app.register_blueprint(bp_ka)
     app.register_blueprint(bp_kinerja)
+    app.register_blueprint(bp_api)
