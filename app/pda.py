@@ -69,7 +69,10 @@ def show(id):
         pos = Pos.get(id)
     except DoesNotExist:
         return abort(404)
-    pchs = Pos.select().where(Pos.id.in_(PDAPCH[pos.id]))
+    try:
+        pchs = Pos.select().where(Pos.id.in_(PDAPCH[pos.id]))
+    except KeyError:
+        pchs = []
     rdailies = None
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     try:
@@ -83,7 +86,7 @@ def show(id):
                                     ManualDaily.sampling==sampling.strftime('%Y-%m-%d')).first()
     pos.telemetri = rdailies and rdailies._24jam() or {}
     pos.manual = md and md._tma or {}
-    
+
     ctx = {
         'pos': pos,
         'pchs': pchs,
