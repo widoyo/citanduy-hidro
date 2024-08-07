@@ -41,7 +41,10 @@ def show_month(id, tahun, bulan):
         pos = Pos.get(id)
     except DoesNotExist:
         abort(404)
-    pchs = Pos.select().where(Pos.id.in_(PDAPCH[pos.id]))
+    try:
+        pchs = Pos.select().where(Pos.id.in_(PDAPCH[pos.id]))
+    except KeyError:
+        pchs = []
     samp = "{}-{}-1".format(tahun, bulan)
     try:
         pm = PosMap.get(PosMap.pos==pos)
