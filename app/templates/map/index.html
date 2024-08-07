@@ -45,13 +45,18 @@
    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
    crossorigin=""></script>
    <script>
+      async function loadThiessen(lThiess) {
+        let resp = await fetch('/static/thiessen.geojson');
+        let thiess = await resp.json();
+        lThiess.addData(thiess);
+      }
       async function loadDas(lDas) {
         let resp = await fetch('/static/js/citanduy.json');
         let das = await resp.json();
         lDas.addData(das);
       }
       const pchIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         iconSize: [25, 41],
         iconAnchor: [12, 41],
@@ -59,7 +64,7 @@
         shadowSize: [41, 41]
       });
       const pdaIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         iconSize: [25, 41],
         iconAnchor: [12, 41],
@@ -96,10 +101,18 @@
         let popUpContent = `<p>${feature.properties.TOPONIMI}</p>`;
         layer.bindPopup(popUpContent);
       }
-
+      const onEachFeaturePch = (feature, layer) => {
+        let popUpContent = `<p>${feature.properties.Name}</p>`;
+        layer.bindPopup(popUpContent);
+      }
       const dasStyle = (geoJsonFeature) => {
         return {weight: 1, fillOpacity: 0.1}
       }
+      const thiessStyle = (geoJsonFeature) => {
+        return { weight: 1, fillOpacity: 0.1, color: 'brown'}
+      }
+      let lThiess = L.geoJSON(null, {onEachFeature: onEachFeaturePch, style: thiessStyle}).addTo(map);
+      listPch.push(lThiess);
       let lDas = L.geoJSON(null, {onEachFeature: onEachFeature, style: dasStyle}).addTo(map);
       let lPch = L.layerGroup(listPch);
       let lPda = L.layerGroup(listPda);
@@ -108,11 +121,13 @@
       lPda.addTo(map);
       lKlimat.addTo(map);
       loadDas(lDas);
+      loadThiessen(lThiess);
 
       let posMap = {"Pos Curah Hujan": lPch, 
       "Pos Duga Air": lPda, "Daerah Aliran Sungai": lDas};
 
       let layerControl = L.control.layers(null, posMap).addTo(map);
+      console.log(layerControl.getContainer());
 
       map.fitBounds(all_poses.getBounds());
 
