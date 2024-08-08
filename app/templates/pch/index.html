@@ -44,8 +44,8 @@
         {% for p in ctx.wilayah[kab.title()] %}
         <tr>
             <td><a href="/pch/{{ p.id }}" class="ms-3 text-decoration-none">{{ p.nama.replace('PCH ', '') }}</a></td>
-            <td class="text-end">{{ p.m_ch }}</td>
-            <td class="text-end">{{ p.ch }}</td>
+            <td class="text-end"><span class="ch">{{ p.m_ch }}</span></td>
+            <td class="text-end"><span class="ch">{{ p.ch }}</span></td>
             <td class="text-end"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span> {{ p.sehat }}</td>
             <td class="text-end">{{ p.pagi }}</td>
             <td class="text-end">{{ p.siang }}</td>
@@ -76,4 +76,54 @@
         </table>      
       </div>
 </div>
+{% endblock %}
+{% block js_foot %}
+<script>
+function domReady () {
+    const chs = document.getElementsByClassName('ch');
+    for(let i = 0; i < chs.length; i++) {
+        categorizeRain(chs[i]);
+    }
+}
+
+function categorizeRain(el) {
+    value = parseFloat(el.innerText);
+    if (value >= 0.5) {
+        el.style.borderRadius = "15%";
+        el.style.padding = "2px";
+    }
+    if (value >= 0.5 && value <= 20) {
+        // hujan ringan
+        el.style.backgroundColor = "rgb(32, 255, 32)";
+    } else if (value > 20 && value <= 50) {
+        // hujan sedang
+        el.style.backgroundColor = "rgb(214, 193, 5)";
+    } else if (value > 50 && value <= 100) {
+        // hujan lebat
+        el.style.backgroundColor = "rgb(255, 165, 0)";
+    } else if (value > 100){
+        // hujan sangat lebat
+        el.style.backgroundColor = "rgb(255, 32, 32)";
+        el.style.color = "rgb(255, 255, 255)";
+    }    
+}
+
+// Mozilla, Opera, Webkit 
+if ( document.addEventListener ) {
+  document.addEventListener( "DOMContentLoaded", function(){
+    document.removeEventListener( "DOMContentLoaded", arguments.callee, false);
+    domReady();
+  }, false );
+
+// If IE event model is used
+} else if ( document.attachEvent ) {
+  // ensure firing before onload
+  document.attachEvent("onreadystatechange", function(){
+    if ( document.readyState === "complete" ) {
+      document.detachEvent( "onreadystatechange", arguments.callee );
+      domReady();
+    }
+  });
+}
+</script>
 {% endblock %}
