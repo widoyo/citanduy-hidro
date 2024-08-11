@@ -11,5 +11,12 @@ bp = Blueprint('api', __name__, url_prefix='/api')
 def rain():
     (_s, s, s_) = get_sampling(request.args.get('s', None))
     rdaily = RDaily.select().where(RDaily.sampling==s.strftime('%Y-%m-%d'))
-    r_this_day = [r for r in rdaily if r._rain()]
-    return jsonify([r._rain() for r in r_this_day])
+    out = []
+    for r in rdaily:
+        if not r._rain(): continue
+        if r._rain()['rain24'] == 0: continue
+        if r.pos and r.pos.tipe not in ('1', '3'): continue
+        row = {'pos': r.pos and r.pos.nama or r.nama, 'sampling': r.sampling, 'rain24': r._rain()['rain24']}
+        out.append(row)
+    
+    return jsonify(out)

@@ -2,7 +2,7 @@
 {% block content %}
 <div class="row mb-3 sticky-top">
     <div class="col-sm-6">
-        <h2 class="border-start border-5 border-danger ps-2 fw-lighter">Data Manual</h2>
+        <h2 class="border-start border-5 border-danger ps-2 fw-lighter">Kinerja Data Manual</h2>
     </div>
     <div class="col-sm-6">
         <div class="text-end">
@@ -13,22 +13,55 @@
             {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span></div>
     </div>
 </div>
+<div class="row mb-5">
+    <div class="col-sm-6">
+        <div class="card">
+            <div class="card-body">
+                <p class="text-secondary lh-1">PCH <span class="fw-bold">{{ ctx.pchs.banyak_pos }}</span></p>
+                <small class="text-secondary lh-1">DATA DITERIMA</small>
+                <h3 class="card-title">
+                    {{ ((ctx.pchs.diterima / ctx.pchs.seharusnya) * 100)|round(0) }}%
+                </h3>
+                <p class="text-muted">{{ ctx.pchs.diterima }} dari {{ ctx.pchs.seharusnya }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="card">
+            <div class="card-body">
+                <p class="text-secondary lh-1">PDA <span class="fw-bold">{{ ctx.pdas.banyak_pos }}</span></p>
+                <small class="text-secondary lh-1">DATA DITERIMA</small>
+                <h3 class="card-title">
+                    {{ ((ctx.pdas.diterima / ctx.pdas.seharusnya) * 100)|round(0) }}%
+                </h3>
+                <p class="text-muted">{{ ctx.pdas.diterima }} dari {{ ctx.pdas.seharusnya }}</p>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col">
-        {{ ctx.num_hari }}
-    <table class="table table-striped table-hover table-border">
+        Banyak hari {{ ctx.num_hari }}
+    <table class="table table-striped table-hover table-bordered">
         <thead>
             <tr>
                 <th>Nama Pos</th>
-                <th>Persentase Data</th>
+                <th>Petugas</th>
+                <th>Persentase Diterima</th>
+                <th>Data Diterima</th>
+                <th>Seharusnya</th>
                 <th>Terlambat</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="table-group-divider">
         {% for p in ctx.all_pos %}
             <tr>
                 <td>{{ p.nama }}</td>
-                <td>{{ p.banyak_data|round(0) }}%</td>
+                <td>{% for pt in p.petugas_set %}&middot; {{ pt.nama }}
+                    {% if pt.hp %}<a title="Kirim WhatsApp" href="https://wa.me/+62{{ pt.hp }}?text=*{{ p.nama }}*, Bulan {{ ctx.s.strftime('%b %Y')}} data diterima *{{ p.diterima }}*, seharusnya: {{ p.seharusnya }}" target="_blank"> <span style="font-size:10pt" class="text-secondary">{{ pt.hp }}</span></a>{% endif %}{% endfor %}</td>
+                    <td class="text-end data-persen">{{ p.persen|round(1) }}%</td>
+                    <td class="text-end">{{ p.diterima }}</td>
+                <td class="text-end">{{ p.seharusnya }}</td>
                 <td>{{ p.delta_entry }}</td>
             </tr>
         {% endfor %}    
@@ -37,4 +70,42 @@
     </table>
     </div>
 </div>
+{% endblock %}
+{% block js_foot %}
+<script>
+function domReady() {
+    const persen = document.getElementsByClassName('data-persen');
+    for(let i = 0; i < persen.length; i++) {
+        const val = parseFloat(persen[i].innerText);
+        if (val > 80) {
+            persen[i].classList.add('text-success');
+        } else if (val > 50) {
+            persen[i].classList.add('text-warning');
+        } else {
+            persen[i].classList.add('text-danger');
+        }
+    }
+
+}
+
+
+
+// Mozilla, Opera, Webkit 
+if ( document.addEventListener ) {
+  document.addEventListener( "DOMContentLoaded", function(){
+    document.removeEventListener( "DOMContentLoaded", arguments.callee, false);
+    domReady();
+  }, false );
+
+// If IE event model is used
+} else if ( document.attachEvent ) {
+  // ensure firing before onload
+  document.attachEvent("onreadystatechange", function(){
+    if ( document.readyState === "complete" ) {
+      document.detachEvent( "onreadystatechange", arguments.callee );
+      domReady();
+    }
+  });
+}
+</script>
 {% endblock %}

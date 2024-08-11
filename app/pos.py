@@ -30,17 +30,35 @@ def kinerja_manual():
               .where(ManualDaily.sampling.year==s.year, 
                      ManualDaily.sampling.month==s.month)
               .order_by(ManualDaily.pos, ManualDaily.sampling))
+    pchs = []
+    pdas = []
     for p in all_pos:
-        num_data = len([m for m in mdaily if m.pos_id==p.id])
+        if p.tipe == '1':
+            pchs.append(p)
+            num_data = len([m for m in mdaily if m.pos_id==p.id])
+            banyak_data = num_hari
+        elif p.tipe == '2':
+            pdas.append(p)
+            num_data = sum([len(json.loads(m.tma)) for m in mdaily if m.pos_id==p.id])
+            banyak_data = num_hari * 3
         delta_entry = sum([(m.cdate - (datetime.datetime.combine(m.sampling, datetime.time(7, 0)) + datetime.timedelta(days=1)).replace(hour=7, minute=0, second=0)).total_seconds() for m in mdaily if m.pos_id==p.id])
         p.delta_entry = datetime.timedelta(seconds=delta_entry)
-        p.num_data = num_data
-        p.banyak_data = (num_data / num_hari) * 100
+        p.diterima = num_data
+        p.seharusnya = banyak_data
+        p.persen = (num_data / banyak_data) * 100
+    
+    pch_diterima = sum([p.diterima for p in pchs])
+    pch_seharusnya = sum([p.seharusnya for p in pchs])
+    pda_diterima = sum([p.diterima for p in pdas])
+    pda_seharusnya = sum([p.seharusnya for p in pdas])
+        
     ctx = {
         's': s,
         '_s': _s,
         's_': s_,
         'all_pos': all_pos,
+        'pchs': {'diterima': pch_diterima, 'seharusnya': pch_seharusnya, 'banyak_pos': len(pchs)},
+        'pdas': {'diterima': pda_diterima, 'seharusnya': pda_seharusnya, 'banyak_pos': len(pdas)},
         'num_hari': num_hari
     }
     return render_template('pos/manual/kinerja.html', ctx=ctx)
@@ -174,7 +192,11 @@ def upsert_manual(id):
                 ManualDaily.sampling==form.sampling.data).first()
             if md:
                 tma = json.loads(md.tma)
-                tma.update({str(form.jam.data): form.tma.data})
+                if 'cdate_'+str(form.jam.data) in tma:
+                    tma.update({str(form.jam.data): form.tma.data})
+                else:
+                    tma.update({str(form.jam.data): form.tma.data, 
+                                'cdate_'+str(form.jam.data): datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
                 md.tma = json.dumps(tma)
                 md.save()
                 ret = {'ok': True, 'tma': tma,
@@ -182,7 +204,8 @@ def upsert_manual(id):
                     'pos': pos.id,
                     'username': current_user.username}
             else:
-                tma = json.dumps({str(form.jam.data): form.tma.data})
+                tma = json.dumps({str(form.jam.data): form.tma.data, 
+                                  'cdate_'+str(form.jam.data): datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
                 ret = {'ok': True, 'tma': tma,
                     'sampling': form.sampling.data,
                     'pos': pos.id,
@@ -192,10 +215,8 @@ def upsert_manual(id):
             print(form.errors)
             ret = {'ok': False, 'error': form.errors}
     if form.fetch.data == True:
-        print('fetch True')
         return jsonify(ret)
     else:
-        print('redirect /')
         return redirect('/')
 
 

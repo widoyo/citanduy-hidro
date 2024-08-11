@@ -89,10 +89,10 @@ def create_app():
         #print(','.join([m.pos.nama for m in mds if m.pos]))
         msg = 'Data Manual PDA Belum Diterima\n\n'
         msg += '*Tanggal: ' + today.strftime('%d %b %Y*\n')
-        late = [p.nama for p in pdas if p.nama not in [m.pos.nama for m in mds if m.pos]]
+        late = [p for p in pdas if p.nama not in [m.pos.nama for m in mds if m.pos]]
         msg += 'Jam: ' + datetime.datetime.now().strftime('%H:%M\n')
         msg += '{:.1f}'.format((len(late) / pdas.count()) * 100) + '% (' + str(len(late)) + '/'+ str(pdas.count())+') data belum diterima.\n\n'
-        msg += '\n'.join(late)
+        msg += '\n'.join(['{}: {}'.format(p.nama, ','.join([pt.nama for pt in p.petugas_set]) or '-') for p in late])
         url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CTY_OFFICE_ID + '&text=' + msg
         resp = requests.get(url)
 
@@ -106,10 +106,10 @@ def create_app():
         #print(','.join([m.pos.nama for m in mds if m.pos]))
         msg = 'Data Manual PCH Belum Diterima\n\n'
         msg += '*Tanggal: ' + today.strftime('%d %b %Y*\n')
-        late = [p.nama for p in pchs if p.nama not in [m.pos.nama for m in mds if m.pos]]
+        late = [p for p in pchs if p.nama not in [m.pos.nama for m in mds if m.pos]]
         msg += 'Jam: ' + datetime.datetime.now().strftime('%H:%M\n')
         msg += '{:.1f}'.format((len(late) / pchs.count()) * 100) + '% (' + str(len(late)) + '/'+ str(pchs.count())+') data belum diterima.\n\n'
-        msg += '\n'.join(late)
+        msg += '\n'.join(['{}: {}'.format(p.nama, ','.join([pt.nama for pt in p.petugas_set]) or '-') for p in late])
         url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CTY_OFFICE_ID + '&text=' + msg
         resp = requests.get(url)
         
