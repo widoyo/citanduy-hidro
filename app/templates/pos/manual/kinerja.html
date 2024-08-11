@@ -56,9 +56,9 @@
         <tbody class="table-group-divider">
         {% for p in ctx.all_pos %}
             <tr>
-                <td>{{ p.nama }}</td>
+                <td><a href="{{ url_for('pos.show_manual', pos_id=p.id, tahun=ctx.s.year, bulan=ctx.s.month ) }}">{{ p.nama }}</a></td>
                 <td>{% for pt in p.petugas_set %}&middot; {{ pt.nama }}
-                    {% if pt.hp %}<a title="Kirim WhatsApp" href="https://wa.me/+62{{ pt.hp }}?text=*{{ p.nama }}*, Bulan {{ ctx.s.strftime('%b %Y')}} data diterima *{{ p.diterima }}*, seharusnya: {{ p.seharusnya }}" target="_blank"> <span style="font-size:10pt" class="text-secondary">{{ pt.hp }}</span></a>{% endif %}{% endfor %}</td>
+                    {% if pt.hp %}<a title="Kirim WhatsApp" href="https://wa.me/+62{{ pt.hp }}?text=*{{ p.nama }}*, Bulan {{ ctx.s.strftime('%b %Y')}} data diterima *{{ p.diterima }}*, seharusnya: {{ p.seharusnya }}" target="_blank"> <span style="font-size:10pt" class="text-secondary">{{ pt.hp }}</span></a> <i class="bi bi-whatsapp"></i>{% endif %}{% endfor %}</td>
                     <td class="text-end data-persen">{{ p.persen|round(1) }}%</td>
                     <td class="text-end">{{ p.diterima }}</td>
                 <td class="text-end">{{ p.seharusnya }}</td>

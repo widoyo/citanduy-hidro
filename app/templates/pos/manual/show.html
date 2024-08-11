@@ -5,7 +5,10 @@
         <h1 class="fw-lighter">{{ ctx.pos.nama }} 
           <small class="ms-3 fs-5 text-secondary">{{ ctx.pos.kabupaten }}</small>
         </h1>
-        {{ ctx.pos.petugas_set.0.nama }}
+        {% for pt in ctx.pos.petugas_set %}
+        {{ pt.nama }} - {% if pt.hp %}<a href="https://wa.me/+62{{ pt.hp }}" target="_blank">+62{{ pt.hp }}</a> <i class="bi bi-whatsapp"></i>{% endif %}
+        {% endfor %}
+        
     </div>
 </div>
 <div class="row">
