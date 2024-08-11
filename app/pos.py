@@ -24,6 +24,7 @@ def kinerja_manual():
         s_ = (s + datetime.timedelta(days=32)).replace(day=1)
         
     num_hari = (s_ and (s_ - s) or (datetime.datetime.now() - s)).days
+    num_hari += 1 # perlu tambah 1 hari, karena s tanggal 1
     all_pos = (Pos.select().where(Pos.tipe.in_(('1','2','3')))
                .order_by(Pos.tipe, Pos.nama))
     mdaily = (ManualDaily.select()
@@ -152,7 +153,7 @@ def show_manual(pos_id, tahun=datetime.date.today().year, bulan=datetime.date.to
     ctx = {
         'pos': pos,
         'mdaily': mdaily,
-        'num_hari': s_ and (s_ - s) or (datetime.datetime.now() - s),
+        'num_hari': (s_ and (s_ - s) or (datetime.datetime.now() - s)).days + 1,
         'entry_count': ec,
         'delta_time': delta_time,
         'by_petugas': len(mdaily) != 0 and (len(by_petugas) / len(mdaily) * 100, datetime.timedelta(seconds=sum([i.delta_entry.total_seconds() for i in mdaily if i.is_by_petugas]))) or 0,
