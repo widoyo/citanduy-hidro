@@ -57,8 +57,14 @@ def show_month(id, tahun, bulan):
         sampling_ = None
     else:
         sampling_ = (sampling + datetime.timedelta(days=32)).replace(day=1)
+    rds = RDaily.select().where(RDaily.pos_id==pos.id, 
+                                RDaily.sampling.year==sampling.year,
+                                RDaily.sampling.month==sampling.month).order_by(
+                                    RDaily.nama, RDaily.sampling)
+    pos.telemetri = None
     ctx = {
         'pos': pos,
+        'rdaily': rds,
         'pchs': pchs,
         'sampling': sampling,
         '_sampling': _sampling,
@@ -114,7 +120,8 @@ def index():
         if p.id in mds:
             tma = json.loads(mds.get(p.id))
             for k, v in tma.items():
-                setattr(p, 'm_tma_' + k, '{:.1f}'.format(float(v)))
+                if k in ('07', '12', '17'):
+                    setattr(p, 'm_tma_' + k, '{:.1f}'.format(float(v)))
         if p.id in rdailies:
             p.source = rdailies[p.id].source
             tma = rdailies[p.id]._tma()
