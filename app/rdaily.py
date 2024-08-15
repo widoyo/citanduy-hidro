@@ -10,17 +10,16 @@ bp = Blueprint('rdaily', __name__, url_prefix='/rdaily')
 @bp.route('/<pos_name>/')
 def show(pos_name):
     (_s, s, s_) = get_sampling(request.args.get('s', None))
-    
+    print('pos_name: ', pos_name)
     try:
         pos = OPos.get(OPos.nama==pos_name)
     except DoesNotExist:
-        pos = OPos()
+        pos = None
     try:
         this_day = RDaily.select().where(RDaily.nama==pos_name, 
                                      RDaily.sampling==s.strftime('%Y-%m-%d')).first()
-        this_day.tipe = (type(pos) != type(OPos())) and pos.tipe or ''
     except DoesNotExist:
-        this_day = []
+        this_day = None
     ctx = {
         '_sampling': _s,
         'sampling': s,
@@ -42,11 +41,15 @@ def index():
     
     pos_excludes = SDATELEMETRY_POS_EXCLUDES.split(';')
     rdaily = [r for r in rdaily if r.nama not in pos_excludes]
+    f_50 = [r for r in rdaily if r.kinerja < 20]
+    f_70 = [r for r in rdaily if r.kinerja < 70]
     vendors = set([r.source for r in rdaily])
     vendors = [(v, len([r for r in rdaily if r.source == v]), sum(r.kinerja for r in rdaily if r.source==v)) for v in vendors]
     vendors = sorted(vendors, key=lambda x:x[0])
     
     ctx = {
+        'ki_50': f_50,
+        'ki_70': f_70,
         'VENDORS': VENDORS,
         'vendors': vendors,
         'all_pos': our_poses,
