@@ -1,7 +1,8 @@
 import datetime
+from collections import defaultdict
 from flask import Blueprint, render_template, request, abort
 from flask_login import current_user
-from peewee import DoesNotExist
+from peewee import DoesNotExist, fn
 
 from app.models import Pos, RDaily, ManualDaily, PosMap
 from app import get_sampling
@@ -25,17 +26,29 @@ def show_year(id, tahun):
     sampling_ = sampling.replace(year=sampling.year + 1)
     if datetime.date.today().year == sampling.year:
         sampling_ = None
-    all_years = ManualDaily.select(ManualDaily.sampling).distinct(ManualDaily.sampling.year).where(ManualDaily.pos==pos).order_by(ManualDaily.sampling.year)
-    this_year = ManualDaily.select().where(ManualDaily.pos==pos, ManualDaily.sampling.year==sampling.year).order_by(ManualDaily.sampling)
-    months = set([s.sampling.month for s in this_year])
-    ch = 0
-    dasar_ian = ((1, 10), (11, 20), (21, 31))
-    bulan = this_year[0].sampling.month
+    all_years = (ManualDaily.select(ManualDaily.sampling.year.alias('tahun'), 
+                                    ManualDaily.sampling.month.alias('bulan'), 
+                                    fn.Sum(ManualDaily.ch).alias('ch'),
+                                    fn.Count(ManualDaily.id).alias('banyak'))
+                 .where(ManualDaily.pos==pos)
+                 .group_by(ManualDaily.sampling.year, ManualDaily.sampling.month)
+                 .order_by(ManualDaily.sampling.year, ManualDaily.sampling.month))
+    this_year = [ay for ay in all_years if ay.tahun==sampling.year]
+    all_year = defaultdict(dict)
+    for a in all_years:
+        if 'ch' in all_year[a.tahun]:
+            all_year[a.tahun]['ch'] += a.ch
+        else:
+            all_year[a.tahun]['ch'] = a.ch
+        if 'banyak' in all_year[a.tahun]:
+            all_year[a.tahun]['banyak'] += a.banyak
+        else:
+            all_year[a.tahun]['banyak'] = a.banyak
+
     ctx = {
         'pos': pos,
-        'months': months,
-        'all_year': all_years,
         'this_year': this_year,
+        'all_year': dict(all_year),
         'sampling': sampling,
         '_sampling': _sampling,
         'sampling_': sampling_
