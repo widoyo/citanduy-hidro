@@ -59,13 +59,12 @@
           <a
             class="nav-link dropdown-toggle"
             role="button"
-            id="dropdownRtdMenuLink"
             href="#"
             data-bs-toggle="dropdown"
             aria-expanded="false"
             ><i class="bi bi-sliders2-vertical me-1"></i> Kualitas Air</a
           >
-          <ul class="dropdown-menu" araia-labelledby="dropdownRtdMenuLink">
+          <ul class="dropdown-menu">
             <li>
               <a class="dropdown-item navlink" href="/pka"
                 ><i class="bi bi-geo-alt me-2 text-danger"></i> Pos Kualias Air</a
@@ -82,13 +81,12 @@
           <a
             class="nav-link dropdown-toggle"
             role="button"
-            id="dropdownRtdMenuLink"
             href="#"
             data-bs-toggle="dropdown"
             aria-expanded="false"
             ><i class="bi bi-cpu me-1"></i> Telemetri</a
           >
-          <ul class="dropdown-menu" araia-labelledby="dropdownRtdMenuLink">
+          <ul class="dropdown-menu">
             <li>
               <a class="dropdown-item navlink" href="/rdaily"
                 ><i class="bi bi-clipboard2-pulse me-2 text-danger"></i>
@@ -109,10 +107,34 @@
             </li>
           </ul>
         </li>
-        <li class="nav-item px-2">
-          <a href="/map" class="nav-link"
-            ><i class="bi bi-map me-1"></i> Peta</a
+        <li class="nav-item px-2 dropdown">
+          <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false"><i class="bi bi-map me-1"></i> Peta</a>
+          <ul
+            class="dropdown-menu"
           >
+          <li>
+            <a href="/map/hujan" class="dropdown-item navlink"
+              ><i class="bi bi-cloud-rain me-2 text-success"></i> Hujan</a
+            >
+          </li>
+          <li>
+            <a href="/map/sungai" class="dropdown-item navlink"
+              ><i class="bi bi-water me-2"></i> Sungai</a
+            >
+          </li>
+          <li class="dropdown-divider"></li>
+          <li>
+            <a href="/map/spi" class="dropdown-item navlink"
+              ><i class="bi bi-droplet me-2 text-danger"></i> Kekeringan</a
+            >
+          </li>
+          <li class="dropdown-divider"></li>
+          <li>
+            <a href="/map/pos" class="dropdown-item navlink"
+              ><i class="bi bi-person-raised-hand me-2 text-success"></i> Pos Hidrologi</a
+            >
+          </li>
+          </ul>
         </li>
       </ul>
       <ul class="navbar-nav">

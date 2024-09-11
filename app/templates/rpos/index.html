@@ -2,7 +2,7 @@
 {% block content %}
 <div class="row">
   <div class="col">
-    <h2 class="border-start border-5 border-primary ps-2 fw-lighter">Data Logger Vendor (<b>{{ ctx.poses|length}}</b>)</h2>
+    <h2 class="border-start border-5 border-primary ps-2 fw-lighter">Data Logger (<b>{{ ctx.poses|length}}</b>)</h2>
   </div>
 </div>
   <div class="table-responsive">
@@ -10,16 +10,25 @@
     <thead>
         <tr>
             <th onClick="sortTable('rpos', 0)">Nama</th>
-            <th>Pos</th>
+            <th>Pos Hidrologi</th>
             <th>Tipe</th>
             <th onClick="sortTable('rpos', 3)">Data Terakhir</th>    
-            <th>Vendor</th>
+            <th>Penyedia</th>
         </tr>
     </thead>
     <tbody>
     {% for p in ctx.poses %}
         <tr>
-            <td>{{ p.nama }}</td>
+            <td>{{ p.nama }} 
+              <div class="dropdown float-end">
+                <a class="icon-link" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#">Non Aktifkan</a></li>
+                  <li><a class="dropdown-item" href="#">Hapus</a></li>
+                </ul>
+              </div>
             <td>{{ p.pos.nama }}</td>
             <td><span class="{% if p.tipe in ('Rain Fall', 'PCH') %}badgepch{% else %}badgepda{% endif %}">{{ p.tipe }}</span></td>
             <td><span class="timeago" datetime="{{ p.latest_sampling }}"></span></td>

@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
     integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
     crossorigin=""/>
-    <title>Peta Hidrologi BBWS Citanduy</title>
+    <title>Peta Sungai BBWS Citanduy</title>
     <link rel="stylesheet" href="/static/css/custom.css">
     <style>
       img.pda { filter: hue-rotate(120deg); }
@@ -45,24 +45,12 @@
    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
    crossorigin=""></script>
    <script>
-      async function loadThiessen(lThiess) {
-        let resp = await fetch('/static/thiessen.geojson');
-        let thiess = await resp.json();
-        lThiess.addData(thiess);
-      }
       async function loadDas(lDas) {
         let resp = await fetch('/static/js/citanduy.json');
         let das = await resp.json();
         lDas.addData(das);
+        map.fitBounds(lDas.getBounds());
       }
-      const pchIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-      });
       const pdaIcon = new L.Icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -71,61 +59,29 @@
         popupAnchor: [1, -34],
         shadowSize: [41, 41]
       });
-      let pchs = [{% for p in ctx.pos_ch %}{% if p.ll %}{id: {{p.id}},name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elev: {{ p.elevasi or 0 }}},{% endif %}{% endfor %}];
       let pdas = [{% for p in ctx.pos_da %}{% if p.ll %}{name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elev: {{ p.elevasi or 0 }}},{% endif %}{% endfor %}];
-      let pklimats = [{% for p in ctx.pos_klimats %}{% if p.ll %}{name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elev: {{ p.elevasi or 0 }}},{% endif %}{% endfor %}];
       let map = L.map('mymap');
       let all_poses = L.featureGroup().addTo(map);
-      let listPch = [];
       let listPda = [];
-      let listKlimat = [];
-      for (let i =0; i < pchs.length; i++) {
-        let marker = L.marker(pchs[i].ll, {title: pchs[i].name, icon: pchIcon});
-        let content = `<b>${pchs[i].name}</b><div>[<a href="/pch/${pchs[i].id}">Lihat</a>, <a href="/pch/${pchs[i].id}/2024/09">Bulan ini</a>]</div>`
-        marker.bindPopup(content);
-        all_poses.addLayer(marker);
-        listPch.push(marker);
-      }
       for (let i =0; i < pdas.length; i++) {
         let marker = L.marker(pdas[i].ll, {title: pdas[i].name, icon: pdaIcon});
         marker.bindPopup(pdas[i].name)
         all_poses.addLayer(marker);
         listPda.push(marker);
       }
-      for (let i =0; i < pklimats.length; i++) {
-        let marker = L.marker(pklimats[i].ll, {title: pklimats[i].name});
-        marker.bindPopup(pklimats[i].name)
-        all_poses.addLayer(marker);
-        listKlimat.push(marker);
-      }
       const onEachFeature = (feature, layer) => {
         let popUpContent = `<p>${feature.properties.TOPONIMI}</p>`;
-        layer.bindPopup(popUpContent);
-      }
-      const onEachFeaturePch = (feature, layer) => {
-        let popUpContent = `<p>${feature.properties.Name}</p>`;
         layer.bindPopup(popUpContent);
       }
       const dasStyle = (geoJsonFeature) => {
         return {weight: 1, fillOpacity: 0.1}
       }
-      const thiessStyle = (geoJsonFeature) => {
-        return { weight: 1, fillOpacity: 0.1, color: 'brown'}
-      }
-      let lThiess = L.geoJSON(null, {onEachFeature: onEachFeaturePch, style: thiessStyle}).addTo(map);
-      listPch.push(lThiess);
       let lDas = L.geoJSON(null, {onEachFeature: onEachFeature, style: dasStyle}).addTo(map);
-      let lPch = L.layerGroup(listPch);
       let lPda = L.layerGroup(listPda);
-      let lKlimat = L.layerGroup(listKlimat);
-      lPch.addTo(map);
       lPda.addTo(map);
-      lKlimat.addTo(map);
       loadDas(lDas);
-      loadThiessen(lThiess);
 
-      let posMap = {"<b>Pos</b> Curah Hujan": lPch, 
-      "Pos Duga Air": lPda, "Daerah Aliran Sungai": lDas};
+      let posMap = {"Pos Duga Air": lPda, "Daerah Aliran Sungai": lDas};
 
       let layerControl = L.control.layers(null, posMap).addTo(map);
       //layerControl.expand();
@@ -133,7 +89,7 @@
 
       //let myControl = L.control.layers(null, {"Hello": L.DivOverlay({collapsed: false})}).addTo(map)
 
-      map.fitBounds(all_poses.getBounds());
+      
 
         L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid2lkb3lvIiwiYSI6ImNsNG1kcGFucTFicWUza21uMmJudTRkd3AifQ.-AhfUIYwXDOIwfD6nVFxxw', {
             maxZoom: 18,

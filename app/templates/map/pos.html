@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
     integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
     crossorigin=""/>
-    <title>Peta Hidrologi BBWS Citanduy</title>
+    <title>Peta Pos Hidrologi BBWS Citanduy</title>
     <link rel="stylesheet" href="/static/css/custom.css">
     <style>
       img.pda { filter: hue-rotate(120deg); }
@@ -45,11 +45,6 @@
    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
    crossorigin=""></script>
    <script>
-      async function loadThiessen(lThiess) {
-        let resp = await fetch('/static/thiessen.geojson');
-        let thiess = await resp.json();
-        lThiess.addData(thiess);
-      }
       async function loadDas(lDas) {
         let resp = await fetch('/static/js/citanduy.json');
         let das = await resp.json();
@@ -102,18 +97,9 @@
         let popUpContent = `<p>${feature.properties.TOPONIMI}</p>`;
         layer.bindPopup(popUpContent);
       }
-      const onEachFeaturePch = (feature, layer) => {
-        let popUpContent = `<p>${feature.properties.Name}</p>`;
-        layer.bindPopup(popUpContent);
-      }
       const dasStyle = (geoJsonFeature) => {
         return {weight: 1, fillOpacity: 0.1}
       }
-      const thiessStyle = (geoJsonFeature) => {
-        return { weight: 1, fillOpacity: 0.1, color: 'brown'}
-      }
-      let lThiess = L.geoJSON(null, {onEachFeature: onEachFeaturePch, style: thiessStyle}).addTo(map);
-      listPch.push(lThiess);
       let lDas = L.geoJSON(null, {onEachFeature: onEachFeature, style: dasStyle}).addTo(map);
       let lPch = L.layerGroup(listPch);
       let lPda = L.layerGroup(listPda);
@@ -122,16 +108,11 @@
       lPda.addTo(map);
       lKlimat.addTo(map);
       loadDas(lDas);
-      loadThiessen(lThiess);
 
       let posMap = {"<b>Pos</b> Curah Hujan": lPch, 
       "Pos Duga Air": lPda, "Daerah Aliran Sungai": lDas};
 
       let layerControl = L.control.layers(null, posMap).addTo(map);
-      //layerControl.expand();
-      //console.log(layerControl.getContainer());
-
-      //let myControl = L.control.layers(null, {"Hello": L.DivOverlay({collapsed: false})}).addTo(map)
 
       map.fitBounds(all_poses.getBounds());
 

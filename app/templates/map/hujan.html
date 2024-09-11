@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Peta Wilayah Sungai Citanduy">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+    integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+    crossorigin=""/>
+    <title>Peta Hujan BBWS Citanduy</title>
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <style>
+      img.pda { filter: hue-rotate(120deg); }
+
+      #mymap {height: 89vh; width: 100%}
+      .go-up {
+        display: inline-block;
+      }
+      .go-down {
+        display: inline-block;
+        transform: rotate(180deg);
+      }
+      #btn-back-to-top {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: block;
+      }
+    </style>
+  </head>
+  <body style="padding-top: 60px;">
+    <header style="z-index: 999" class="bg-light text-white">
+      <div class="container-fluid">
+      {% include '_navbar.html' %}
+      </div>
+    </header>
+    <div class="w-100" id="mymap"></div>
+    <!-- Back to top button -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+   integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+   crossorigin=""></script>
+   <script>
+      let mapBound;
+      let rains = [];
+      async function loadThiessen(lThiess) {
+        let resp = await fetch('/api/rain');
+        rains = await resp.json();
+        console.log(rains.items);
+        resp = await fetch('/static/thiessen.geojson');
+        let thiess = await resp.json();
+        lThiess.addData(thiess);
+        map.fitBounds(lThiess.getBounds());
+
+      }
+      let map = L.map('mymap');
+      const onEachFeaturePch = (feature, layer) => {
+        let popUpContent = `<p>${feature.properties.Name} - ${feature.properties.pos_id}</p>`;
+        let happen = [];
+        if (rains != []) {
+          console.log(feature.properties.pos_id);
+          happen = rains.items.filter(r => r.pos.id == feature.properties.pos_id);
+          console.log(happen);
+          if (happen.length > 0) {
+            layer.setStyle({fillColor: 'red'});
+          }
+        } 
+        layer
+          .on('click', async function() { 
+            let resp = await fetch('/api/pch/' + feature.properties.pos_id);
+            let data = await resp.json();
+            console.log(data);
+            let cnt = '404 Not found'
+            let since = new Date(data.pos.manual.first.sampling).getFullYear();
+            let max_sampling = new Date(data.pos.manual.max.sampling);
+            if (data.ok) {
+              cnt = `<div>
+              <div class="row">
+                <div class="col">
+                  <h5>${data.pos.nama}</h5>
+                </div>
+                <div class="col">
+                  <a href="/pch/${data.pos.id}">Hari ini</a> | <a href="/pch/${data.pos.id}/{{ ctx.s.strftime('%Y/%m')}}">Bulan Ini</a> | <a href="/pch/${data.pos.id}">Tahun</a>
+                </div>
+              </div>
+              <p>Sejak: <b>${since}</b></br>
+              Tertinggi: <b>${data.pos.manual.max.ch}</b> mm ${max_sampling}</p>
+              </div>`;
+
+            }
+            this.bindPopup(cnt).openPopup();
+            //console.log(layer);
+          });
+      }
+      const thiessStyle = (geoJsonFeature) => {
+        return { weight: 0.5, fillOpacity: 0.05, color: 'blue'}
+      }
+      let lThiess = L.geoJSON(null, {onEachFeature: onEachFeaturePch, style: thiessStyle}).addTo(map);
+      loadThiessen(lThiess);
+
+
+        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid2lkb3lvIiwiYSI6ImNsNG1kcGFucTFicWUza21uMmJudTRkd3AifQ.-AhfUIYwXDOIwfD6nVFxxw', {
+            maxZoom: 18,
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+                '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+                'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            id: 'mapbox/streets-v11'
+        }).addTo(map);
+    </script>
+  </body>
+</html>
