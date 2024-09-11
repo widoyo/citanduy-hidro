@@ -48,9 +48,10 @@
       let mapBound;
       let rains = [];
       async function loadThiessen(lThiess) {
-        let resp = await fetch('/api/rain');
+        const urlParams = new URLSearchParams(window.location.search);
+        const sampling = urlParams.get('s');
+        let resp = await fetch('/api/rain?s=' + sampling);
         rains = await resp.json();
-        console.log(rains.items);
         resp = await fetch('/static/thiessen.geojson');
         let thiess = await resp.json();
         lThiess.addData(thiess);
@@ -58,37 +59,66 @@
 
       }
       let map = L.map('mymap');
+
+      const timeNavBox = L.control({position: 'topright'});
+      timeNavBox.onAdd = function (map) {
+        let div = L.DomUtil.create('div');
+        div.innerHTML = `<div class="input-group mb-3">
+  <a href="/map/hujan?s={{ ctx._s.strftime('%Y-%m-%d') }}" class="btn btn-primary text-light" type="button">{{ ctx._s.strftime('%d') }}</a>
+  <input type="text" class="form-control text-center fw-bold" size="6" readonly aria-describedby="button-addon1" value="{{ ctx.s.strftime('%d %b') }}">
+  {% if ctx.s_ %}
+  <a href="/map/hujan?s={{ ctx.s_.strftime('%Y-%m-%d') }}" class="btn btn-primary text-light" type="button">{{ ctx.s_.strftime('%d') }}</a>
+  {% else %}
+  <a href="#" class="btn btn-secondary text-light disabled" role="button" aria-disabled="true">??</a>
+  {% endif %}
+</div>
+`;
+        return div;
+      }
+      const rain_colors = {
+        'ringan': 'rgb(32, 255, 32)',
+        'sedang': 'rgb(214, 193, 54)',
+        'lebat': 'rgb(255, 165, 0)',
+        'sangat lebat': 'rgb(255, 32, 32)',
+        'ekstrim': 'rgb(255, 32, 32)'
+      }
       const onEachFeaturePch = (feature, layer) => {
-        let popUpContent = `<p>${feature.properties.Name} - ${feature.properties.pos_id}</p>`;
         let happen = [];
+        let kh = 'cerah';
         if (rains != []) {
-          console.log(feature.properties.pos_id);
           happen = rains.items.filter(r => r.pos.id == feature.properties.pos_id);
-          console.log(happen);
           if (happen.length > 0) {
-            layer.setStyle({fillColor: 'red'});
+            let hujan = happen[0].rain24;
+            if (hujan >= 0.5 && hujan <= 20) { kh = 'ringan' }
+            else if (hujan > 20 && hujan <= 50) { kh = 'sedang' }
+            else if (hujan > 50 && hujan <= 100) { kh = 'lebat'}
+            else if (hujan > 100 && hujan <= 150) { kh = 'sangat lebat' }
+            else if (hujan > 150) { kh = 'ekstrim' }
+            if (kh != 'cerah') {
+              layer.setStyle({fillColor: rain_colors[kh], fillOpacity: 0.5 });
+            }
           }
         } 
         layer
           .on('click', async function() { 
             let resp = await fetch('/api/pch/' + feature.properties.pos_id);
             let data = await resp.json();
-            console.log(data);
+            //console.log(data);
             let cnt = '404 Not found'
             let since = new Date(data.pos.manual.first.sampling).getFullYear();
             let max_sampling = new Date(data.pos.manual.max.sampling);
+            let rain = rains.items.filter(r => r.pos.id === feature.properties.pos_id);
+            console.log(rain);
             if (data.ok) {
               cnt = `<div>
-              <div class="row">
-                <div class="col">
-                  <h5>${data.pos.nama}</h5>
-                </div>
-                <div class="col">
-                  <a href="/pch/${data.pos.id}">Hari ini</a> | <a href="/pch/${data.pos.id}/{{ ctx.s.strftime('%Y/%m')}}">Bulan Ini</a> | <a href="/pch/${data.pos.id}">Tahun</a>
-                </div>
-              </div>
+              <h5>${data.pos.nama}</h5>
+              <h6>{{ ctx.s.strftime('%d %b %Y') }} ${kh === 'cerah' ? kh : 'Hujan ' + kh} <small class="fw-normal">(${rain.length > 0 ? rain[0].rain24 : 0} mm)</small></h6>
+              <p>${rain.length != 0 ? rain[0].vendor.nama : '-'}</p>
               <p>Sejak: <b>${since}</b></br>
-              Tertinggi: <b>${data.pos.manual.max.ch}</b> mm ${max_sampling}</p>
+              Tertinggi: <b>${data.pos.manual.max.ch}</b> mm <a href="/pch/${data.pos.id}/${max_sampling.getFullYear()}/${max_sampling.getMonth()+1}">${max_sampling.toLocaleDateString('ID-id')}</a></p>
+              <p>
+                  <a class="card-link" href="/pch/${data.pos.id}">Hari ini</a> | <a href="/pch/${data.pos.id}/{{ ctx.s.strftime('%Y/%m')}}">Bulan Ini</a> | <a href="/pch/${data.pos.id}">Tahun</a>
+              </p>
               </div>`;
 
             }
@@ -110,6 +140,7 @@
                 'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
             id: 'mapbox/streets-v11'
         }).addTo(map);
+        timeNavBox.addTo(map);
     </script>
   </body>
 </html>

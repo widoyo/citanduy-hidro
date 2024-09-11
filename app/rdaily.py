@@ -48,6 +48,7 @@ def index():
     vendors = sorted(vendors, key=lambda x:x[0])
     
     ctx = {
+        'rdaily': rdaily,
         'ki_50': f_50,
         'ki_70': f_70,
         'VENDORS': VENDORS,

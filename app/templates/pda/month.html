@@ -1,4 +1,8 @@
 {% extends 'base.html' %}
+{% block title %}{{ ctx.pos.nama }}{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
 {% block content %}
 <div class="row">
     <div class="col">
@@ -8,9 +12,101 @@
         <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
             <a href="/pda/{{ ctx.pos.id }}" role="button" class="btn btn-outline-primary">Sehari</a>
             <button type="button" class="btn btn-outline-secondary disabled">Sebulan</button>
-            <a href="/pda/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y')}}" role="button" class="btn btn-outline-primary">Setahun</a>
           </div>
     
     </div>
 </div>
+<div class="row">
+  <div class="col-sm-6"><a href="/pda"><h2><i class="bi bi-arrow-left"></i></h2></a></div>
+  <div class="col-sm-6">
+    <div class="text-end mb-3">
+      <a href="{{ url_for('pda.show_month', id=ctx.pos.id, tahun=ctx._sampling.year, bulan=ctx._sampling.month) }}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%b')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%b')}}</span> {{ ctx.sampling.strftime('%b') }} 
+      {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="{{ url_for('pda.show_month', id=ctx.pos.id, tahun=ctx.sampling_.year, bulan=ctx.sampling_.month) }}">{{ ctx.sampling_.strftime('%b')}}</a>
+      {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
+  </div>
+
+  </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-10">
+          <canvas id="myChart"></canvas>
+    </div>
+    <div class="col-sm-2">
+      {% for p in ctx.pchs %}
+      <li>{{ p.nama }}</li>
+      {% endfor %}
+    </div>
+  </div>
+  
+{% for r in ctx.rdaily %}
+{{ r.sampling }}
+{{ r._tma() }}<br><br>
+{% endfor %}
+{% endblock %}
+
+{% block js_foot %}
+<script>
+    const ctx = document.getElementById('myChart');
+  
+    new Chart(ctx, {
+      data: {
+        labels: [{% for jam in range(24) %}{{ jam }}, {% endfor %}],
+        datasets: [{
+          type: 'line',
+          label: 'Telemetri',
+          data: [{% if ctx.pos.telemetri %}{% for jam, t in ctx.pos.telemetri.items() %}{{ t.wlevel }}, {% endfor %}{% endif %}],
+          fillColor: '#F1F1F1'
+        },
+        {
+          type: 'line',
+          label: 'Manual',
+          data: [{% if ctx.pos.manual %}{% for jam, m in ctx.pos.manual.items() %}{'x': {{jam}}, 'y': {{m}}}, {% endfor %}{% endif %}],
+          fillColor: '#D7FBC1'
+        },
+        {
+          type: 'bar',
+          label: 'Curah Hujan',
+          yAxisID: 'yrain',
+          reverse: true,
+          data: []
+        }
+      ]
+      },
+      options: {
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Jam',
+              align: 'end',
+              font: {
+                size: '14pt'
+              }
+            }
+          },
+          y: {
+            position: 'right',
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'TMA (cm)'
+            }
+          },
+          yrain: {
+            grid: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: 'Hujan (mm)',
+            },
+            reverse: true,
+            max: 100
+          }
+        }
+      }
+    });
+  </script>
+   
 {% endblock %}

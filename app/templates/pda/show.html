@@ -8,7 +8,6 @@
         <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
             <button type="button" class="btn btn-outline-secondary disabled">Sehari</button>
             <a href="/pda/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y/%m') }}" role="button" class="btn btn-outline-primary">Sebulan</a>
-            <a href="/pda/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y') }}" role="button" class="btn btn-outline-primary">Setahun</a>
           </div>
     
     </div>
@@ -32,6 +31,9 @@
     {% for p in ctx.pchs %}
     <li>{{ p.nama }}</li>
     {% endfor %}
+    <p>Manual: {{ ctx.pos.manual }}</p>
+
+    <p>Telemetri: {{ ctx.pos.telemetri }}</p>
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
