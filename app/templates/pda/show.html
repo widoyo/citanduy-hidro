@@ -31,9 +31,6 @@
     {% for p in ctx.pchs %}
     <li>{{ p.nama }}</li>
     {% endfor %}
-    <p>Manual: {{ ctx.pos.manual }}</p>
-
-    <p>Telemetri: {{ ctx.pos.telemetri }}</p>
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -53,7 +50,7 @@
       {
         type: 'line',
         label: 'Manual',
-        data: [{% for jam, m in ctx.pos.manual.items() %}{'x': {{jam}}, 'y': {{m}}}, {% endfor %}],
+        data: [{% for jam, m in ctx.pos.manual.items() %}{% if jam in ('07', '12', '17') %}{'x': {{jam}}, 'y': '{{m}}'}, {% endif %}{% endfor %}],
         fillColor: '#D7FBC1'
       },
       {

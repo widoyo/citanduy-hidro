@@ -86,8 +86,8 @@ def show(id):
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     try:
         pm = PosMap.select().where(PosMap.pos==pos).first()
-        if pm:
-            rdailies = RDaily.select().where(RDaily.nama==pm.nama, 
+        #if pm:
+        rdailies = RDaily.select().where(RDaily.pos==pos, 
                                              RDaily.sampling==sampling.strftime('%Y-%m-%d')).first()
     except DoesNotExist:
         pass
