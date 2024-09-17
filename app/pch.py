@@ -4,9 +4,10 @@ from flask import Blueprint, render_template, request, abort
 from flask_login import current_user
 from peewee import DoesNotExist, fn
 
-from app.models import Pos, RDaily, ManualDaily, PosMap
+from app.models import Pos, RDaily, ManualDaily, PosMap, VENDORS
 from app import get_sampling
 bp = Blueprint('pch', __name__, url_prefix='/pch')
+
 wilayah_adm = 'ciamis_tasikmalaya_kota tasikmalaya_kuningan_kota banjar_pangandaran_cilacap_banyumas'.split('_')
 
 @bp.route('/<int:id>/<int:tahun>')
@@ -111,15 +112,32 @@ def show(id):
     try:
         pos = Pos.get(int(id))
     except DoesNotExist:
-        abort(404)
+        return abort(404)
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
-    this_day = None
-    nama = None
+    
+    manual_first = ManualDaily.select(fn.Min(ManualDaily.sampling).alias('sampling')).where(ManualDaily.pos==pos).first()
+    manual_max = ManualDaily.select(fn.Max(ManualDaily.ch).alias('ch')).where(ManualDaily.pos==pos).first()
+    print('manual_max: ', manual_max.ch)
+    query_max = (ManualDaily
+             .select(ManualDaily.sampling, ManualDaily.ch)
+             .where(ManualDaily.ch == manual_max.ch)).first()
+    manual_today = ManualDaily.select(ManualDaily.ch).where(ManualDaily.pos==pos, ManualDaily.sampling==sampling.strftime('%Y-%m-%d')).first()
+    
+    man_max = query_max if query_max else {}
+    telemetri = {}
+    manual = dict(ch=manual_today.ch if manual_today else '0', 
+                  max={'ch': int(man_max.ch), 'sampling': man_max.sampling}, 
+                  first={'ch': manual_first.ch, 'sampling': manual_first.sampling})
+    pos.manual = manual
+    '''
+    pos.manual.first
+    pos.manual.max
+    pos.manual.today
+    '''
+    
     try:
-        pm = PosMap.get(PosMap.pos==pos)
-        nama = pm.nama
         this_day = RDaily.select().where(RDaily.pos==pos, 
-                                     RDaily.sampling == sampling.strftime('%Y-%m-%d')).first()
+                                         RDaily.sampling == sampling.strftime('%Y-%m-%d')).first()
     except DoesNotExist:
         pass
     
@@ -127,7 +145,8 @@ def show(id):
            'sampling': sampling,
            '_sampling': _sampling,
            'sampling_': sampling_,
-           'this_day': this_day
+           'this_day': this_day,
+           'vendors': VENDORS
            }
     return render_template('pch/show.html', ctx=ctx)
 
