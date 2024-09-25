@@ -21,6 +21,34 @@ def sensor():
     return jsonify({'ok': True})
 
 
+@bp.route('/wlevel')
+def wlevel():
+    '''{pos: manual: telemetri: }'''
+    (_s, s, s_) = get_sampling(request.args.get('s', None))
+    pdas = Pos.select().where(Pos.tipe=='2').order_by(Pos.sungai, Pos.elevasi.desc())
+    for p in pdas:
+        r = p.rdaily_set.order_by(RDaily.sampling.desc()).first()
+        m = p.manualdaily_set.order_by(ManualDaily.sampling.desc()).first()
+        manual = []
+        if m:
+            for k, v in json.loads(m.tma).items():
+                if k in ('07', '12', '17'):
+                    manual.append({'sampling': m.sampling.strftime('%Y-%m-%dT') + k, 'tma': v})
+        p.telemetri = json.loads(r.raw) if r.raw else {}
+        p.manual = manual
+            
+    return jsonify({
+        'meta': {
+            'description': 'Tinggi Muka Air semua Pos Duga Air', 
+            'sampling': s.strftime('%Y-%m-%d')}, 
+        'items': [{'nama': p.nama, 
+                   'elevasi': p.elevasi, 
+                   'sungai': p.sungai,
+                   'telemetri': p.telemetri,
+                   'manual': p.manual} for p in pdas]
+    })
+    
+    
 @bp.route('/rain')
 def rain():
     (_s, s, s_) = get_sampling(request.args.get('s', None))
@@ -42,7 +70,7 @@ def rain():
     return jsonify({
         'meta': {
             'description': 'Hujan yang terjadi pada pos Hujan dan Klimat', 
-            'sampling': s.isoformat()}, 
+            'sampling': s.strftime('%Y-%m-%d')},
         'items': out})
 
 
