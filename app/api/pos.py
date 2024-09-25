@@ -8,15 +8,28 @@ from app.models import Pos
 
 @bp.route('/pos')
 def index():
-    return jsonify([p.id for p in Pos.select()])
+    return jsonify([{'id': p.id, 'nama': p.nama} for p in Pos.select().where(Pos.tipe.in_(('1', '2', '3')))])
 
 @bp.route('/pos/<int:id>', methods=['GET'])
 def pos(id):
     try:
         pos = Pos.get(id)
+        pt = pos.petugas_set.first()
+        if pt:
+            petugas = {"nama": pt.nama, "hp": pt.hp}
+        else:
+            petugas = None
     except DoesNotExist:
         return abort(404)
-    return jsonify(model_to_dict(pos))
+    out = {
+        'nama': pos.nama,
+        'll': pos.ll,
+        'petugas': petugas,
+        'tipe': pos.tipe,
+        'id': pos.id,
+        'elevasi': pos.elevasi
+    }
+    return jsonify(out)
 
 @bp.route('/pos/<int:id>', methods=['PUT'])
 def update_pos(id):

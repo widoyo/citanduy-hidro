@@ -34,7 +34,7 @@ def wlevel():
             for k, v in json.loads(m.tma).items():
                 if k in ('07', '12', '17'):
                     manual.append({'sampling': m.sampling.strftime('%Y-%m-%dT') + k, 'tma': v})
-        p.telemetri = json.loads(r.raw) if r.raw else {}
+        p.telemetri = json.loads(r.raw) if r else []
         p.manual = manual
             
     return jsonify({

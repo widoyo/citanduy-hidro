@@ -67,35 +67,81 @@
         shadowSize: [41, 41]
       });
       let pchs = [{% for p in ctx.pos_ch %}{% if p.ll %}{id: {{p.id}},name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elev: {{ p.elevasi or 0 }}},{% endif %}{% endfor %}];
-      let pdas = [{% for p in ctx.pos_da %}{% if p.ll %}{name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elev: {{ p.elevasi or 0 }}},{% endif %}{% endfor %}];
+      let pdas = [{% for p in ctx.pos_da %}{% if p.ll %}{id: {{p.id}}, name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elev: {{ p.elevasi or 0 }}},{% endif %}{% endfor %}];
       let pklimats = [{% for p in ctx.pos_klimats %}{% if p.ll %}{name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elev: {{ p.elevasi or 0 }}},{% endif %}{% endfor %}];
       let map = L.map('mymap');
       let all_poses = L.featureGroup().addTo(map);
       let listPch = [];
       let listPda = [];
       let listKlimat = [];
+      
       for (let i =0; i < pchs.length; i++) {
         let marker = L.marker(pchs[i].ll, {title: pchs[i].name, icon: pchIcon});
-        let content = `<b>${pchs[i].name}</b><div>[<a href="/pch/${pchs[i].id}">Lihat</a>, <a href="/pch/${pchs[i].id}/2024/09">Bulan ini</a>]</div>`
-        marker.bindPopup(content);
+        marker.on('click', async () => {
+          const resp = await fetch('/api/pos/' + pchs[i].id);
+
+          const data = await resp.json();
+          let cnt = `<div><small class="badge rounded-pill" style="background-color: var(--bs-teal)">PCH</small>
+            <h5>${data.nama} </h5>
+            <p class="text-secondary">Elevasi: <span class="text-dark fw-bold">+${data.elevasi|'-'} mdpl</span></br>
+            LonLat: <span class="text-dark fw-bold">${data.ll}</span></p>
+          <p><i class="bi bi-person-raised-hand"></i> ${data.petugas.nama} <span class="ps-3"><i class="bi bi-whatsapp"></i> ${data.petugas.hp}</i> </span></p>
+            </div>`;
+          marker.bindPopup(cnt);
+          marker.openPopup();
+        });
         all_poses.addLayer(marker);
         listPch.push(marker);
       }
+      
       for (let i =0; i < pdas.length; i++) {
         let marker = L.marker(pdas[i].ll, {title: pdas[i].name, icon: pdaIcon});
-        marker.bindPopup(pdas[i].name)
+        
+        marker.on('click', async () => {
+          const resp = await fetch('/api/pos/' + pdas[i].id);
+
+          const data = await resp.json();
+          let cnt = `<div><small class="fw-normal badge rounded-pill" style="background-color: var(--bs-orange)">PDA</small>
+            <h5>${data.nama} </h5>
+            <p class="text-secondary">Elevasi: <span class="text-dark fw-bold">+${data.elevasi|'-'} mdpl</span></br>
+            LonLat: <span class="text-dark fw-bold">${data.ll}</span></p>
+          <p><i class="bi bi-person-raised-hand"></i> ${data.petugas.nama} <span class="ps-3"><i class="bi bi-whatsapp"></i> ${data.petugas.hp}</i> </span></p>
+            </div>`;
+          marker.bindPopup(cnt);
+          marker.openPopup();
+
+        });
+
         all_poses.addLayer(marker);
         listPda.push(marker);
       }
       for (let i =0; i < pklimats.length; i++) {
         let marker = L.marker(pklimats[i].ll, {title: pklimats[i].name});
-        marker.bindPopup(pklimats[i].name)
         all_poses.addLayer(marker);
         listKlimat.push(marker);
       }
       const onEachFeature = (feature, layer) => {
-        let popUpContent = `<p>${feature.properties.TOPONIMI}</p>`;
-        layer.bindPopup(popUpContent);
+        layer
+          .on('click', async function() {
+            console.log(feature);
+            let resp = await fetch('/api/pos/' + feature.properties.pos_id);
+            let data = await resp.json();
+            console.log(data);
+            let cnt = '404 Not found'
+            if (data.ok) {
+              cnt = `<div>
+              <h5>${data.pos.nama}</h5>
+              <h6>{{ ctx.s.strftime('%d %b %Y') }} ${kh === 'cerah' ? kh : 'Hujan ' + kh} <small class="fw-normal">(${rain.length > 0 ? rain[0].rain24 : 0} mm)</small></h6>
+              <p>${rain.length != 0 ? rain[0].vendor.nama : '-'}</p>
+              <p>Sejak: <b>${since}</b></br>
+              Tertinggi: <b>${data.pos.manual.max.ch}</b> mm <a href="/pch/${data.pos.id}/${max_sampling.getFullYear()}/${max_sampling.getMonth()+1}">${max_sampling.toLocaleDateString('ID-id')}</a></p>
+              <p>
+                  <a class="card-link" href="/pch/${data.pos.id}">Hari ini</a> | <a href="/pch/${data.pos.id}/{{ ctx.s.strftime('%Y/%m')}}">Bulan Ini</a> | <a href="/pch/${data.pos.id}">Tahun</a>
+              </p>
+              </div>`;
+
+            }
+            this.bindPopup(cnt).openPopup();});
       }
       const dasStyle = (geoJsonFeature) => {
         return {weight: 1, fillOpacity: 0.1}
