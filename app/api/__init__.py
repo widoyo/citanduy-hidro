@@ -4,7 +4,7 @@ from peewee import DoesNotExist, fn
 from playhouse.shortcuts import model_to_dict
 from flask_wtf.csrf import generate_csrf
 
-from app.models import RDaily, VENDORS, Pos, ManualDaily
+from app.models import RDaily, VENDORS, Pos, ManualDaily, Incoming
 from app import get_sampling, csrf
 
 bp = Blueprint('api', __name__, url_prefix='/api')
@@ -18,7 +18,14 @@ def get_token():
 @bp.route('/sensor', methods=['POST'])
 @csrf.exempt
 def sensor():
-    return jsonify({'ok': True})
+    out = {'ok': False}
+    if request.is_json:
+        data = request.get_json();
+        ua = request.headers.get('User-Agent')
+        new_incoming = Incoming.create(user_agent=ua, body=data)
+        if new_incoming:
+            out = {'ok': True, 'id': new_incoming.id}
+    return jsonify(out)
 
 
 @bp.route('/wlevel')

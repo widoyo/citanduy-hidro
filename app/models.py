@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from bcrypt import checkpw, hashpw, gensalt
 import peewee as pw
 
+import uuid
 import json
 
 from app.html_table_parser import HTMLTableParser
@@ -27,9 +28,37 @@ VENDORS = {
 class BaseModel(db_wrapper.Model):
     pass
 
+class Notes(BaseModel):
+    '''Komentar/Catatan terhadap'''
+    id = pw.UUIDField(primary_key=True, default=uuid.uuid4)
+    username = pw.CharField(max_length=20)
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    msg = pw.TextField()
+    obj_name = pw.CharField() # pos, petugas, manualdaily, rdaily
+    obj_id = pw.IntegerField()
+    parent_id = pw.IntegerField(null=True)
+
+class Foto(BaseModel):
+    '''Foto-foto object'''
+    id = pw.UUIDField(primary_key=True, default=uuid.uuid4)
+    username = pw.CharField(max_length=20)
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    fname = pw.CharField(max_length=25)
+    msg = pw.TextField(null=True)
+    obj_name = pw.CharField() # pos, petugas, manualdaily, rdaily
+    obj_id = pw.IntegerField()
+
+
 class Das(BaseModel):
     nama = pw.CharField(max_length=50)
+
+class Incoming(BaseModel):
+    id = pw.UUIDField(primary_key=True, default=uuid.uuid4)
+    user_agent = pw.CharField(max_length=35)
+    body = pw.TextField()
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
     
+
 class FetchLog(BaseModel):
     url = pw.CharField(max_length=250, index=True)
     response = pw.TextField(null=True)
@@ -270,6 +299,7 @@ class OPos(BaseModel):
     tipe = pw.CharField(max_length=10, null=True)
     latest_sampling = pw.DateTimeField(index=True)
     source = pw.CharField(max_length=3)
+    aktif = pw.BooleanField(default=True)
     
     
 class Daily(BaseModel):
@@ -371,7 +401,8 @@ class RDaily(BaseModel):
             if j != jam:
                 if j != '':
                     if self.source == 'SC':
-                        this_rain = r - sum([v.get('rain') for v in rain_hourly.values()])
+                        this_rain = 0 if r == 0 else \
+                            r - sum([v.get('rain') for v in rain_hourly.values()])
                     else:
                         this_rain = r
                     rain_hourly[int(j)] = {'count': c, 'rain': this_rain}
@@ -386,9 +417,11 @@ class RDaily(BaseModel):
                     r = round(float(d.get('rain')), 1)
             count += 1
             if self.source == 'SC':
-                rain24 = round(float(d.get('rain')), 1)
+                rain24 = round(float(d.get('rain')), 1) if rain24 < float(d.get('rain')) \
+                    else rain24
             else:
                 rain24 += float(d.get('rain'))
+        rain24 = sum([v.get('rain') for v in rain_hourly.values()])
         return {'count24': count, 'rain24': rain24, 'hourly': rain_hourly, 'raw': data}
         
     class Meta:
@@ -473,3 +506,12 @@ class ManualDaily(BaseModel):
         indexes = (
             (('pos', 'sampling'), True),
         )
+        
+class LengkungDebit(BaseModel):
+    pos = pw.ForeignKeyField(Pos)
+    versi = pw.DateField()
+    c_ = pw.FloatField()
+    a_ = pw.FloatField()
+    b_ = pw.FloatField()
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    
