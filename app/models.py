@@ -3,7 +3,7 @@ from flask_login import UserMixin
 from bcrypt import checkpw, hashpw, gensalt
 import peewee as pw
 
-import uuid
+import shortuuid
 import json
 
 from app.html_table_parser import HTMLTableParser
@@ -30,7 +30,7 @@ class BaseModel(db_wrapper.Model):
 
 class Notes(BaseModel):
     '''Komentar/Catatan terhadap'''
-    id = pw.UUIDField(primary_key=True, default=uuid.uuid4)
+    id = pw.CharField(primary_key=True,  max_length=22, default=shortuuid.uuid)
     username = pw.CharField(max_length=20)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     msg = pw.TextField()
@@ -40,7 +40,7 @@ class Notes(BaseModel):
 
 class Foto(BaseModel):
     '''Foto-foto object'''
-    id = pw.UUIDField(primary_key=True, default=uuid.uuid4)
+    id = pw.CharField(primary_key=True, max_length=22, default=shortuuid.uuid)
     username = pw.CharField(max_length=20)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     fname = pw.CharField(max_length=25)
@@ -53,7 +53,7 @@ class Das(BaseModel):
     nama = pw.CharField(max_length=50)
 
 class Incoming(BaseModel):
-    id = pw.UUIDField(primary_key=True, default=uuid.uuid4)
+    id = pw.CharField(primary_key=True, max_length=22, default=shortuuid.uuid)
     user_agent = pw.CharField(max_length=35)
     body = pw.TextField()
     cdate = pw.DateTimeField(default=datetime.datetime.now)
