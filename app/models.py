@@ -369,7 +369,7 @@ class RDaily(BaseModel):
         return out
     
     def _tma(self):
-        jams = (7, 12, 17)
+        jams = (6, 11, 16)
         data = dict([(k, v) for k, v in self._24jam().items() if k in jams])
         return data            
     
@@ -421,6 +421,8 @@ class RDaily(BaseModel):
                     else rain24
             else:
                 rain24 += float(d.get('rain'))
+        if j != '':
+            rain_hourly[int(j)] = {'count': c, 'rain': r}
         rain24 = sum([v.get('rain') for v in rain_hourly.values()])
         return {'count24': count, 'rain24': rain24, 'hourly': rain_hourly, 'raw': data}
         
