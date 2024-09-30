@@ -27,6 +27,13 @@ def sensor():
             out = {'ok': True, 'id': new_incoming.id}
     return jsonify(out)
 
+@bp.route('/sensor/<uuid>')
+def sensor_show(uuid):
+    try:
+        inc = Incoming.get(Incoming.id==uuid)
+    except DoesNotExist:
+        return jsonify({'ok': False, 'msg': 'Not found'})
+    return jsonify(model_to_dict(inc))
 
 @bp.route('/wlevel')
 def wlevel():
@@ -101,10 +108,10 @@ def pch_show(id: int):
     dict_pos.update({
         'manual': {
             'max': 
-                {'sampling': max.sampling, 'ch': max.ch},
+                {'sampling': max.sampling if max else '-', 'ch': max.ch if max else '-'},
             'count': count,
             'first': 
-                {'sampling': min.sampling, 'ch': min.ch},
+                {'sampling': min.sampling if min else '-', 'ch': min.ch if min else '-'},
             'yearly': [{'tahun': y.tahun, 'ch': y.ch} for y in yearly]
         }
         })

@@ -370,7 +370,7 @@ class RDaily(BaseModel):
     
     def _tma(self):
         jams = (6, 11, 16)
-        data = dict([(k, v) for k, v in self._24jam().items() if k in jams])
+        data = dict([(k+1, v) for k, v in self._24jam().items() if k in jams])
         return data            
     
     def _rain(self):

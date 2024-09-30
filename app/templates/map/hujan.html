@@ -104,18 +104,29 @@
             let resp = await fetch('/api/pch/' + feature.properties.pos_id);
             let data = await resp.json();
             //console.log(data);
-            let cnt = '404 Not found'
-            let since = new Date(data.pos.manual.first.sampling).getFullYear();
-            let max_sampling = new Date(data.pos.manual.max.sampling);
-            let rain = rains.items.filter(r => r.pos.id === feature.properties.pos_id);
-            console.log(rain);
+            let cnt = `<div><h5>Pos ID:${feature.properties.pos_id}</h5>
+                <h6>404 Not found</h6></div>`
             if (data.ok) {
+              let since = undefined;
+              let max_sampling = undefined;
+              console.log(data);
+              if (data.pos.manual) {
+                since = new Date(data.pos.manual.first.sampling).getFullYear();
+                max_sampling = new Date(data.pos.manual.max.sampling);
+              }
+              let rain = rains.items.filter(r => r.pos.id === feature.properties.pos_id);
+              console.log(rain);
+              let max_to_show = '-';
+              if (max_sampling) {
+                max_to_show = `<b>${data.pos.manual ? data.pos.manual.max.ch : '-'}</b> mm <a href="/pch/${data.pos.id}/${max_sampling.getFullYear()}/${max_sampling.getMonth()+1}">${max_sampling.toLocaleDateString('ID-id')}</a>`
+              }
+            
               cnt = `<div>
               <h5>${data.pos.nama}</h5>
               <h6>{{ ctx.s.strftime('%d %b %Y') }} ${kh === 'cerah' ? kh : 'Hujan ' + kh} <small class="fw-normal">(${rain.length > 0 ? rain[0].rain24 : 0} mm)</small></h6>
               <p>${rain.length != 0 ? rain[0].vendor.nama : '-'}</p>
               <p>Sejak: <b>${since}</b></br>
-              Tertinggi: <b>${data.pos.manual.max.ch}</b> mm <a href="/pch/${data.pos.id}/${max_sampling.getFullYear()}/${max_sampling.getMonth()+1}">${max_sampling.toLocaleDateString('ID-id')}</a></p>
+              Tertinggi: ${max_to_show}</p>
               <p>
                   <a class="card-link" href="/pch/${data.pos.id}">Hari ini</a> | <a href="/pch/${data.pos.id}/{{ ctx.s.strftime('%Y/%m')}}">Bulan Ini</a> | <a href="/pch/${data.pos.id}">Tahun</a>
               </p>
