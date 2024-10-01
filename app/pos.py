@@ -39,13 +39,13 @@ def kinerja_manual():
             banyak_data = num_hari
         elif p.tipe == '2':
             pdas.append(p)
-            num_data = sum([len(json.loads(m.tma)) for m in mdaily if m.pos_id==p.id])
+            num_data = sum([len(json.loads(m.tma)) / 2 for m in mdaily if m.pos_id==p.id])
             banyak_data = num_hari * 3
         delta_entry = sum([(m.cdate - (datetime.datetime.combine(m.sampling, datetime.time(7, 0)) + datetime.timedelta(days=1)).replace(hour=7, minute=0, second=0)).total_seconds() for m in mdaily if m.pos_id==p.id])
         p.delta_entry = datetime.timedelta(seconds=delta_entry)
         p.diterima = num_data
         p.seharusnya = banyak_data
-        p.persen = (num_data / banyak_data) * 100
+        p.persen = ((num_data / banyak_data) * 100) if banyak_data else 0
     
     pch_diterima = sum([p.diterima for p in pchs])
     pch_seharusnya = sum([p.seharusnya for p in pchs])

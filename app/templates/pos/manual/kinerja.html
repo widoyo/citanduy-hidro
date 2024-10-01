@@ -20,7 +20,11 @@
                 <p class="text-secondary lh-1">PCH <span class="fw-bold">{{ ctx.pchs.banyak_pos }}</span></p>
                 <small class="text-secondary lh-1">DATA DITERIMA</small>
                 <h3 class="card-title">
+                    {% if ctx.pchs.seharusnya > 0 %}
                     {{ ((ctx.pchs.diterima / ctx.pchs.seharusnya) * 100)|round(0) }}%
+                    {% else %}
+                    0%
+                    {% endif %}
                 </h3>
                 <p class="text-muted">{{ ctx.pchs.diterima }} dari {{ ctx.pchs.seharusnya }}</p>
             </div>
@@ -32,7 +36,11 @@
                 <p class="text-secondary lh-1">PDA <span class="fw-bold">{{ ctx.pdas.banyak_pos }}</span></p>
                 <small class="text-secondary lh-1">DATA DITERIMA</small>
                 <h3 class="card-title">
+                    {% if ctx.pdas.seharusnya > 0 %}
                     {{ ((ctx.pdas.diterima / ctx.pdas.seharusnya) * 100)|round(0) }}%
+                    {% else %}
+                    0%
+                    {% endif %}
                 </h3>
                 <p class="text-muted">{{ ctx.pdas.diterima }} dari {{ ctx.pdas.seharusnya }}</p>
             </div>
