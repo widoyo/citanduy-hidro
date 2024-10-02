@@ -31,13 +31,13 @@
               </div>
             <td>{{ p.pos.nama }}</td>
             <td><span class="{% if p.tipe in ('Rain Fall', 'PCH') %}badgepch{% else %}badgepda{% endif %}">{{ p.tipe }}</span></td>
-            <td><span class="timeago" datetime="{{ p.latest_sampling }}"></span></td>
+            <td><span class="timeago" datetime="{{ p.latest_sampling }}">{{ p.latest_sampling }}</span></td>
             {% if p.source == 'SA' %}
-            <td>Arindo</td> 
+            <td><span class="mt-2 me-2 float-start dot-{{ p.source|lower }}"></span> Arindo</td> 
             {% elif p.source == 'SB' %}
-            <td>Komtronik</td>
+            <td><span class="mt-2 me-2 float-start dot-{{ p.source|lower }}"></span> Komtronik</td>
             {% else %}
-            <td>Luwes</td>
+            <td><span class="mt-2 me-2 float-start dot-{{ p.source|lower }}"></span> Luwes</td>
             {%endif %}
         </tr>
     {% endfor %}
@@ -47,7 +47,27 @@
 {% endblock %}
 {% block js_foot %}
 <script>
-  document.querySelectorAll('.timeago').forEach(e => { e.innerHTML = dayjs().from(dayjs(e.getAttributeNode('datetime').value))});
+  document.querySelectorAll('.timeago').forEach(e => { 
+    /*
+    > 1 tahun
+    > 1 bulan
+    > 1 minggu
+    > 1 jam
+    */
+    const ls = e.getAttributeNode('datetime').value;
+    const now = new Date();
+    console.log('Selisih: ', now - new Date(ls), ls);
+    if (now - new Date(ls) > 3600000) {
+      e.classList.add('text-danger');
+    } 
+    if (new Date(ls) > now) {
+      e.innerHTML = dayjs(ls).fromNow();
+      
+      console.log(ls);
+    } else {
+      e.innerHTML = dayjs().from(dayjs(ls));
+    }
+  });
 function sortTable(tableid, n) {
   var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
   table = document.getElementById(tableid);

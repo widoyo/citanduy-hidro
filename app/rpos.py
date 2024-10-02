@@ -6,7 +6,7 @@ bp = Blueprint('rpos', __name__, url_prefix='/rpos')
 
 @bp.route('/')
 def index():
-    oposes = OPos.select().order_by(OPos.latest_sampling.desc())
+    oposes = OPos.select().where(OPos.aktif==True).order_by(OPos.latest_sampling)
     
     ctx = {
         'poses': oposes,
