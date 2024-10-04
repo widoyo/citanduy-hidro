@@ -8,6 +8,7 @@ from wtforms.validators import DataRequired
 from urllib.parse import urlparse, urljoin
 from playhouse.flask_utils import FlaskDB
 from dotenv import load_dotenv
+from peewee import fn
 
 import requests
 import datetime
@@ -161,6 +162,24 @@ def create_app():
             return User.get(user_id)
         except User.DoesNotExist:
             return None
+    
+    @app.route('/download', methods=['GET', 'POST'])
+    def download():
+        poses = Pos.select().order_by(Pos.nama)
+        pdas = [p for p in poses if p.tipe == '2']
+        pchs = [p for p in poses if p.tipe == '1']
+        for p in pchs:
+            p.yearly = [(y.year, y.count) for y in p.manualdaily_set.select(ManualDaily.sampling.year.alias('year'), 
+                                              fn.Count(ManualDaily.id).alias('count'))
+                .group_by(ManualDaily.sampling.year)
+                .order_by(ManualDaily.sampling.year)]
+            p.count = p.manualdaily_set.count()
+        ctx = {
+            'pdas': pdas,
+            'pchs': pchs
+        }
+        return render_template('download/index.html', ctx=ctx)
+    
     
     @app.route('/login', methods=['GET', 'POST'])
     def login():

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Download: BBWS Citanduy{% endblock %}
+{% block page_desc %}Download Data BBWS Citanduy{% endblock %}
+{% block content %}
+<h2 class="border-start border-5 border-primary ps-2 fw-lighter">Download</h1>
+    <div class="row">
+        <div class="col-sm-6">
+            <h4>Data Tinggi Muka Air</h4>
+            <ol class="list-group">
+                {% for p in ctx.pdas %}
+                <li class="list-group-item">
+                    {{ p.nama }}
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+        <div class="col-sm-6">
+            <h4>Data Curah Hujan (Manual)</h4>
+            <ol class="list-group">
+            {% for p in ctx.pchs %}
+                <li class="list-group-item"><i class="bi bi-cloud-rain"></i> <b>{{ p.nama }}</b> - <a href="" class="link-underline-light">Download {{ p.count }} data</a>
+                    <div class="row ms-3">
+                        <div class="col-sm-3">
+                            <span class="text-secondary">per Tahun </span>
+                            </div>
+                            <div class="col-sm-5">
+                            <select class="form-select">
+                                {% for y,c in p.yearly %}
+                                <option value="{{ y }}"><b>{{ y }}</b> - {{ c }} </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-4"><input type="submit" class="btn btn-outline-primary btn-sm" value="download"></div>
+                    </div>
+                </li>
+            {% endfor %}
+            </ol>
+        </div>
+    </div>
+    
+{% endblock %}
