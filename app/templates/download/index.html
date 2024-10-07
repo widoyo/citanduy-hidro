@@ -18,24 +18,53 @@
             <h4>Data Curah Hujan (Manual)</h4>
             <ol class="list-group">
             {% for p in ctx.pchs %}
-                <li class="list-group-item"><i class="bi bi-cloud-rain"></i> <b>{{ p.nama }}</b> - <a href="" class="link-underline-light">Download {{ p.count }} data</a>
+                <li class="list-group-item"><i class="bi bi-cloud-rain"></i> <b>{{ p.nama }}</b> - <a href="#" onClick="dl({{ p.id }}, '{{ p.nama }}')" class="link-underline-light">Download {{ p.count }} data</a>
                     <div class="row ms-3">
                         <div class="col-sm-3">
-                            <span class="text-secondary">per Tahun </span>
-                            </div>
-                            <div class="col-sm-5">
-                            <select class="form-select">
+                            <form action="/download" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="pos_id" value="{{ p.id }}">
+                                <span class="text-secondary">per Tahun </span>
+                        </div>
+                        <div class="col-sm-5">
+                            <select class="form-select" name="tahun">
                                 {% for y,c in p.yearly %}
                                 <option value="{{ y }}"><b>{{ y }}</b> - {{ c }} </option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-sm-4"><input type="submit" class="btn btn-outline-primary btn-sm" value="download"></div>
+                        </form>
                     </div>
                 </li>
             {% endfor %}
             </ol>
         </div>
-    </div>
-    
+    </div>    
+{% endblock %}
+{% block js_foot %}
+<script>
+    const dl = async (pos_id, nama) => {
+        let form = new FormData();
+        form.append('pos_id', pos_id);
+        const resp = await fetch('/download', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}',
+            },
+            body: form
+        });
+        if (!resp.ok) {
+            console.log('error response');
+        }
+        let data = await resp.text();
+
+        const file = new Blob([data], {type: 'text/csv'});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(file);
+        link.download = nama.replaceAll(' ', '_');
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+</script>
 {% endblock %}

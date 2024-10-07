@@ -1,5 +1,5 @@
 import functools
-from flask import Flask, render_template, flash, redirect, abort, request, url_for
+from flask import Flask, render_template, flash, redirect, abort, request, url_for, Response
 from flask_login import LoginManager, current_user, login_user, logout_user
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
@@ -165,6 +165,26 @@ def create_app():
     
     @app.route('/download', methods=['GET', 'POST'])
     def download():
+        if request.method == 'POST':
+            try:
+                data = request.form
+                
+                pos = Pos.get(int(data.get('pos_id')))
+            except:
+                return abort(404)
+            csv_data = pos.nama + '\n'
+            csv_data += 'Tanggal Download: ' + datetime.date.today().strftime('%d-%m-%Y') + '\n'
+            csv_data += 'Tanggal, Curah hujan\n'
+            if pos.tipe in ('1', '3'):
+                mds = ManualDaily.select(ManualDaily.sampling, 
+                                         ManualDaily.ch).where(
+                                             ManualDaily.pos_id==pos.id).order_by(
+                                                 ManualDaily.sampling)
+                for m in mds:
+                    csv_data += '{}, {}\n'.format(m.sampling, m.ch)
+            response = Response(csv_data, content_type="text/csv")
+            return response
+ 
         poses = Pos.select().order_by(Pos.nama)
         pdas = [p for p in poses if p.tipe == '2']
         pchs = [p for p in poses if p.tipe == '1']
