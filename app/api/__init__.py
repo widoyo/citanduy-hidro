@@ -38,18 +38,38 @@ def sensor_show(uuid):
 @bp.route('/wlevel')
 def wlevel():
     '''{pos: manual: telemetri: }'''
+    get_newest = not request.args.get('s', None)
     (_s, s, s_) = get_sampling(request.args.get('s', None))
     pdas = Pos.select().where(Pos.tipe=='2').order_by(Pos.sungai, Pos.elevasi.desc())
-    for p in pdas:
-        r = p.rdaily_set.order_by(RDaily.sampling.desc()).first()
-        m = p.manualdaily_set.order_by(ManualDaily.sampling.desc()).first()
-        manual = []
-        if m:
-            for k, v in json.loads(m.tma).items():
-                if k in ('07', '12', '17'):
-                    manual.append({'sampling': m.sampling.strftime('%Y-%m-%dT') + k, 'tma': v})
-        p.telemetri = json.loads(r.raw) if r else []
-        p.manual = manual
+    pids = [p.id for p in pdas]
+    if not get_newest:
+        rd = dict([(r.pos_id, r) for r in RDaily.select().where(RDaily.sampling==s.strftime('%Y-%m-%d'), 
+                                  RDaily.pos_id.in_(pids))])
+        md = dict([(m.pos_id, m) for m in ManualDaily.select().where(ManualDaily.sampling==s.strftime('%Y-%m-%d'),
+                                       ManualDaily.pos_id.in_(pids))])
+        for p in pdas:
+            try:
+                p.telemetri = json.loads(rd[p.id].raw) if rd[p.id].raw else []
+                p.vendor = rd[p.id].vendor
+            except KeyError:
+                p.telemetri = []
+                p.vendor = None
+            try:
+                p.manual = md[p.id]
+            except KeyError:
+                p.manual = []
+    else:
+        for p in pdas:
+            r = p.rdaily_set.order_by(RDaily.sampling.desc()).first()
+            m = p.manualdaily_set.order_by(ManualDaily.sampling.desc()).first()
+            manual = []
+            if m:
+                for k, v in json.loads(m.tma).items():
+                    if k in ('07', '12', '17'):
+                        manual.append({'sampling': m.sampling.strftime('%Y-%m-%dT') + k, 'tma': v})
+            p.telemetri = json.loads(r.raw) if r else []
+            p.vendor = r.vendor if r else None
+            p.manual = manual
             
     return jsonify({
         'meta': {
@@ -59,26 +79,37 @@ def wlevel():
                    'elevasi': p.elevasi, 
                    'sungai': p.sungai,
                    'telemetri': p.telemetri,
+                   'vendor': p.vendor,
                    'manual': p.manual} for p in pdas]
     })
     
     
 @bp.route('/rain')
 def rain():
+    get_newest = request.args.get('s', None)
     (_s, s, s_) = get_sampling(request.args.get('s', None))
     rdaily = RDaily.select().where(RDaily.sampling==s.strftime('%Y-%m-%d'))
+    mdaily = dict([(m.pos_id, m) for m in ManualDaily.select().where(ManualDaily.sampling==s.strftime('%Y-%m-%d'),
+                                        )])
     out = []
     for r in rdaily:
         if not r._rain(): continue
         if r._rain()['rain24'] == 0: continue
         if r.pos and r.pos.tipe not in ('1', '3'): continue
-        
+        try:
+            manual = mdaily[r.pos.id].ch
+        except:
+            manual = None
         row = {'pos': {'nama': r.pos and r.pos.nama or r.nama, 'id': r.pos and r.pos.id or None},
-               'vendor': VENDORS[r.source], 
-               'count24': r._rain()['count24'], 
-               'rain24': r._rain()['rain24'], 
-               'rain': r._rain()['hourly'], 
-               'raw': r._rain()['raw']}
+               'vendor': VENDORS[r.source],
+               'telemetri':  {
+                'count24': r._rain()['count24'], 
+                'rain24': r._rain()['rain24'], 
+                'rain': r._rain()['hourly'], 
+                #'raw': r._rain()['raw']
+                },
+               'manual': manual
+        }
         out.append(row)
     
     return jsonify({
