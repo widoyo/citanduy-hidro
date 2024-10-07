@@ -174,25 +174,49 @@ def create_app():
                 return abort(404)
             csv_data = pos.nama + '\n'
             csv_data += 'Tanggal Download: ' + datetime.date.today().strftime('%d-%m-%Y') + '\n'
-            csv_data += 'Tanggal, Curah hujan\n'
             if pos.tipe in ('1', '3'):
+                csv_data += 'Tanggal, Curah hujan\n'
                 mds = ManualDaily.select(ManualDaily.sampling, 
                                          ManualDaily.ch).where(
                                              ManualDaily.pos_id==pos.id).order_by(
                                                  ManualDaily.sampling)
                 for m in mds:
                     csv_data += '{}, {}\n'.format(m.sampling, m.ch)
+            elif pos.tipe == '2':
+                csv_data += 'Tanggal, TMA7, TMA12, TMA17, TMARata-rata\n'
+                mds = ManualDaily.select(ManualDaily.sampling, 
+                                         ManualDaily.tma).where(
+                                             ManualDaily.pos_id==pos.id).order_by(
+                                                 ManualDaily.sampling)
+                for m in mds:
+                    tmas = json.loads(m.tma)
+                    tma = {'07': None, '12': None, '17': None}
+                    for j in ('07', '12', '17'):
+                        try:
+                            tma[j] = tmas[j]
+                        except KeyError:
+                            pass
+                    filled_tma = [t for t in tma.values() if t]
+                    tmarerata = sum(filled_tma)/ len(filled_tma)
+                    csv_data += '{}, {}, {}, {}, {:.1f}\n'.format(m.sampling, 
+                                                              tma['07'], 
+                                                              tma['12'],
+                                                              tma['17'],
+                                                              tmarerata)
+
             response = Response(csv_data, content_type="text/csv")
             return response
  
         poses = Pos.select().order_by(Pos.nama)
         pdas = [p for p in poses if p.tipe == '2']
-        pchs = [p for p in poses if p.tipe == '1']
+        pchs = [p for p in poses if p.tipe in ('1', '2')]
         for p in pchs:
             p.yearly = [(y.year, y.count) for y in p.manualdaily_set.select(ManualDaily.sampling.year.alias('year'), 
                                               fn.Count(ManualDaily.id).alias('count'))
                 .group_by(ManualDaily.sampling.year)
                 .order_by(ManualDaily.sampling.year)]
+            p.count = p.manualdaily_set.count()
+        for p in pdas:
             p.count = p.manualdaily_set.count()
         ctx = {
             'pdas': pdas,
