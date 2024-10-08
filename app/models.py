@@ -198,10 +198,14 @@ class FetchLog(BaseModel):
                     
     
     def sa_to_daily(self):
+        kick_off = 'kaso_sidareja_gunungcupu_pitulasi_kadipaten_subang_surusunda_ciputrahaji_pchpataruman_danasari_bendmanganti'.split('_')
         data = json.loads(self.body)
         rows = data['telemetryjakarta']
         poses = dict([(p.nama, p.latest_sampling) for p in OPos.select() if p.source == 'SA'])
         for r in rows:
+            if r['nama_lokasi'] in kick_off:
+                print('TENDANG: ', r['nama_lokasi'])
+                continue
             try:
                 this_sampling = datetime.datetime.strptime(r['ReceivedDate'] + ' ' + r['ReceivedTime'], '%Y-%m-%d %H:%M:%S')
             except ValueError:
@@ -299,7 +303,7 @@ class OPos(BaseModel):
     tipe = pw.CharField(max_length=10, null=True)
     latest_sampling = pw.DateTimeField(index=True)
     source = pw.CharField(max_length=3)
-    aktif = pw.BooleanField(default=True)
+    aktif = pw.BooleanField(default=True) # aktif = dioperasikan
     
     
 class Daily(BaseModel):
