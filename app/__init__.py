@@ -1,6 +1,6 @@
 import functools
 from flask import Flask, render_template, flash, redirect, abort, request, url_for, Response
-from flask_login import LoginManager, current_user, login_user, logout_user
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
@@ -164,6 +164,7 @@ def create_app():
             return None
     
     @app.route('/download', methods=['GET', 'POST'])
+    @login_required
     def download():
         if request.method == 'POST':
             try:
@@ -209,7 +210,7 @@ def create_app():
  
         poses = Pos.select().order_by(Pos.nama)
         pdas = [p for p in poses if p.tipe == '2']
-        pchs = [p for p in poses if p.tipe in ('1', '2')]
+        pchs = [p for p in poses if p.tipe in ('1', '3')]
         for p in pchs:
             p.yearly = [(y.year, y.count) for y in p.manualdaily_set.select(ManualDaily.sampling.year.alias('year'), 
                                               fn.Count(ManualDaily.id).alias('count'))

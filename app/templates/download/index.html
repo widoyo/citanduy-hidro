@@ -2,23 +2,23 @@
 {% block title %}Download: BBWS Citanduy{% endblock %}
 {% block page_desc %}Download Data BBWS Citanduy{% endblock %}
 {% block content %}
-<h2 class="border-start border-5 border-primary ps-2 fw-lighter">Download</h1>
+<h2 class="border-start border-5 border-primary ps-2 fw-lighter mb-3">Download</h1>
     <div class="row">
-        <div class="col-sm-6">
+        <div class="col-sm-6 mt-2">
             <h4><i class="bi bi-water me-2"></i> Data Tinggi Muka Air (Manual)</h4>
-            <ol class="list-group">
+            <ol class="list-group list-group-numbered">
                 {% for p in ctx.pdas %}
                 <li class="list-group-item">
-                    {{ p.nama }} - <a href="#" onClick="dl({{ p.id }}, '{{ p.nama }}')" class="link-underline-light">Download {{ p.count }} data</a>
+                    {{ p.nama }} <a href="#" onClick="dl({{ p.id }}, '{{ p.nama }}')" class="float-end link-underline-light"><i class="bi bi-download"></i> {{ p.count }} data</a>
                 </li>
                 {% endfor %}
             </ol>
         </div>
-        <div class="col-sm-6">
+        <div class="col-sm-6 mt-2">
             <h4><i class="bi bi-cloud-rain me-2"></i> Data Curah Hujan (Manual)</h4>
-            <ol class="list-group">
+            <ol class="list-group list-group-numbered">
             {% for p in ctx.pchs %}
-                <li class="list-group-item">{{ p.nama }} - <a href="#" onClick="dl({{ p.id }}, '{{ p.nama }}')" class="link-underline-light">Download {{ p.count }} data</a>
+                <li class="list-group-item">{{ p.nama }}  <a href="#" onClick="dl({{ p.id }}, '{{ p.nama }}')" class="float-end link-underline-light"><i class="bi bi-download"></i> {{ p.count }} data</a>
                 </li>
             {% endfor %}
             </ol>

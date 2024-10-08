@@ -88,12 +88,12 @@
         if (rains != []) {
           happen = rains.items.filter(r => r.pos.id == feature.properties.pos_id);
           if (happen.length > 0) {
-            let hujan = happen[0].rain24;
-            if (hujan >= 0.5 && hujan <= 20) { kh = 'ringan' }
-            else if (hujan > 20 && hujan <= 50) { kh = 'sedang' }
-            else if (hujan > 50 && hujan <= 100) { kh = 'lebat'}
-            else if (hujan > 100 && hujan <= 150) { kh = 'sangat lebat' }
-            else if (hujan > 150) { kh = 'ekstrim' }
+            let thujan = happen[0].telemetri.rain24;
+            if (thujan >= 0.5 && thujan <= 20) { kh = 'ringan' }
+            else if (thujan > 20 && thujan <= 50) { kh = 'sedang' }
+            else if (thujan > 50 && thujan <= 100) { kh = 'lebat'}
+            else if (thujan > 100 && thujan <= 150) { kh = 'sangat lebat' }
+            else if (thujan > 150) { kh = 'ekstrim' }
             if (kh != 'cerah') {
               layer.setStyle({fillColor: rain_colors[kh], fillOpacity: 0.5 });
             }
@@ -104,29 +104,30 @@
             let resp = await fetch('/api/pch/' + feature.properties.pos_id);
             let data = await resp.json();
             //console.log(data);
-            let cnt = `<div><h5>Pos ID:${feature.properties.pos_id}</h5>
-                <h6>404 Not found</h6></div>`
+            let cnt = `<b>Not Found</b>: pos_id=${feature.properties.pos_id}`;
             if (data.ok) {
               let since = undefined;
               let max_sampling = undefined;
-              console.log(data);
+
               if (data.pos.manual) {
-                since = new Date(data.pos.manual.first.sampling).getFullYear();
-                max_sampling = new Date(data.pos.manual.max.sampling);
+                since = new Date(data.pos.manual.first.sampling).getFullYear() || '-';
+                max_sampling = new Date(data.pos.manual.max.sampling) || '-';
               }
               let rain = rains.items.filter(r => r.pos.id === feature.properties.pos_id);
-              console.log(rain);
               let max_to_show = '-';
-              if (max_sampling) {
-                max_to_show = `<b>${data.pos.manual ? data.pos.manual.max.ch : '-'}</b> mm <a href="/pch/${data.pos.id}/${max_sampling.getFullYear()}/${max_sampling.getMonth()+1}">${max_sampling.toLocaleDateString('ID-id')}</a>`
+
+              if (!isNaN(max_sampling)) {
+                max_to_show = `<b>${data.pos.manual ? data.pos.manual.max.ch : '-'}</b> mm <a href="/pch/${data.pos.id}/${max_sampling.getFullYear()}/${max_sampling.getMonth()+1}">${max_sampling.toLocaleDateString('ID-id')}</a>` || '-'
               }
             
               cnt = `<div>
               <h5>${data.pos.nama}</h5>
-              <h6>{{ ctx.s.strftime('%d %b %Y') }} ${kh === 'cerah' ? kh : 'Hujan ' + kh} <small class="fw-normal">(${rain.length > 0 ? rain[0].rain24 : 0} mm)</small></h6>
-              <p>${rain.length != 0 ? rain[0].vendor.nama : '-'}</p>
-              <p>Sejak: <b>${since}</b></br>
-              Tertinggi: ${max_to_show}</p>
+              <h6 class="text-secondary">{{ ctx.s.strftime('%d %b %Y') }}</h6>
+              <p><b class="text-secondary">Telemetri</b><br>
+                  &nbsp;${kh === 'cerah' ? kh : 'Hujan ' + kh} <small class="fw-normal">(${rain.length > 0 ? rain[0].telemetri.rain24.toFixed(1) : 0} mm)</small><br>
+              &nbsp;${rain.length != 0 ? rain[0].vendor.nama : '-'}</p>
+              <p><b class="text-secondary">Manual</b><br>&nbsp;Sejak: <b>${since}</b></br>
+              &nbsp;Tertinggi: ${max_to_show}</p>
               <p>
                   <a class="card-link" href="/pch/${data.pos.id}">Hari ini</a> | <a href="/pch/${data.pos.id}/{{ ctx.s.strftime('%Y/%m')}}">Bulan Ini</a> | <a href="/pch/${data.pos.id}">Tahun</a>
               </p>
@@ -138,7 +139,7 @@
           });
       }
       const thiessStyle = (geoJsonFeature) => {
-        return { weight: 0.5, fillOpacity: 0.05, color: 'blue'}
+        return { weight: 0.5, fillOpacity: 0.02, color: 'blue'}
       }
       let lThiess = L.geoJSON(null, {onEachFeature: onEachFeaturePch, style: thiessStyle}).addTo(map);
       loadThiessen(lThiess);

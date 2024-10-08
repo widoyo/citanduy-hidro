@@ -106,7 +106,6 @@ def rain():
                 'count24': r._rain()['count24'], 
                 'rain24': r._rain()['rain24'], 
                 'rain': r._rain()['hourly'], 
-                #'raw': r._rain()['raw']
                 },
                'manual': manual
         }
