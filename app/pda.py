@@ -7,7 +7,7 @@ import json
 import datetime
 from functools import reduce
 
-from app.models import Pos, ManualDaily, RDaily, PosMap
+from app.models import Pos, ManualDaily, RDaily, PosMap, VENDORS
 from app import get_sampling
 bp = Blueprint('pda', __name__, url_prefix='/pda')
 
@@ -50,18 +50,15 @@ def show_month(id, tahun, bulan):
     except KeyError:
         pchs = []
     samp = "{}-{}-1".format(tahun, bulan)
-    try:
-        pm = PosMap.get(PosMap.pos==pos)
-        nama = pm.nama
-    except DoesNotExist:
-        nama = None
+
     (_sampling, sampling, sampling_) = get_sampling(samp)
     _sampling = sampling - datetime.timedelta(days=2)
     if sampling.strftime('%Y%m') >= datetime.date.today().strftime('%Y%m'):
         sampling_ = None
     else:
         sampling_ = (sampling + datetime.timedelta(days=32)).replace(day=1)
-    rds = RDaily.select(RDaily.raw).where(RDaily.pos_id==pos.id, 
+
+    rds = RDaily.select(RDaily.raw, RDaily.source).where(RDaily.pos_id==pos.id, 
                                 RDaily.sampling.year==sampling.year,
                                 RDaily.sampling.month==sampling.month).order_by(
                                     RDaily.sampling)
@@ -78,7 +75,12 @@ def show_month(id, tahun, bulan):
                     template='plotly_white')
 
     table_data = ''
+    pos.vendor = '-'
     if len(rds):
+        try:
+            pos.vendor = VENDORS[rds[0].source].get('nama')
+        except:
+            pass
         wlevels = reduce((lambda x, y: x + y), [json.loads(r.raw) for r in rds])
         df_wlevel = pd.DataFrame(wlevels)
         df_wlevel.set_index('sampling', inplace=True)
@@ -89,20 +91,19 @@ def show_month(id, tahun, bulan):
         df_wmax = df_wlevel.resample('1h').max()
         df_wmin = df_wlevel.resample('1h').min()
         
-        fig.add_trace(go.Scatter(x=df_wmean.index, y=df_wmean['wlevel'], mode='lines+markers', name='Rerata'))
-        
+        fig.add_trace(go.Scatter(x=df_wmean.index, y=df_wmean['wlevel'], mode='lines+markers', name='Telemetri Rerata/jam'))
+
         table_data = df_wmean.to_html(classes="table table-bordered table-striped")
         
     if len(manuals):
-        print(manuals)
-        df_man = pd.DataFrame([{'sampling': m[0], 'wlevel': m[1]} for m in manuals[0]])
+        manuals = reduce((lambda x, y: x + y), [m for m in manuals])
+        df_man = pd.DataFrame([{'sampling': m[0], 'wlevel': m[1]} for m in manuals])
+        
         fig.add_trace(go.Scatter(x=df_man['sampling'], y=df_man['wlevel'], mode='lines+markers', name='Manual'))
     
     graph_json = pio.to_json(fig)
-        
     ctx = {
         'pos': pos,
-        'rdaily': rds,
         'pchs': pchs,
         'sampling': sampling,
         '_sampling': _sampling,
