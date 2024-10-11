@@ -1,7 +1,11 @@
 from flask import Blueprint, render_template, request, abort
 from peewee import DoesNotExist
+import pandas as pd
+import plotly.graph_objs as go
+import plotly.io as pio
 import json
 import datetime
+from functools import reduce
 
 from app.models import Pos, ManualDaily, RDaily, PosMap
 from app import get_sampling
@@ -40,7 +44,7 @@ def show_month(id, tahun, bulan):
     try:
         pos = Pos.get(id)
     except DoesNotExist:
-        abort(404)
+        return abort(404)
     try:
         pchs = Pos.select().where(Pos.id.in_(PDAPCH[pos.id]))
     except KeyError:
@@ -57,18 +61,54 @@ def show_month(id, tahun, bulan):
         sampling_ = None
     else:
         sampling_ = (sampling + datetime.timedelta(days=32)).replace(day=1)
-    rds = RDaily.select().where(RDaily.pos_id==pos.id, 
+    rds = RDaily.select(RDaily.raw).where(RDaily.pos_id==pos.id, 
                                 RDaily.sampling.year==sampling.year,
                                 RDaily.sampling.month==sampling.month).order_by(
-                                    RDaily.nama, RDaily.sampling)
-    pos.telemetri = None
+                                    RDaily.sampling)
+    select_manual = ManualDaily.select(ManualDaily.sampling, ManualDaily.tma).where(ManualDaily.pos_id==pos.id,
+                                         ManualDaily.sampling.year==sampling.year,
+                                         ManualDaily.sampling.month==sampling.month).order_by(
+                                             ManualDaily.sampling
+                                         )
+    manuals = [[(datetime.datetime.fromisoformat(m.sampling.isoformat()).replace(hour=int(k)), v) for k,v in json.loads(m.tma).items() if k in ('07', '12', '17')] for m in select_manual]
+    fig = go.Figure()
+    fig.update_layout(title='Tinggi Muka Air',
+                    xaxis_title='Waktu',
+                    yaxis_title='TMA',
+                    template='plotly_white')
+
+    table_data = ''
+    if len(rds):
+        wlevels = reduce((lambda x, y: x + y), [json.loads(r.raw) for r in rds])
+        df_wlevel = pd.DataFrame(wlevels)
+        df_wlevel.set_index('sampling', inplace=True)
+        df_wlevel.index = pd.to_datetime(df_wlevel.index)
+
+        df_wmean = df_wlevel['wlevel'].resample('1h').mean().to_frame(name='wlevel')
+
+        df_wmax = df_wlevel.resample('1h').max()
+        df_wmin = df_wlevel.resample('1h').min()
+        
+        fig.add_trace(go.Scatter(x=df_wmean.index, y=df_wmean['wlevel'], mode='lines+markers', name='Rerata'))
+        
+        table_data = df_wmean.to_html(classes="table table-bordered table-striped")
+        
+    if len(manuals):
+        print(manuals)
+        df_man = pd.DataFrame([{'sampling': m[0], 'wlevel': m[1]} for m in manuals[0]])
+        fig.add_trace(go.Scatter(x=df_man['sampling'], y=df_man['wlevel'], mode='lines+markers', name='Manual'))
+    
+    graph_json = pio.to_json(fig)
+        
     ctx = {
         'pos': pos,
         'rdaily': rds,
         'pchs': pchs,
         'sampling': sampling,
         '_sampling': _sampling,
-        'sampling_': sampling_
+        'sampling_': sampling_,
+        'graph': graph_json,
+        'mean_table': table_data
     }
     return render_template('pda/month.html', ctx=ctx)
 
@@ -93,7 +133,7 @@ def show(id):
         pass
     md = ManualDaily.select().where(ManualDaily.pos==pos,
                                     ManualDaily.sampling==sampling.strftime('%Y-%m-%d')).first()
-    pos.telemetri = rdailies and rdailies._24jam() or {}
+    pos.telemetri = rdailies._24jam() if rdailies else {}
     pos.manual = md and md._tma or {}
 
     ctx = {
@@ -123,8 +163,8 @@ def index():
                 if k in ('07', '12', '17'):
                     setattr(p, 'm_tma_' + k, '{:.1f}'.format(float(v)))
         if p.id in rdailies:
-            p.source = rdailies[p.id].source
-            tma = rdailies[p.id]._tma()
+            #p.source = rdailies[p.id].source
+            tma = rdailies[p.id]._tma() if rdailies[p.id].pos_id == p.id else {}
             for k, v in tma.items():
                 jam = str(k).zfill(2)
                 setattr(p, 'tma_' + jam, '{:.1f}'.format(float(v.get('wlevel'))))

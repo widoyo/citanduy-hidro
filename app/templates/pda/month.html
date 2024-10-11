@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ ctx.pos.nama }}{% endblock %}
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 {% endblock %}
 {% block content %}
 <div class="row">
@@ -30,7 +30,10 @@
 
 <div class="row">
     <div class="col-sm-10">
-          <canvas id="myChart"></canvas>
+      <div id="graph" style="width:100%;height:500px;" class="mb-5"></div>
+      <div class="table-responsive">
+        {{ ctx.mean_table|safe }}
+      </div>
     </div>
     <div class="col-sm-2">
       {% for p in ctx.pchs %}
@@ -38,75 +41,11 @@
       {% endfor %}
     </div>
   </div>
-  
-{% for r in ctx.rdaily %}
-{{ r.sampling }}
-{{ r._tma() }}<br><br>
-{% endfor %}
 {% endblock %}
 
 {% block js_foot %}
 <script>
-    const ctx = document.getElementById('myChart');
-  
-    new Chart(ctx, {
-      data: {
-        labels: [{% for jam in range(24) %}{{ jam }}, {% endfor %}],
-        datasets: [{
-          type: 'line',
-          label: 'Telemetri',
-          data: [{% if ctx.pos.telemetri %}{% for jam, t in ctx.pos.telemetri.items() %}{{ t.wlevel }}, {% endfor %}{% endif %}],
-          fillColor: '#F1F1F1'
-        },
-        {
-          type: 'line',
-          label: 'Manual',
-          data: [{% if ctx.pos.manual %}{% for jam, m in ctx.pos.manual.items() %}{'x': {{jam}}, 'y': {{m}}}, {% endfor %}{% endif %}],
-          fillColor: '#D7FBC1'
-        },
-        {
-          type: 'bar',
-          label: 'Curah Hujan',
-          yAxisID: 'yrain',
-          reverse: true,
-          data: []
-        }
-      ]
-      },
-      options: {
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: 'Jam',
-              align: 'end',
-              font: {
-                size: '14pt'
-              }
-            }
-          },
-          y: {
-            position: 'right',
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'TMA (cm)'
-            }
-          },
-          yrain: {
-            grid: {
-              display: false
-            },
-            title: {
-              display: true,
-              text: 'Hujan (mm)',
-            },
-            reverse: true,
-            max: 100
-          }
-        }
-      }
-    });
-  </script>
-   
+  var graphData = {{ ctx.graph | safe }};
+  Plotly.newPlot('graph', graphData.data, graphData.layout);
+</script>   
 {% endblock %}
