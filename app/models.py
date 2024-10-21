@@ -58,6 +58,11 @@ class Incoming(BaseModel):
     body = pw.TextField()
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     
+    def sb_to_daily(self):
+        lines = json.loads(self.body.replace("'", '"'))
+        #dates = list(set([datetime.datetime.strptime(l['date_time'], '%Y-%m-%d %H:%M:%S') for l in lines]))
+        for l in lines:
+            pass    
 
 class FetchLog(BaseModel):
     url = pw.CharField(max_length=250, index=True)
@@ -204,7 +209,6 @@ class FetchLog(BaseModel):
         poses = dict([(p.nama, p.latest_sampling) for p in OPos.select() if p.source == 'SA'])
         for r in rows:
             if r['nama_lokasi'] in kick_off:
-                print('TENDANG: ', r['nama_lokasi'])
                 continue
             try:
                 this_sampling = datetime.datetime.strptime(r['ReceivedDate'] + ' ' + r['ReceivedTime'], '%Y-%m-%d %H:%M:%S')
@@ -286,6 +290,7 @@ class Pos(BaseModel):
     register = pw.CharField(max_length=20, null=True)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
+    orde = pw.IntegerField(null=True)
     
     @property
     def s_nama(self):

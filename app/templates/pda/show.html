@@ -45,13 +45,22 @@
         type: 'line',
         label: 'Telemetri',
         data: [{% for jam, t in ctx.pos.telemetri.items() %}{{ t.wlevel }}, {% endfor %}],
-        fillColor: '#F1F1F1'
+        backgroundColor: 'rgb(0,191,255)',
+        borderColor: 'rgb(0,191,255)',
+        borderWidth: 1
+      },{
+        type: 'bar',
+        label: 'Banyak Data',
+        data: [{% for jam, t in ctx.pos.telemetri.items() %}{{ t.num }}, {% endfor %}],
+        backgroundColor: 'rgba(211, 211, 211, 0.5)',
+        borderWidth: 0
       },
       {
         type: 'line',
         label: 'Manual',
         data: [{% for jam, m in ctx.pos.manual.items() %}{% if jam in ('07', '12', '17') %}{'x': {{jam}}, 'y': '{{m}}'}, {% endif %}{% endfor %}],
-        fillColor: '#D7FBC1'
+        backgroundColor: 'rgba(253, 126, 32, 0.5)',
+        borderWidth: 0
       },
       {
         type: 'bar',
@@ -63,6 +72,17 @@
     ]
     },
     options: {
+      plugins: {
+        title: {
+          display: true,
+          font: {
+            size: '24pt',
+            weight: 'lighter'
+          },
+          text: 'Tinggi Muka Air {{ ctx.sampling.strftime('%d %b %Y') }}',
+        },
+
+      },
       scales: {
         x: {
           title: {

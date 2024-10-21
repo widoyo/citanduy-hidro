@@ -5,6 +5,7 @@ import plotly.graph_objs as go
 import plotly.io as pio
 import json
 import datetime
+from types import SimpleNamespace
 from functools import reduce
 
 from app.models import Pos, ManualDaily, RDaily, PosMap, VENDORS
@@ -69,13 +70,15 @@ def show_month(id, tahun, bulan):
                                          )
     manuals = [[(datetime.datetime.fromisoformat(m.sampling.isoformat()).replace(hour=int(k)), v) for k,v in json.loads(m.tma).items() if k in ('07', '12', '17')] for m in select_manual]
     fig = go.Figure()
-    fig.update_layout(title='Tinggi Muka Air',
+    fig.update_layout(title='Tinggi Muka Air {}'.format(sampling.strftime('%b %Y')),
                     xaxis_title='Waktu',
                     yaxis_title='TMA',
                     template='plotly_white')
 
     table_data = ''
     pos.vendor = '-'
+    telemetri_obj = SimpleNamespace(max='-', min='-')
+
     if len(rds):
         try:
             pos.vendor = VENDORS[rds[0].source].get('nama')
@@ -85,22 +88,25 @@ def show_month(id, tahun, bulan):
         df_wlevel = pd.DataFrame(wlevels)
         df_wlevel.set_index('sampling', inplace=True)
         df_wlevel.index = pd.to_datetime(df_wlevel.index)
-
+        desc = df_wlevel.describe()
+        telemetri_obj.max = '{:.1f}'.format(desc.max().wlevel)
+        telemetri_obj.min = '{:.1f}'.format(desc.min().wlevel)
         df_wmean = df_wlevel['wlevel'].resample('1h').mean().to_frame(name='wlevel')
 
         df_wmax = df_wlevel.resample('1h').max()
         df_wmin = df_wlevel.resample('1h').min()
         
-        fig.add_trace(go.Scatter(x=df_wmean.index, y=df_wmean['wlevel'], mode='lines+markers', name='Telemetri Rerata/jam'))
+        fig.add_trace(go.Scatter(x=df_wmean.index, y=df_wmean['wlevel'], mode='lines', name='Telemetri'))
 
         table_data = df_wmean.to_html(classes="table table-bordered table-striped")
-        
+    pos.telemetri = telemetri_obj
     if len(manuals):
         manuals = reduce((lambda x, y: x + y), [m for m in manuals])
         df_man = pd.DataFrame([{'sampling': m[0], 'wlevel': m[1]} for m in manuals])
         
-        fig.add_trace(go.Scatter(x=df_man['sampling'], y=df_man['wlevel'], mode='lines+markers', name='Manual'))
+        fig.add_trace(go.Scatter(x=df_man['sampling'], y=df_man['wlevel'], mode='lines', name='Manual'))
     
+    pos.petugas = pos.petugas_set[0].nama if pos.petugas_set else '-'
     graph_json = pio.to_json(fig)
     ctx = {
         'pos': pos,
@@ -150,7 +156,7 @@ def show(id):
 @bp.route('/')
 def index():
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
-    pdas = Pos.select().where(Pos.tipe=='2').order_by(Pos.elevasi.desc())
+    pdas = Pos.select().where(Pos.tipe=='2').order_by(Pos.orde.asc(), Pos.elevasi.desc())
 
     rdailies = dict([(r.pos_id, r) for r in RDaily.select()
                      .where(RDaily.sampling==sampling.strftime('%Y-%m-%d'))])
@@ -173,7 +179,6 @@ def index():
     ruas = {}
     for s in sungai:
         ruas.update({s: [p for p in pdas if p.sungai==s]})
-    print(ruas)
     ctx = {
         'pdas': pdas,
         'sungai': ruas,
