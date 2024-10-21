@@ -86,6 +86,23 @@ transform: rotate(-135deg);
 background: linear-gradient( 263deg, rgb(42, 7, 238) 0%, rgb(238, 204, 7) 100% );
 }
 
+.dot {
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-orde-1 {
+  background-color:rgb(31, 86, 181);
+}
+.dot-orde-2 {
+  background-color:rgb(62, 131, 250);
+}
+.dot-orde-3 {
+  background-color:rgb(157, 229, 252);
+}
+
 .dot-sa {
   height: 8px;
   width: 8px;
