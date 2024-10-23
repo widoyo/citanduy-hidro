@@ -59,10 +59,63 @@ class Incoming(BaseModel):
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     
     def sb_to_daily(self):
-        lines = json.loads(self.body.replace("'", '"'))
-        #dates = list(set([datetime.datetime.strptime(l['date_time'], '%Y-%m-%d %H:%M:%S') for l in lines]))
-        for l in lines:
-            pass    
+        if self.user_agent != 'Komtronik-Gateway 1.0':
+            return
+        chann_no = {'1': 'rain', '2': 'battery', '3': 'wlevel'}
+        chann_name = {'Rain Fall': 'rain', 'Battery': 'battery', 'Water Level': 'wlevel'}
+
+        all_rec = {}
+        lines = json.loads(self.body)
+        for r in lines:
+            try:
+                field = chann_name[r['channel']]
+            except KeyError:
+                field = chann_no[r['channel_no']]
+            
+            rec_sampling = r['date_time'].replace(' ', 'T')
+            this_key = r['name'] + '_' + rec_sampling[0:10]
+            new_rec = {rec_sampling: {field: round(float(r['value']), 1)}}
+            if this_key in all_rec:
+                existing_rec = all_rec[this_key]
+                if rec_sampling in existing_rec:
+                    existing_rec[rec_sampling].update(new_rec[rec_sampling])
+                else:
+                    all_rec[this_key].update(new_rec)
+            else:
+                all_rec[this_key] = new_rec
+
+        # INSERT or UPDATE Database (RDaily)
+        posmaps = dict([(p.nama, p.pos_id) for p in PosMap.select()])
+        for k, v in all_rec.items():
+            (nama, this_sampling) = k.rsplit('_', 1)
+            pos_id = posmaps.get(nama, None)
+            
+            tipe = '1' if 'rain' in str(list(v.items())[0]) else '2'
+            opos, created = OPos.get_or_create(nama=nama, source='SB', 
+                                               defaults={'tipe':tipe, 
+                                                         'latest_sampling': datetime.datetime.now()})
+            
+            new_raw = []
+            for sam, vv in v.items():
+                vv.update({'sampling': sam})
+                new_raw.append(vv)
+            # update 'latest_sampling'
+            opos.latest_sampling = new_raw[-1].get('sampling')
+            opos.save()
+            
+            rd, created = RDaily.get_or_create(source='SB',
+                                        nama=nama,
+                                        sampling=this_sampling,
+                                        defaults={'pos_id': pos_id,
+                                                  'raw': json.dumps(new_raw)})
+            if not created:
+                existing_data = json.loads(rd.raw)
+                existing_sampling = [data['sampling'] for data in existing_data]
+                for row in new_raw:
+                    if row.get('sampling') not in existing_sampling:
+                        existing_data.append(row)
+                rd.raw = json.dumps(existing_data)
+                rd.save()
 
 class FetchLog(BaseModel):
     url = pw.CharField(max_length=250, index=True)
