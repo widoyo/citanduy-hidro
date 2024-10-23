@@ -20,9 +20,9 @@ def get_token():
 def sensor():
     out = {'ok': False}
     if request.is_json:
-        data = request.get_json();
+        data = request.get_json()
         ua = request.headers.get('User-Agent')
-        new_incoming = Incoming.create(user_agent=ua, body=data)
+        new_incoming = Incoming.create(user_agent=ua, body=json.dumps(data))
         if new_incoming:
             out = {'ok': True, 'id': new_incoming.id}
     return jsonify(out)
