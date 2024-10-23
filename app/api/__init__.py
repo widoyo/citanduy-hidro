@@ -25,6 +25,7 @@ def sensor():
         new_incoming = Incoming.create(user_agent=ua, body=json.dumps(data))
         if new_incoming:
             out = {'ok': True, 'id': new_incoming.id}
+            new_incoming.sb_to_daily()
     return jsonify(out)
 
 @bp.route('/sensor/<uuid>')
