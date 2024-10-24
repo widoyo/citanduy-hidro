@@ -26,18 +26,20 @@ def pos():
 
 @bp.route('/sungai')
 def sungai():
+    '''
+    Warna:
+     orde 1: #1f56b5 rgb(31, 86, 181)
+     orde 2: #3e83fa rgb(62, 131, 250)
+     orde 3: #76a4f5 rbg(181, 208, 255)
+    '''
     (_s, s, s_) = get_sampling(request.args.get('s'))
     poses = Pos.select().order_by(Pos.tipe, Pos.nama)
-    pchs = [p for p in poses if p.tipe == '1']
     pdas = [p for p in poses if p.tipe=='2']
-    pklimats = [p for p in poses if p.tipe=='3']
     ctx = {
         '_s': _s,
         's': s,
         's_': s_,
-        'pos_ch': pchs,
         'pos_da': pdas,
-        'pos_klimats': pklimats
     }
     return render_template('map/sungai.html', ctx=ctx)
 
