@@ -52,7 +52,7 @@
         map.fitBounds(lDas.getBounds());
       }
 
-      let pdas = [{% for p in ctx.pos_da %}{% if p.ll %}{name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elev: {{ p.elevasi or 0 }}, orde: {{ p.orde or 0 }}, sungai: '{{ p.sungai or '-'}}' },{% endif %}{% endfor %}];
+      let pdas = [{% for p in ctx.pos_da %}{% if p.ll %}{name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elevasi: {{ p.elevasi or 0 }}, orde: {{ p.orde or 0 }}, sungai: '{{ p.sungai or '-'}}' },{% endif %}{% endfor %}];
       let map = L.map('mymap');
 
       let pda_group = L.featureGroup().addTo(map);
@@ -63,25 +63,20 @@
         //let popUpContent = `<p>${feature.properties.TOPONIMI}</p>`;
         //layer.bindPopup(popUpContent);
       }
-      /*
-      let marker = L.circleMarker([-7.29075,108.75881], {radius: 6, color: '#1f56b5', interactive: true, pane: 'markerPane'}).bindPopup('Hello 1');
-      let marker2 = L.circleMarker([-7.29075,108.65881], {radius: 6, color: '#3e83fa', interactive: true, pane: 'markerPane'}).bindPopup('Hello 2');
-      marker.addTo(pda_group);
-      marker2.addTo(pda_group);
-      */
+
       const dasStyle = (geoJsonFeature) => {
         return {weight: 1, fillOpacity: 0}
       }
 
       let lDas = L.geoJSON(null, {onEachFeature: onEachFeature, style: dasStyle}).addTo(map);
       loadDas(lDas);
-      let pdaOpt = {radius: 6, interactive: true, pane: 'markerPane'};
+      let pdaOpt = {interactive: true, pane: 'markerPane'};
       const ordeColor = ['#888888', '#1f56b5', '#3e83fa', '#9de5fc']
       for (let i =0; i < pdas.length; i++) {
         pdaOpt.color = ordeColor[pdas[i].orde];
         let marker = L.circleMarker(pdas[i].ll, pdaOpt);
         let cnt = `<div>
-              <h5>${pdas[i].name} 
+              <h5>${pdas[i].name} <span class="text-secondary">(+${pdas[i].elevasi} mdpl)</span>
               </h5>
               <h6 class="text-secondary">Sungai ${pdas[i].sungai} (orde: ${pdas[i].orde})</h6>
               <h6 class="text-secondary">{{ ctx.s.strftime('%d %b %Y') }}</h6>
