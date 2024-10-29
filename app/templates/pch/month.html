@@ -32,43 +32,29 @@
         <canvas id="myChart"></canvas>
     </div>
     <div class="col-sm-3">
-      <table class="table table-borderd table-hover table-striped">
+      <table class="table table-bordered table-hover table-striped">
         <tr>
           <td>&nbsp;</td>
-          <td><i class="bi bi-person-raised-hand text-success"></i> Manual</td>
-          <td><i class="bi bi-cpu"></i> Telemetri</td>
+          <td><i class="bi bi-person-raised-hand text-success"></i> Man</td>
+          <td><i class="bi bi-cpu"></i> Tele</td>
         </tr>
         <tr>
-          <td>Jumlah Hujan</td>
+          <td><small style="font-size:smaller" class="text-secondary">Jumlah Hujan (mm)</small></td>
           <td id="msumrain" class="text-end" style="background-color:#D7FBC1;"></td>
           <td id="sumrain" class="text-end" style="background-color:#F1F1F1;"></td>
         </tr>
         <tr>
-          <td>Hujan Maksimum</td>
+          <td><small style="font-size:smaller" class="text-secondary">Hujan Maks (mm)</small></td>
           <td id="mmaxrain" class="text-end" style="background-color:#D7FBC1;"></td>
           <td id="maxrain" class="text-end" style="background-color:#F1F1F1;"></td>
         </tr>
         <tr>
-          <td>Hari Tanpa Hujan</td>
+          <td><small style="font-size:smaller" class="text-secondary">HTH (hari)</small></td>
           <td id="mhth" class="text-end" style="background-color:#D7FBC1;"></td>
           <td id="hth" class="text-end" style="background-color:#F1F1F1;"></td>
         </tr>
-        <tr>
-          <td>Hujan Dasarian 1</td>
-          <td class="text-end" style="background-color:#D7FBC1;"></td>
-          <td class="text-end" style="background-color:#F1F1F1;"></td>
-        </tr>
-        <tr>
-          <td>Hujan Dasarian 2</td>
-          <td class="text-end" style="background-color:#D7FBC1;"></td>
-          <td class="text-end" style="background-color:#F1F1F1;"></td>
-        </tr>
-        <tr>
-          <td>Hujan Dasarian 3</td>
-          <td class="text-end" style="background-color:#D7FBC1;"></td>
-          <td class="text-end" style="background-color:#F1F1F1;"></td>
-        </tr>
       </table>
+<h6>Curah Hujan {{ ctx.sampling.strftime('%b %Y')}}</h6>
 <table class="table table-bordered table-hover table-striped">
     <thead>
         <tr>
@@ -82,7 +68,7 @@
         {% for d, v in ctx.days.items() %}
         <tr>
             <td class=""><a href="/pch/{{ ctx.pos.id}}?s={{ ctx.sampling.strftime('%Y-%m-') }}{{ d }}" class="text-decoration-none">{{ d }} {{ ctx.sampling.strftime("%b")}}</a></td>
-            <td class="text-end mrain" style="background-color:#D7FBC1;">{{ v.mrain}}</td>
+            <td class="text-end mrain" style="background-color:#D7FBC1;">{{ v.mrain}}</i></td>
             <td class="text-end rain" style="background-color:#F1F1F1;">{{ v.rain|round(1, 'ceil') }}</td>
             <td class="text-end">{{ v.count }}</td>
         </tr>
@@ -182,13 +168,13 @@
     let mrains = Array.from(elmrain).map(m => parseFloat(m.textContent));
     let sum_mrains = mrains.reduce((a, c) => a + c, 0);
     let el = document.getElementById('msumrain');
-    el.textContent = sum_mrains.toFixed(0) + ' mm';
+    el.textContent = sum_mrains.toFixed(0);
     let max_mrain = mrains.length ? Math.max(...mrains): '-';
     el = document.getElementById('mmaxrain');
-    el.textContent = max_mrain.toFixed(0) + ' mm';
+    el.textContent = max_mrain.toFixed(0);
     let mhth = (mrains.filter(rain => rain === 0)).length;
     el = document.getElementById('mhth');
-    el.textContent = mhth + ' hari';
+    el.textContent = mhth;
 
     const elrain = document.getElementsByClassName('rain');
     const rains = Array.from(elrain).map(m => parseFloat(m.textContent));
@@ -196,11 +182,11 @@
     const max_rain = rains.length ? Math.max(...rains) : '-';
     const hth = (rains.filter(rain => rain <= 0.5)).length;
     el = document.getElementById('sumrain');
-    el.textContent = sum_rains.toFixed(0) + ' mm';
+    el.textContent = sum_rains.toFixed(0);
     el = document.getElementById('maxrain');
-    el.textContent = max_rain + ' mm';
+    el.textContent = max_rain;
     el = document.getElementById('hth');
-    el.textContent = hth + ' hari';
+    el.textContent = hth;
   }
 </script>
  
