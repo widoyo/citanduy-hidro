@@ -3,7 +3,7 @@
   style="box-shadow: 0px 6px 15px -5px #888"
 >
   <div class="container">
-    <a class="navbar-brand" href="/">bbws citanduy</a>
+    <a class="navbar-brand" href="/"><img src="/static/img/logo-pupr.png" alt="PUPR" height="42" class="me-2">BBWS Citanduy</a>
 
     <button
       class="navbar-toggler collapsed d-flex d-lg-none flex-column justify-content-around"
@@ -77,36 +77,6 @@
             </li>
           </ul>
         </li>
-        <li class="nav-item dropdown px-2">
-          <a
-            class="nav-link dropdown-toggle"
-            role="button"
-            href="#"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-            ><i class="bi bi-cpu me-1"></i> Telemetri</a
-          >
-          <ul class="dropdown-menu">
-            <li>
-              <a class="dropdown-item navlink" href="/rdaily"
-                ><i class="bi bi-clipboard2-pulse me-2 text-danger"></i>
-                Kinerja</a
-              >
-            </li>
-            <li>
-              <a class="dropdown-item navlink" href="/flog"
-                ><i class="bi bi-clipboard2-pulse me-2 text-danger"></i> Riwayat
-                Ambil Data</a
-              >
-            </li>
-            <li class="dropdown-divider"></li>
-            <li>
-              <a class="dropdown-item navlink" href="/rpos"
-                ><i class="bi bi-list-ul me-2 text-danger"></i> Data Logger</a
-              >
-            </li>
-          </ul>
-        </li>
         <li class="nav-item px-2 dropdown">
           <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false"><i class="bi bi-map me-1"></i> Peta</a>
           <ul
@@ -156,8 +126,15 @@
               <a href="/pos/manual" class="dropdown-item navlink"
                 ><i class="bi bi-pencil me-2 text-danger"></i> Data Manual</a
               >
+              <a href="/rpos" class="dropdown-item navlink"
+                ><i class="bi bi-cpu me-2 text-danger"></i> Data Logger</a
+              >
+              <hr class="dropdown-divider" />
               <a href="/pos/manual/kinerja" class="dropdown-item navlink"
-                ><i class="bi bi-graph-up me-2 text-danger"></i> Kinerja Data Manual</a
+                ><i class="bi bi-clipboard2-pulse me-2 text-danger"></i> Kinerja Data Manual</a
+              >
+              <a href="/rdaily" class="dropdown-item navlink"
+                ><i class="bi bi-graph-up me-2 text-danger"></i> Kinerja Telemetri</a
               >
             </li>
             <li>

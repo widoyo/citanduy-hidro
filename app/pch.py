@@ -1,7 +1,7 @@
 import datetime
 from collections import defaultdict
 from flask import Blueprint, render_template, request, abort
-from flask_login import current_user
+from flask_login import login_required, current_user
 from peewee import DoesNotExist, fn
 
 from app.models import Pos, RDaily, ManualDaily, PosMap, VENDORS
@@ -11,6 +11,7 @@ bp = Blueprint('pch', __name__, url_prefix='/pch')
 wilayah_adm = 'ciamis_tasikmalaya_kota tasikmalaya_kuningan_kota banjar_pangandaran_cilacap_banyumas'.split('_')
 
 @bp.route('/<int:id>/<int:tahun>')
+@login_required
 def show_year(id, tahun):
     try:
         pos = Pos.get(id)
@@ -57,6 +58,7 @@ def show_year(id, tahun):
     return render_template('pch/year.html', ctx=ctx)
 
 @bp.route('/<int:id>/<int:tahun>/<int:bulan>')
+@login_required
 def show_month(id, tahun, bulan):
     try:
         pos = Pos.get(id)
@@ -108,6 +110,7 @@ def show_month(id, tahun, bulan):
 
 
 @bp.route('/<id>')
+@login_required
 def show(id):
     try:
         pos = Pos.get(int(id))

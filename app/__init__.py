@@ -39,6 +39,7 @@ def get_sampling(s: str = None) -> list:
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
+login_manager.login_message = 'Silakan login untuk mengakses...'
 
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
@@ -151,6 +152,126 @@ def create_app():
             fl = FetchLog.create(url=x.url, response=x.status_code, body=x.text, source='SC')
             fl.sc_to_daily()
     
+######################## DEVELOPMENT ONLY #########################
+    @app.cli.command('ksi_to_daily')
+    def ksi_to_daily():
+        '''
+        all_rec = 
+            RW67_Manganti_2024-10-17
+            2024-10-17 00:00:00 {'battery': 12.7, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 00:15:00 {'rain': 0.0}
+            2024-10-17 00:30:00 {'rain': 0.0}
+            2024-10-17 00:45:00 {'rain': 0.0}
+            2024-10-17 01:00:00 {'battery': 12.7, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 01:15:00 {'rain': 0.0}
+            2024-10-17 01:30:00 {'rain': 0.0}
+            2024-10-17 01:45:00 {'rain': 0.0}
+            2024-10-17 02:00:00 {'battery': 12.6, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 02:15:00 {'rain': 0.0}
+            2024-10-17 02:30:00 {'rain': 0.0}
+            2024-10-17 02:45:00 {'rain': 0.0}
+            2024-10-17 03:00:00 {'battery': 12.6, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 03:15:00 {'rain': 0.0}
+            2024-10-17 03:30:00 {'rain': 0.0}
+            2024-10-17 03:45:00 {'rain': 0.0}
+            2024-10-17 04:00:00 {'battery': 12.6, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 04:15:00 {'rain': 0.0}
+            2024-10-17 04:30:00 {'rain': 0.0}
+            2024-10-17 04:45:00 {'rain': 0.0}
+            2024-10-17 05:00:00 {'battery': 12.6, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 05:15:00 {'rain': 0.0}
+            2024-10-17 05:30:00 {'rain': 0.0}
+            2024-10-17 05:45:00 {'rain': 0.0}
+            2024-10-17 06:00:00 {'battery': 12.6, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 06:15:00 {'rain': 0.0}
+            2024-10-17 06:30:00 {'rain': 0.0}
+            2024-10-17 06:45:00 {'rain': 0.0}
+            2024-10-17 07:00:00 {'battery': 13.3, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 07:15:00 {'rain': 0.0}
+            2024-10-17 07:30:00 {'rain': 0.0}
+            2024-10-17 07:45:00 {'rain': 0.0}
+            2024-10-17 08:00:00 {'battery': 14.1, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 08:15:00 {'rain': 0.0}
+            2024-10-17 08:30:00 {'rain': 0.0}
+            2024-10-17 08:45:00 {'rain': 0.0}
+            2024-10-17 09:00:00 {'battery': 14.0, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 09:15:00 {'rain': 0.0}
+            2024-10-17 09:30:00 {'rain': 0.0}
+            2024-10-17 09:45:00 {'rain': 0.0}
+            2024-10-17 10:00:00 {'battery': 13.3, 'rain': 0.0, 'wlevel': 10.1}
+            2024-10-17 10:15:00 {'rain': 0.0}
+            2024-10-17 10:30:00 {'rain': 0.0}
+            2024-10-17 10:45:00 {'rain': 0.0}
+            2024-10-17 11:00:00 {'battery': 13.2, 'rain': 0.0, 'wlevel': 10.1}        
+        '''
+        from app.models import Incoming, RDaily, PosMap, OPos
+        ids = ['KJc48Vp56VBpjbGdEd5N6V', 'iZPcitEsytdydHaKoGMSbQ', 'hkyy7zy5hXYJdXXKUcTm76']
+        ids = ['hkyy7zy5hXYJdXXKUcTm76']
+        chann_no = {'1': 'rain', '2': 'battery', '3': 'wlevel'}
+        chann_name = {'Rain Fall': 'rain', 'Battery': 'battery', 'Water Level': 'wlevel'}
+        all_rec = {}
+        for i in ids:
+            rec = Incoming.get(Incoming.id==i)
+            data = json.loads(rec.body.replace("'", '"'))
+            #print()
+            for r in data:
+                try:
+                    field = chann_name[r['channel']]
+                except KeyError:
+                    field = chann_no[r['channel_no']]
+                
+                rec_sampling = r['date_time'].replace(' ', 'T')
+                this_key = r['name'] + '_' + rec_sampling[0:10]
+                new_rec = {rec_sampling: {field: round(float(r['value']), 1)}}
+                if this_key in all_rec:
+                    existing_rec = all_rec[this_key]
+                    if rec_sampling in existing_rec:
+                        existing_rec[rec_sampling].update(new_rec[rec_sampling])
+                    else:
+                        all_rec[this_key].update(new_rec)
+                else:
+                    all_rec[this_key] = new_rec
+
+        # INSERT or UPDATE Database (RDaily)
+        posmaps = dict([(p.nama, p.pos_id) for p in PosMap.select()])
+        for k, v in all_rec.items():
+            (nama, this_sampling) = k.rsplit('_', 1)
+            pos_id = posmaps.get(nama, None)
+            
+            tipe = '1' if 'rain' in str(list(v.items())[0]) else '2'
+            opos, created = OPos.get_or_create(nama=nama, source='SB',
+                                        defaults={'tipe':tipe,
+                                                  'latest_sampling': datetime.datetime.now()})
+            
+            new_raw = []
+            for sam, vv in v.items():
+                vv.update({'sampling': sam})
+                new_raw.append(vv)
+                print(vv)
+            
+            # mengupdate latest_sampling
+            opos.latest_sampling = new_raw[-1].get('sampling')
+            
+            rd, created = RDaily.get_or_create(source='SB',
+                                        nama=nama,
+                                        sampling=this_sampling,
+                                        defaults={'pos_id': pos_id,
+                                                  'raw': json.dumps(new_raw)})
+            if not created:
+                print('RECALL: ', rd.id, rd.nama)
+                existing_data = json.loads(rd.raw)
+                print(rd.raw)
+                existing_sampling = [data['sampling'] for data in existing_data]
+                for row in new_raw:
+                    if row.get('sampling') not in existing_sampling:
+                        existing_data.append(row)
+                        print('APPEND: ', row)
+                rd.raw = json.dumps(existing_data)
+                rd.save()
+            else:
+                print('CREATED: ', rd.nama, rd.sampling)
+    
+######################## DEVELOPMENT ONLY #########################
     
     register_bluprint(app)
     
@@ -236,10 +357,10 @@ def create_app():
             try:
                 user = User.get(User.username==form.username.data)
             except User.DoesNotExist:
-                flash('Invalid username or password')
+                flash('username atau password keliru')
                 return redirect(url_for('login'))
             if user is None or not user.check_password(form.password.data):
-                flash('Invalid username or password')
+                flash('username atau password keliru')
                 return redirect(url_for('login'))
             login_user(user)
             user.last_login = datetime.datetime.now()

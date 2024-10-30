@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template, request
+from flask_login import login_required
 import datetime
 from app.models import OPos
 
 bp = Blueprint('rpos', __name__, url_prefix='/rpos')
 
 @bp.route('/')
+@login_required
 def index():
     oposes = OPos.select().where(OPos.aktif==True).order_by(OPos.latest_sampling)
     

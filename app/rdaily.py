@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request
+from flask_login import login_required
 import datetime
 from peewee import DoesNotExist
 from app.models import RDaily, OPos, Pos, VENDORS
@@ -8,6 +9,7 @@ from app.config import SDATELEMETRY_POS_EXCLUDES
 bp = Blueprint('rdaily', __name__, url_prefix='/rdaily')
 
 @bp.route('/<pos_name>/')
+@login_required
 def show(pos_name):
     (_s, s, s_) = get_sampling(request.args.get('s', None))
     print('pos_name: ', pos_name)
@@ -30,6 +32,7 @@ def show(pos_name):
     return render_template('rdaily/show.html', ctx=ctx)
 
 @bp.route('/')
+@login_required
 def index():
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     

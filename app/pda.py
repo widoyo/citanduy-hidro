@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, abort
+from flask_login import login_required
 from peewee import DoesNotExist
 import pandas as pd
 import plotly.graph_objs as go
@@ -41,6 +42,7 @@ def show_year(id, tahun):
     return render_template('pda/year.html', ctx=ctx)
 
 @bp.route('/<int:id>/<int:tahun>/<int:bulan>')
+@login_required
 def show_month(id, tahun, bulan):
     try:
         pos = Pos.get(id)
@@ -93,8 +95,11 @@ def show_month(id, tahun, bulan):
         telemetri_obj.min = '{:.1f}'.format(desc.min().wlevel)
         df_wmean = df_wlevel['wlevel'].resample('1h').mean().to_frame(name='wlevel')
 
-        df_wmax = df_wlevel.resample('1h').max()
-        df_wmin = df_wlevel.resample('1h').min()
+        # data 'wlevel' Luwes dijadikan CentiMeter
+        if rds[0].source == 'SC':
+            df_wmean = df_wmean.mul({'wlevel': 100}) 
+        #df_wmax = df_wlevel.resample('1h').max()
+        #df_wmin = df_wlevel.resample('1h').min()
         
         fig.add_trace(go.Scatter(x=df_wmean.index, y=df_wmean['wlevel'], mode='lines', name='Telemetri'))
 
@@ -120,6 +125,7 @@ def show_month(id, tahun, bulan):
     return render_template('pda/month.html', ctx=ctx)
 
 @bp.route('/<int:id>')
+@login_required
 def show(id):
     try:
         pos = Pos.get(id)
