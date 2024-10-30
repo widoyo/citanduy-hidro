@@ -8,6 +8,8 @@ from app.models import Pos, RDaily, ManualDaily, PosMap, VENDORS
 from app import get_sampling
 bp = Blueprint('pch', __name__, url_prefix='/pch')
 
+PCH_HIDE = (81,)
+
 wilayah_adm = 'ciamis_tasikmalaya_kota tasikmalaya_kuningan_kota banjar_pangandaran_cilacap_banyumas'.split('_')
 
 @bp.route('/<int:id>/<int:tahun>')
@@ -161,10 +163,9 @@ def index():
     else:
         (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
 
-    pos_sources = dict([(p.nama, p.pos.id) for p in PosMap.select() if p.pos.tipe=='1'])
-
-    pchs = Pos.select().where(Pos.tipe.in_(('1', '3'))).order_by(
-        Pos.kabupaten, Pos.elevasi.desc(), Pos.nama)
+    pchs = [p for p in Pos.select().where(Pos.tipe.in_(('1', '3'))).order_by(
+        Pos.kabupaten, Pos.elevasi.desc(), Pos.nama) if p.id not in PCH_HIDE]
+    
     rdailies = dict([(r.pos.id, r) for r in RDaily.select()
                      .where(RDaily.pos.in_(list([p.id for p in pchs])), 
                             RDaily.sampling==sampling.strftime('%Y-%m-%d'))])

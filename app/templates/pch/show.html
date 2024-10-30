@@ -36,7 +36,7 @@
   <div class="col-sm-3 mt-3">
     <div class="text-center">
         <div class="small opacity-75">Telemetri | Manual<br>
-        <b>{{ ctx.this_day._rain().rain24 if ctx.this_day else '?' }}</b> mm
+        <b>{{ ctx.this_day._rain().rain24|round(1) if ctx.this_day else '?' }}</b> mm
         | <b>{{ ctx.pos.manual.ch if ctx.pos.manual else '-' }}</b> mm<br>
         <b>{{ ctx.vendors[ctx.this_day.source].nama if ctx.this_day else '-' }}</b>
         | {{ ctx.pos.petugas.nama if ctx.pos.petugas else '-' }}<br>

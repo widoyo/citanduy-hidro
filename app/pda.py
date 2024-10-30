@@ -96,7 +96,7 @@ def show_month(id, tahun, bulan):
         df_wmean = df_wlevel['wlevel'].resample('1h').mean().to_frame(name='wlevel')
 
         # data 'wlevel' Luwes dijadikan CentiMeter
-        if rds[0].source == 'SC':
+        if rds[0].source in ('SB', 'SC'):
             df_wmean = df_wmean.mul({'wlevel': 100}) 
         #df_wmax = df_wlevel.resample('1h').max()
         #df_wmin = df_wlevel.resample('1h').min()
@@ -176,7 +176,7 @@ def index():
                 if k in ('07', '12', '17'):
                     setattr(p, 'm_tma_' + k, '{:.1f}'.format(float(v)))
         if p.id in rdailies:
-            #p.source = rdailies[p.id].source
+            p.source = rdailies[p.id].source
             tma = rdailies[p.id]._tma() if rdailies[p.id].pos_id == p.id else {}
             for k, v in tma.items():
                 jam = str(k).zfill(2)
