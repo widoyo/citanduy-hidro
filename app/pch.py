@@ -122,7 +122,7 @@ def show(id):
     
     manual_first = ManualDaily.select(fn.Min(ManualDaily.sampling).alias('sampling')).where(ManualDaily.pos==pos).first()
     manual_max = ManualDaily.select(fn.Max(ManualDaily.ch).alias('ch')).where(ManualDaily.pos==pos).first()
-    print('manual_max: ', manual_max.ch)
+    
     query_max = (ManualDaily
              .select(ManualDaily.sampling, ManualDaily.ch)
              .where(ManualDaily.ch == manual_max.ch)).first()
@@ -131,7 +131,7 @@ def show(id):
     man_max = query_max if query_max else {}
     telemetri = {}
     manual = dict(ch=manual_today.ch if manual_today else '0', 
-                  max={'ch': int(man_max.ch), 'sampling': man_max.sampling}, 
+                  max={'ch': int(man_max.ch or 0), 'sampling': man_max.sampling or '-'}, 
                   first={'ch': manual_first.ch, 'sampling': manual_first.sampling})
     pos.manual = manual
     '''
@@ -176,7 +176,7 @@ def index():
     for p in pchs:
         if p.id in data_manual:
             p.m_ch = data_manual[p.id]
-        if p.id in rdailies:
+        if p.id in rdailies and rdailies[p.id]._rain():
             rd = rdailies[p.id]._rain()
             p.pagi = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=7 and k < 13]))
             p.siang = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=13 and k < 19]))
