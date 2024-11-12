@@ -462,6 +462,7 @@ def register_bluprint(app):
     from app.pka import bp as bp_ka
     from app.kinerja import bp as bp_kinerja
     from app.api import bp as bp_api
+    from app.note import bp as bp_note
     
     app.register_blueprint(bp_pch)
     app.register_blueprint(bp_pda)
@@ -476,3 +477,4 @@ def register_bluprint(app):
     app.register_blueprint(bp_ka)
     app.register_blueprint(bp_kinerja)
     app.register_blueprint(bp_api)
+    app.register_blueprint(bp_note)
