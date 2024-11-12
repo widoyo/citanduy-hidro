@@ -492,55 +492,31 @@ class RDaily(BaseModel):
     def _rain(self):
         if not 'rain' in self.raw:
             return None
-        rain_hourly = dict([(i, {'count': 0, 'rain': 0.0}) for i in range(7,24)] + [(i, {'count': 0, 'rain': 0.0}) for i in range(7)])
-        data = json.loads(self.raw)
-        data = [d for d in data if datetime.datetime.fromisoformat(d.get('sampling')).hour > 6]
-        next_day = self.sampling + datetime.timedelta(days=1)
-        next = RDaily.select().where(RDaily.nama==self.nama, 
-                                   RDaily.sampling.year==next_day.year,
-                                   RDaily.sampling.month == next_day.month,
-                                   RDaily.sampling.day == next_day.day).first()
-        data2 = []
-        if next:
-            data2 = json.loads(next.raw)
-            data2 = [d for d in data2 if datetime.datetime.fromisoformat(d.get('sampling')).hour < 7]
-        data += data2
-        j, c, r = '', 0, 0.0
-        count, rain24 = 0, 0
-
-        for d in data:
-            jam = d.get('sampling')[11:13]
-            try:
-                float(d.get('rain'))
-            except TypeError:
-                continue
-            if j != jam:
-                if j != '':
-                    if self.source == 'SC':
-                        this_rain = 0 if r == 0 else \
-                            r - sum([v.get('rain') for v in rain_hourly.values()])
-                    else:
-                        this_rain = r
-                    rain_hourly[int(j)] = {'count': c, 'rain': this_rain}
-                j = jam
-                c = 1
-                r = float(d.get('rain'))
-            else:
-                c += 1
-                if self.source != 'SC':
-                    r += float(d.get('rain'))
-                else:
-                    r = round(float(d.get('rain')), 1)
-            count += 1
-            if self.source == 'SC':
-                rain24 = round(float(d.get('rain')), 1) if rain24 < float(d.get('rain')) \
-                    else rain24
-            else:
-                rain24 += float(d.get('rain'))
-        if j != '':
-            rain_hourly[int(j)] = {'count': c, 'rain': r}
-        rain24 = sum([v.get('rain') for v in rain_hourly.values()])
-        return {'count24': count, 'rain24': rain24, 'hourly': rain_hourly, 'raw': data}
+        data = [(k, v) for k, v in self._24jam().items() if k > 6]
+        next_day = RDaily.select().where(
+            RDaily.sampling==self.sampling + datetime.timedelta(days=1),
+            RDaily.pos_id==self.pos_id).first()
+        if next_day:
+            data += [(k, v) for k, v in next_day._24jam().items() if k < 7]
+        
+        rain24 = 0
+        count24 = 0
+        hourly = {}
+        if self.source == 'SC':
+            hujan_jam_sebelum = 0
+            for k, v in data:
+                hujan_jam_ini = v.get('rain') - hujan_jam_sebelum
+                hourly[k] = {'count': v.get('num'), 'rain': hujan_jam_ini}
+                hujan_jam_sebelum = v.get('rain')
+                rain24 = v.get('rain')
+                count24 += v.get('num')
+        else:
+            for k, v in data:
+                hourly[k] = {'count': v.get('num'), 'rain': v.get('rain')}
+                rain24 += v.get('rain')
+                count24 += v.get('num')
+        ret = {'count24': count24, 'rain24': rain24, 'hourly': hourly, 'raw': self.raw}
+        return ret
         
     class Meta:
         indexes = (

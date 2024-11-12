@@ -81,6 +81,10 @@ def create_app():
     db_wrapper.init_app(app)
     csrf.init_app(app)
     
+    from app.cli import register as register_cli
+    
+    register_cli(app)
+    
     @app.cli.command('send-terlambat-pda7')
     def send_terlambat_pda():
         today = datetime.date.today()
