@@ -9,7 +9,8 @@ import datetime
 from types import SimpleNamespace
 from functools import reduce
 
-from app.models import Pos, ManualDaily, RDaily, PosMap, VENDORS
+from app.models import Pos, ManualDaily, RDaily, PosMap, VENDORS, Notes
+from app.forms import NoteForm
 from app import get_sampling
 bp = Blueprint('pda', __name__, url_prefix='/pda')
 
@@ -131,6 +132,8 @@ def show(id):
         pos = Pos.get(id)
     except DoesNotExist:
         return abort(404)
+    form = NoteForm(obj_name="pos", obj_id=id)
+    notes = Notes.select().where(Notes.obj_name=='pos', Notes.obj_id==id).order_by(Notes.cdate)
     try:
         pchs = Pos.select().where(Pos.id.in_(PDAPCH[pos.id]))
     except KeyError:
@@ -154,7 +157,9 @@ def show(id):
         'pchs': pchs,
         'sampling': sampling,
         'sampling_': sampling_,
-        '_sampling': _sampling
+        '_sampling': _sampling,
+        'form': form,
+        'notes': notes
     }
     return render_template('pda/show.html', ctx=ctx)        
 

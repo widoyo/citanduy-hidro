@@ -14,7 +14,7 @@
             {% include "note/_form.html" %}
             <hr>
             {% for note in ctx.notes %}
-            <li>{{ note.obj_name }} {{ note.msg }} <span class="text-secondary">{{ note.username }} - {{ note.cdate.strftime('%H:%M') }}</span></li>
+            <li>{{ note.msg }} <span class="text-secondary">{{ note.username }} - {{ note.cdate.strftime('%H:%M') }}</span></li>
             {% else %}
             <p><i>Tidak ada catatan.</i></p>
             {% endfor %}

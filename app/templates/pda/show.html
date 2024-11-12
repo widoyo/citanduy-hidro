@@ -3,6 +3,18 @@
 <div class="row">
     <div class="col">
         <h1 class="fw-lighter">{{ ctx.pos.nama|replace('PDA ', '') }} <small class="fs-6 fw-normal badge rounded-pill" style="background-color: var(--bs-orange)">PDA</small> <small class="ms-3 fs-5 text-secondary">Sungai {{ ctx.pos.sungai }}</small></h1>
+        <a href="#note-box" aria-controls="note-box" class="text-secondary me-2" data-bs-toggle="collapse" role="button" aria-expanded="false"><i class="bi bi-chat-left-text pe-2"></i> {{ ctx.notes|length }} catatan</a>
+        <div class="collapse" id="note-box">
+          <div class="card card-body">
+            {% include "note/_form.html" %}
+            <hr>
+            {% for note in ctx.notes %}
+            <li>{{ note.obj_name }} {{ note.msg }} <span class="text-secondary">{{ note.username }} - {{ note.cdate.strftime('%H:%M') }}</span></li>
+            {% else %}
+            <p><i>Tidak ada catatan.</i></p>
+            {% endfor %}
+          </div>
+        </div>
     </div>
     <div class="col text-end">
         <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
@@ -36,6 +48,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+  let msgBox = document.getElementById('msg');
+  let submit = document.getElementById('msgSubmit')
+  msgBox.addEventListener("input", () => {
+    submit.disabled = msgBox.value.length < 5;
+  });
   const ctx = document.getElementById('myChart');
 
   new Chart(ctx, {

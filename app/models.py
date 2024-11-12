@@ -55,6 +55,29 @@ class Notes(BaseModel):
     obj_id = pw.IntegerField()
     parent_id = pw.IntegerField(null=True)
     
+    def obj_url(self):
+        ret = None
+        if self.obj_name.lower() == 'pos':
+            try:
+                pos = Pos.get(self.obj_id)
+                if pos.tipe in ('1', '3'):
+                    ret = '/pch/{}'.format(pos.id)
+                elif pos.tipe == '2':
+                    ret = '/pda/{}'.format(pos.id)
+            except pw.DoesNotExist:
+                pass
+        return ret
+             
+    def __str__(self):
+        ret = self.obj_name
+        if self.obj_name.lower() == 'pos':
+            try:
+                pos = Pos.get(self.obj_id)
+                ret = pos.nama
+            except pw.DoesNotExist:
+                pass
+        return ret
+        
     def to_dict(self):
         data = {
             'id': self.id,
