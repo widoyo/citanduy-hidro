@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Catatan BBWS Citanduy{% endblock %}
+{% block content %}
+<h2 class="border-start border-5 border-primary ps-2 fw-lighter">Catatan</h1>
+    <p class="text-secondary">Error?, keliru?, sekedar tahu? <b>Catat di sini</b></p>
+<div class="row">
+    <div class="col-sm-10 list-group">
+        {% for msg in ctx.msgs %}
+        <div class="list-group-item py-3 lh-sm">
+            <div class="d-flex w-100 align-item-center jutify-content-between">
+            <div>{{ msg.msg }}</div> 
+            <p class="text-secondary float-right">{{ msg.username }} {{ msg.cdate.strftime('%d %b %Y %H:%M') }}</p>
+        </div>
+        {% else %}
+        <div>Kosong</div>
+    </div>
+</div>
+{% endfor %}
+    <div class="col-sm-2"></div>
+</div>
+{% endblock %}

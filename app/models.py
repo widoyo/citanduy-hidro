@@ -1,7 +1,9 @@
 import datetime
 from flask_login import UserMixin
+from flask import url_for
 from bcrypt import checkpw, hashpw, gensalt
 import peewee as pw
+from playhouse.flask_utils import PaginatedQuery
 
 import shortuuid
 import json
@@ -25,18 +27,47 @@ VENDORS = {
     }
 }
 
+class PaginatedApiMixin(object):
+    @staticmethod
+    def to_collection_dict(query, page, per_page, endpoint, **kwargs):
+        resources = PaginatedQuery(query, per_page, page)
+        
+        data = {
+            'items': resources,
+            '_meta': {
+                'page': page,
+                'per_page': per_page,
+                
+            }
+        }
+        
+        return data
+    
 class BaseModel(db_wrapper.Model):
     pass
 
 class Notes(BaseModel):
     '''Komentar/Catatan terhadap'''
-    id = pw.CharField(primary_key=True,  max_length=22, default=shortuuid.uuid)
     username = pw.CharField(max_length=20)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     msg = pw.TextField()
     obj_name = pw.CharField() # pos, petugas, manualdaily, rdaily
     obj_id = pw.IntegerField()
     parent_id = pw.IntegerField(null=True)
+    
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'username': self.username,
+            'msg': self.msg,
+            'cdate': self.cdate.isoformat(),
+            '_links': {
+                'self': url_for('api.get_note', id=self.id)
+            }
+        }
+    
+    def from_dict(self, data):
+        pass
 
 class Foto(BaseModel):
     '''Foto-foto object'''

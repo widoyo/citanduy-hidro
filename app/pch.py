@@ -4,7 +4,8 @@ from flask import Blueprint, render_template, request, abort
 from flask_login import login_required, current_user
 from peewee import DoesNotExist, fn
 
-from app.models import Pos, RDaily, ManualDaily, PosMap, VENDORS
+from app.models import Pos, RDaily, ManualDaily, PosMap, VENDORS, Notes
+from app.forms import NoteForm
 from app import get_sampling
 bp = Blueprint('pch', __name__, url_prefix='/pch')
 
@@ -114,6 +115,8 @@ def show_month(id, tahun, bulan):
 @bp.route('/<id>')
 @login_required
 def show(id):
+    form = NoteForm(obj_name="pos", obj_id=id)
+    notes = Notes.select().where(Notes.obj_name=='pos', Notes.obj_id==id).order_by(Notes.cdate)
     try:
         pos = Pos.get(int(id))
     except DoesNotExist:
@@ -151,7 +154,9 @@ def show(id):
            '_sampling': _sampling,
            'sampling_': sampling_,
            'this_day': this_day,
-           'vendors': VENDORS
+           'vendors': VENDORS,
+           'form': form,
+           'notes': notes
            }
     return render_template('pch/show.html', ctx=ctx)
 

@@ -1,0 +1,8 @@
+<form action="/note/add" method="POST">
+    {{ ctx.form.csrf_token }}
+    <input type="hidden" name="obj_name" value="{{ ctx.form.obj_name.data }}">
+    <input type="hidden" name="obj_id" value="{{ ctx.form.obj_id.data }}">
+    <label for="msg" class="form-label">Tambah Catatan</label>
+    <textarea name="msg" id="msg" class="form-control mb-2" rows="1"></textarea>
+    <input type="submit" disabled id="msgSubmit" class="btn btn-primary btn-sm" value="Kirim">
+</form>
