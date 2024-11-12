@@ -25,3 +25,8 @@ class TmaForm(FlaskForm):
     jam = SelectField('jam', choices=['07', '12', '17'])
     tma = FloatField('tma')
     fetch = HiddenField('fetch')
+
+class NoteForm(FlaskForm):
+    obj_name = HiddenField('obj_name')
+    obj_id = HiddenField('obj_id')
+    msg = StringField('msg')
