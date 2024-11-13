@@ -312,7 +312,7 @@ class FetchLog(BaseModel):
                     
     
     def sa_to_daily(self):
-        kick_off = 'kaso_sidareja_gunungcupu_pitulasi_kadipaten_subang_surusunda_ciputrahaji_pchpataruman_danasari_bendmanganti'.split('_')
+        kick_off = 'kaso_sidareja_gunungcupu_pitulasi_kadipaten_subang_surusunda_ciputrahaji_pchpataruman_danasari_bendmanganti_janggala_karangbawang'.split('_')
         data = json.loads(self.body)
         rows = data['telemetryjakarta']
         poses = dict([(p.nama, p.latest_sampling) for p in OPos.select() if p.source == 'SA'])
