@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="border-start border-5 border-primary ps-2 fw-lighter">{{ ctx.opos }} <span class="fs-6 fw-normal badge rounded-pill text-light text-bg-info">{{ ctx.this_day }}</span></h2>
+<p class="text-secondary">Banyaknya data <b>sehari</b> yang diterima di Data Center</p>
+<div class="row mb-3">
+    <div class="col text-end">
+        <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5"><i class="bi bi-chevron-left"></i></a> <span class="fs-3">{{ ctx.sampling.strftime('%d')}}</span> {{ ctx.sampling.strftime('%b') }} 
+        {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}"><i class="bi bi-chevron-right"></i></a>
+        {% else %}<button class="btn btn-outline-secondary ms-5" disabled><i class="bi bi-chevron-right"></i></button>{% endif %}</span>        
+    </div>
+</div>    
+<div class="table-responsive">
+    <table class="table table-bordered table-hover table-striped">
+        <thead>
+            <th>Jam</th>
+            <th>Banyak Data</th>
+            <th>Rain</th>
+            <th>WLevel</th>
+        </thead>
+        <tbody>
+            {% for d, v in ctx.this_day._24jam().items() %}
+            <tr>
+                <td>{{ d }}</td>
+                <td>{{ v['num'] }}</td>
+                <td {% if loop.index <  7 %}style="background-color:#eee;"{% endif %}>{% if v['rain'] > 0 %}{{ v['rain'] }}{% else %}-{% endif %}</td>
+                <td>{% if v['wlevel'] > 0 %}{{ v['wlevel'] }}{% else %}-{% endif %}</td>      
+            </tr>
+            {% endfor %}        
+        </tbody>
+    </table></div>
+{% endblock %}
+{% block js_foot %}
+<script>
+    let out = {{ ctx.this_day.raw|safe }};
+    let raw = document.getElementById('raw')
+    raw.innerText = JSON.stringify(out, null, 2);
+</script>
+{% endblock %}

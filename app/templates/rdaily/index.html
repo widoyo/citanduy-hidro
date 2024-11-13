@@ -62,7 +62,7 @@
                 <tbody>
                 {% for r in ctx.rdaily %}
                     <tr>
-                        <td>{{ r.nama }}<span class="float-end dot-{{ r.source|lower }}"></span></td><td class="text-end">{{ r.kinerja }}%</td>
+                        <td>{{ r.nama }}<span class="float-end dot-{{ r.source|lower }}"></span></td><td class="text-end"><a href="/rdaily/{{ r.id }}">{{ r.kinerja }}%</a></td>
                         {% for _, _v in r._24jam().items() %} <td>{{ _v.num }}</td>{% endfor %}
                     </tr>
                 {% endfor %}

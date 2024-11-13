@@ -10,7 +10,7 @@ bp = Blueprint('rdaily', __name__, url_prefix='/rdaily')
 
 @bp.route('/<pos_name>/')
 @login_required
-def show(pos_name):
+def show_pos(pos_name):
     (_s, s, s_) = get_sampling(request.args.get('s', None))
     print('pos_name: ', pos_name)
     try:
@@ -28,6 +28,20 @@ def show(pos_name):
         'sampling_': s_,
         'opos': pos,
         'this_day': this_day
+    }
+    return render_template('rdaily/show.html', ctx=ctx)
+
+@bp.route('/<int:id>')
+@login_required
+def show(id):
+    rd = RDaily.get(id)
+    prev = RDaily.select().where(RDaily.pos_id==rd.pos_id, RDaily.id < rd.id).order_by(RDaily.sampling.desc()).limit(1).first()
+    next = RDaily.select().where(RDaily.pos_id==rd.pos_id, RDaily.id > rd.id).limit(1).first()
+    ctx = {
+        'rdaily': rd,
+        'VENDORS': VENDORS,
+        'prev': prev,
+        'next': next
     }
     return render_template('rdaily/show.html', ctx=ctx)
 
