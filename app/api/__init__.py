@@ -50,10 +50,13 @@ def wlevel():
                                        ManualDaily.pos_id.in_(pids))])
         for p in pdas:
             try:
-                p.telemetri = json.loads(rd[p.id].raw) if rd[p.id].raw else []
+                p.telemetri = json.loads(rd[p.id].raw)[-1] if rd[p.id].raw else {}
+                # ubah wlevel dari Meter ke Centimeter
+                if p.telemetri != {} and rd[p.id].source in ('SB', 'SC'):
+                    p.telemetri['wlevel'] = p.telemetri.get('wlevel') * 100
                 p.vendor = rd[p.id].vendor
             except KeyError:
-                p.telemetri = []
+                p.telemetri = {}
                 p.vendor = None
             try:
                 p.manual = md[p.id]
@@ -61,14 +64,19 @@ def wlevel():
                 p.manual = []
     else:
         for p in pdas:
-            r = p.rdaily_set.order_by(RDaily.sampling.desc()).first()
+            r = p.rdaily_set.order_by(RDaily.sampling.desc()).first()                
             m = p.manualdaily_set.order_by(ManualDaily.sampling.desc()).first()
             manual = []
             if m:
                 for k, v in json.loads(m.tma).items():
                     if k in ('07', '12', '17'):
                         manual.append({'sampling': m.sampling.strftime('%Y-%m-%dT') + k, 'tma': v})
-            p.telemetri = json.loads(r.raw) if r else []
+            p.telemetri = json.loads(r.raw)[-1] if r else {}
+            
+            # ubah wlevel dari Meter ke Centimeter
+            if p.telemetri != {} and r.source in ('SB', 'SC'):
+                p.telemetri['wlevel'] = p.telemetri.get('wlevel') * 100
+            
             p.vendor = r.vendor if r else None
             p.manual = manual
             
