@@ -212,6 +212,8 @@ class FetchLog(BaseModel):
         pos, pos_created = OPos.get_or_create(
             nama=data['name'], source='SC', 
             defaults={'latest_sampling': this_sampling, 'tipe':tipe})
+        if this_sampling <= pos.latest_sampling:
+            return
         luwespos = LuwesPos.get(LuwesPos.imei==data['imei'])
         mypos = luwespos.pos
         rd, rdaily_created = RDaily.get_or_create(
