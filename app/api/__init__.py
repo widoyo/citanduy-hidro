@@ -8,7 +8,7 @@ from app.models import RDaily, VENDORS, Pos, ManualDaily, Incoming
 from app import get_sampling, csrf
 
 bp = Blueprint('api', __name__, url_prefix='/api')
-from app.api import pos, note
+from app.api import pos
 
 
 @bp.route('/token')
