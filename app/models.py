@@ -162,6 +162,7 @@ class Incoming(BaseModel):
                                         sampling=this_sampling,
                                         defaults={'pos_id': pos_id,
                                                   'raw': json.dumps(new_raw)})
+            # KHUSUS PDA&PCH Manganti id=
             if not created:
                 existing_data = json.loads(rd.raw)
                 existing_sampling = [data['sampling'] for data in existing_data]
@@ -235,6 +236,8 @@ class FetchLog(BaseModel):
             rd.save()
 
     def sb_to_daily(self):
+        # Tidak digunakan sejak Okt 2024, 
+        # ganti dengan /api/sensor, model Incoming
         if self.source != 'SB':
             return None
         parser = HTMLTableParser()
@@ -483,7 +486,7 @@ class RDaily(BaseModel):
                 except KeyError:
                     out[jam]['rain'] = float(d['rain'])
             if d.get('wlevel'):
-                out[jam]['wlevel'] = (self.source == 'SC') and d['wlevel'] * 100 or d['wlevel']
+                out[jam]['wlevel'] = (self.source in ('SC', 'SB')) and d['wlevel'] * 100 or d['wlevel']
         return out
     
     def _tma(self):

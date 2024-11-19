@@ -8,7 +8,6 @@ from app.models import RDaily, VENDORS, Pos, ManualDaily, Incoming
 from app import get_sampling, csrf
 
 bp = Blueprint('api', __name__, url_prefix='/api')
-from app.api import pos
 
 
 @bp.route('/token')
@@ -52,8 +51,9 @@ def wlevel():
             try:
                 p.telemetri = json.loads(rd[p.id].raw)[-1] if rd[p.id].raw else {}
                 # ubah wlevel dari Meter ke Centimeter
-                if p.telemetri != {} and rd[p.id].source in ('SB', 'SC'):
-                    p.telemetri['wlevel'] = p.telemetri.get('wlevel') * 100
+                if p.telemetri != {} and rd[p.id].source in ('SB', 'SC') \
+                    and p.telemetri.get('wlevel'):
+                    p.telemetri['wlevel'] = p.telemetri.get('wlevel') * 100 if p.telemetri.get('wlevel') else None
                 p.vendor = rd[p.id].vendor
             except KeyError:
                 p.telemetri = {}
@@ -74,7 +74,8 @@ def wlevel():
             p.telemetri = json.loads(r.raw)[-1] if r else {}
             
             # ubah wlevel dari Meter ke Centimeter
-            if p.telemetri != {} and r.source in ('SB', 'SC'):
+            if p.telemetri != {} and p.telemetri.get('wlevel') \
+                and r.source in ('SB', 'SC'):
                 p.telemetri['wlevel'] = p.telemetri.get('wlevel') * 100
             
             p.vendor = r.vendor if r else None
