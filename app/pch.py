@@ -132,7 +132,7 @@ def show(id):
              .where(ManualDaily.ch == manual_max.ch)).first()
     manual_today = ManualDaily.select(ManualDaily.ch).where(ManualDaily.pos==pos, ManualDaily.sampling==sampling.strftime('%Y-%m-%d')).first()
     
-    man_max = query_max if query_max else SimpleNamespace(ch=0, sampling=None)
+    man_max = query_max if query_max != None else SimpleNamespace(ch=0, sampling=None)
     
     manual = dict(ch=manual_today.ch if manual_today else '0', 
                   max={'ch': int(man_max.ch), 'sampling': man_max.sampling}, 
