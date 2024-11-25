@@ -514,7 +514,9 @@ class RDaily(BaseModel):
         if self.source == 'SC':
             hujan_jam_sebelum = 0
             for k, v in data:
-                sampling_ = datetime.datetime.fromisoformat(self.sampling.isoformat())
+                sampling_date = self.sampling if k > 6 else \
+                    self.sampling + datetime.timedelta(days=1)
+                sampling_ = datetime.datetime.fromisoformat(sampling_date.isoformat())
                 sampling_ = sampling_.replace(hour=k)
                 if sampling_ > now:
                     continue
