@@ -513,7 +513,7 @@ class RDaily(BaseModel):
         if self.source == 'SC':
             hujan_jam_sebelum = 0
             for k, v in data:
-                hujan_jam_ini = v.get('rain')
+                hujan_jam_ini = v.get('rain') - hujan_jam_sebelum
                 hourly[k] = {'count': v.get('num'), 'rain': hujan_jam_ini}
                 hujan_jam_sebelum = v.get('rain')
                 rain24 += hujan_jam_ini
