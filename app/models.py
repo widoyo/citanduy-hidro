@@ -472,8 +472,13 @@ class RDaily(BaseModel):
         return int((self.nums / target) * 100)
     
     def _24jam(self):
-        out = dict([(i, {'num': 0, 'rain': 0, 'wlevel': 0}) for i in range(24)])
-        for d in json.loads(self.raw):
+        end_of_hour = 24
+        if self.sampling == datetime.date.today():
+            end_of_hour = datetime.datetime.now().hour + 1
+        out = dict([(i, {'num': 0, 'rain': 0, 'wlevel': 0}) for i in range(end_of_hour)])
+        
+        data_raw = json.loads(self.raw)
+        for d in data_raw:
             sampling = datetime.datetime.fromisoformat(d['sampling'])
             jam = sampling.hour
             out[jam]['num'] += 1
@@ -510,7 +515,7 @@ class RDaily(BaseModel):
         if self.source == 'SC':
             hujan_jam_sebelum = 0
             for k, v in data:
-                hujan_jam_ini = v.get('rain') - hujan_jam_sebelum
+                hujan_jam_ini = v.get('rain')
                 hourly[k] = {'count': v.get('num'), 'rain': hujan_jam_ini}
                 hujan_jam_sebelum = v.get('rain')
                 rain24 = v.get('rain')
