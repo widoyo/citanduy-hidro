@@ -516,8 +516,9 @@ class RDaily(BaseModel):
             for k, v in data:
                 sampling_ = datetime.datetime.fromisoformat(self.sampling.isoformat())
                 sampling_ = sampling_.replace(hour=k)
-                if sampling_ < now:
-                    hujan_jam_ini = v.get('rain') - hujan_jam_sebelum
+                if sampling_ > now:
+                    continue
+                hujan_jam_ini = v.get('rain') - hujan_jam_sebelum
                 hourly[k] = {'count': v.get('num'), 'rain': hujan_jam_ini}
                 hujan_jam_sebelum = v.get('rain')
                 rain24 += hujan_jam_ini
