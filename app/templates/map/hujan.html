@@ -75,6 +75,19 @@
 `;
         return div;
       }
+      const rainLegend = L.control({position: 'topright'});
+      rainLegend.onAdd = function (map) {
+        let div = L.DomUtil.create('div');
+        div.innerHTML = `<ul class="list-group">
+            <li class="list-group-item" style="background-color: rgba(255, 32, 32, 0.6)">Ekstrim > 150mm</li>
+            <li class="list-group-item" style="background-color: rgba(255, 32, 32, 0.6)">Sangat Lebat</li>
+            <li class="list-group-item" style="background-color: rgba(255, 165, 0, 0.6)">Lebat </li>
+            <li class="list-group-item" style="background-color: rgba(214, 193, 54, 0.6)">Sedang < 50mm</li>
+            <li class="list-group-item" style="background-color: rgba(32, 255, 32, 0.6)">Ringan < 20mm</li>
+          </ul>
+          `;
+        return div;
+      }
       const rain_colors = {
         'ringan': 'rgb(32, 255, 32)',
         'sedang': 'rgb(214, 193, 54)',
@@ -153,6 +166,7 @@
             id: 'mapbox/streets-v11'
         }).addTo(map);
         timeNavBox.addTo(map);
+        rainLegend.addTo(map);
     </script>
   </body>
 </html>
