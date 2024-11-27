@@ -49,15 +49,13 @@ def hujan():
     (_s, s, s_) = get_sampling(request.args.get('s'))
     poses = Pos.select().order_by(Pos.tipe, Pos.nama)
     pchs = [p for p in poses if p.tipe == '1']
-    pdas = [p for p in poses if p.tipe=='2']
     pklimats = [p for p in poses if p.tipe=='3']
     ctx = {
         '_s': _s,
         's': s,
         's_': s_,
         'pos_ch': pchs,
-        'pos_da': pdas,
-        'pos_klimats': pklimats
+        'pos_klimat': pklimats
     }
     return render_template('map/hujan.html', ctx=ctx)
 

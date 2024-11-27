@@ -14,8 +14,7 @@
     <title>Peta Hujan BBWS Citanduy</title>
     <link rel="stylesheet" href="/static/css/custom.css">
     <style>
-      img.pda { filter: hue-rotate(120deg); }
-
+      .pos-label { background-color: rgba(255,255,255,0.8); padding:0px}
       #mymap {height: 89vh; width: 100%}
       .go-up {
         display: inline-block;
@@ -47,6 +46,8 @@
    <script>
       let mapBound;
       let rains = [];
+      let listPch = [];
+      let listKlimat = [];
       async function loadThiessen(lThiess) {
         const urlParams = new URLSearchParams(window.location.search);
         const sampling = urlParams.get('s');
@@ -78,13 +79,24 @@
       const rainLegend = L.control({position: 'topright'});
       rainLegend.onAdd = function (map) {
         let div = L.DomUtil.create('div');
-        div.innerHTML = `<ul class="list-group">
-            <li class="list-group-item" style="background-color: rgba(255, 32, 32, 0.6)">Ekstrim > 150mm</li>
-            <li class="list-group-item" style="background-color: rgba(255, 32, 32, 0.6)">Sangat Lebat</li>
-            <li class="list-group-item" style="background-color: rgba(255, 165, 0, 0.6)">Lebat </li>
-            <li class="list-group-item" style="background-color: rgba(214, 193, 54, 0.6)">Sedang < 50mm</li>
-            <li class="list-group-item" style="background-color: rgba(32, 255, 32, 0.6)">Ringan < 20mm</li>
-          </ul>
+        div.innerHTML = `<div class="accordion">
+          <div class="accordion-item p-0">
+            <h4 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#kat_hujan" aria-expanded="false" aria-controls="kat_hujan">
+                Kategori Hujan
+              </button>
+            </h4>
+            <div class="d-flex align-items-center accordion-body p-1">
+            <ul id="kat_hujan" class="list-group border accordion-collapse collapse">
+              <li class="list-group-item" style="background-color: rgba(255, 32, 32, 0.6)">Ekstrim > 150mm</li>
+              <li class="list-group-item" style="background-color: rgba(255, 32, 32, 0.6)">Sangat Lebat < 150mm</li>
+              <li class="list-group-item" style="background-color: rgba(255, 165, 0, 0.6)">Lebat < 100mm</li>
+              <li class="list-group-item" style="background-color: rgba(214, 193, 54, 0.6)">Sedang < 50mm</li>
+              <li class="list-group-item" style="background-color: rgba(32, 255, 32, 0.6)">Ringan < 20mm</li>
+            </ul>
+            </div>
+          </div>
+          </div>
           `;
         return div;
       }
@@ -95,6 +107,31 @@
         'sangat lebat': 'rgb(255, 32, 32)',
         'ekstrim': 'rgb(255, 32, 32)'
       }
+      const pchs = [{% for p in ctx.pos_ch if p.ll %}{nama: '{{ p.nama }}', ll: [{{ p.ll }}]},{% endfor %}];
+      const klimats = [{% for p in ctx.pos_klimat if p.ll %}{nama: '{{ p.nama }}', ll: [{{ p.ll }}]},{% endfor %}];
+      for (let i=0; i < pchs.length; i++) {
+        let marker = L.circleMarker(pchs[i].ll, {radius: 4, stroke: false, fillColor: '#0d6efd', fillOpacity: 1.0});
+        marker.bindTooltip(pchs[i].nama, {permanent: true, className: 'pos-label'});
+        //marker.addTo(map);
+        listPch.push(marker);
+      }
+      for (let i=0; i < klimats.length; i++) {
+        let marker = L.circleMarker(klimats[i].ll, {radius: 4, stroke: false, fillColor: '#cc0000', fillOpacity: 1.0});
+        marker.bindTooltip(klimats[i].nama, {permanent: true, className: 'pos-label'});
+        //marker.addTo(map);
+        listKlimat.push(marker);
+      }
+
+      let lgPch = L.layerGroup(listPch);
+      let lgKlimat = L.layerGroup(listKlimat);
+      lgPch.addTo(map);
+      lgKlimat.addTo(map);
+
+      let posMap = {"<b>Pos</b> Curah Hujan": lgPch, 
+      "Pos Klimatologi": lgKlimat};
+
+
+
       const onEachFeaturePch = (feature, layer) => {
         let happen = [];
         let kh = 'cerah';
@@ -166,6 +203,7 @@
             id: 'mapbox/streets-v11'
         }).addTo(map);
         timeNavBox.addTo(map);
+        let layerControl = L.control.layers(null, posMap, {collapsed: false}).addTo(map);
         rainLegend.addTo(map);
     </script>
   </body>
