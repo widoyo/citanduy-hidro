@@ -520,7 +520,7 @@ class RDaily(BaseModel):
                 sampling_ = sampling_.replace(hour=k)
                 if sampling_ > now:
                     continue
-                hujan_jam_ini = v.get('rain') - hujan_jam_sebelum
+                hujan_jam_ini = v.get('rain') - hujan_jam_sebelum if v.get('num') > 0 else 0
                 hourly[k] = {'count': v.get('num'), 'rain': hujan_jam_ini}
                 hujan_jam_sebelum = v.get('rain')
                 rain24 += hujan_jam_ini
