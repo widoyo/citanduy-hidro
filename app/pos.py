@@ -4,7 +4,7 @@ import json
 import datetime
 from peewee import DoesNotExist, fn
 
-from app.models import Pos, ManualDaily, PosMap
+from app.models import Pos, ManualDaily, PosMap, OPos, LengkungDebit
 from app import get_sampling
 from app.forms import CurahHujanForm, TmaForm
 bp = Blueprint('pos', __name__, url_prefix='/pos')
@@ -219,13 +219,27 @@ def upsert_manual(id):
     else:
         return redirect('/')
 
+@bp.route('/debit')
+def lengkung_debit():
+    '''Hitung DEBIT
+    Q = c (H + a)^b
+    Q = Debit
+    H = TMA
+    '''
+    ctx = {
+        'poses': LengkungDebit.select()
+    }
+    return render_template('pos/lengkung_debit.html', ctx=ctx)
 
 @bp.route('/')
 @login_required
 def index():
-    pm = dict([(p.pos.id, p.nama) for p in PosMap.select()])
+    pm = dict([(p.pos.id, p) for p in PosMap.select()])
+    op = dict([(p.pos.id, p) for p in OPos.select() if p.pos_id != None])
     poses = Pos.select().order_by(Pos.tipe, Pos.nama, Pos.elevasi.desc())
     for p in poses:
         if p.id in pm:
-            p.source = pm[p.id]
+            p.source = pm[p.id].nama
+        if p.id in op:
+            p.vendor = op[p.id].source
     return render_template('pos/index.html', poses=poses)

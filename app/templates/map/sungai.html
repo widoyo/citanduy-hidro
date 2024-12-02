@@ -44,6 +44,7 @@
     <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
    crossorigin=""></script>
+   <script src="/static/js/sungai.js"></script>
    <script>
       async function loadDas(lDas) {
         let resp = await fetch('/static/js/citanduy.json');
@@ -52,7 +53,13 @@
         map.fitBounds(lDas.getBounds());
       }
 
-      let pdas = [{% for p in ctx.pos_da %}{% if p.ll %}{id: {{p.id}}, name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elevasi: {{ p.elevasi or 0 }}, orde: {{ p.orde or 0 }}, sungai: '{{ p.sungai or '-'}}' },{% endif %}{% endfor %}];
+      async function loadWlevel() {
+        let resp = await fetch('/api/wlevel');
+        let wlevels = await resp.json();
+        return wlevels;
+      }
+
+      let pdas = [{% for p in ctx.pos_da if p.ll %}{id: {{p.id}}, name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elevasi: {{ p.elevasi or 0 }}, orde: {{ p.orde or 0 }}, sungai: '{{ p.sungai or '-'}}' },{% endfor %}];
       let map = L.map('mymap');
 
       let pda_group = L.featureGroup().addTo(map);
@@ -60,17 +67,44 @@
       //let all_poses = L.featureGroup().addTo(map);
       //let listPda = [];
       const onEachFeature = (feature, layer) => {
-        //let popUpContent = `<p>${feature.properties.TOPONIMI}</p>`;
-        //layer.bindPopup(popUpContent);
+        let popUpContent = `<p>${feature.properties.NAMOBJ}</p>`;
+        layer.bindPopup(popUpContent);
+        feature.strokeColor = 'red';
       }
 
       const dasStyle = (geoJsonFeature) => {
         return {weight: 1, fillOpacity: 0}
       }
 
-      let lDas = L.geoJSON(null, {onEachFeature: onEachFeature, style: dasStyle}).addTo(map);
+      let lDas = L.geoJSON(null, {style: dasStyle}).addTo(map);
       loadDas(lDas);
-      let pdaOpt = {interactive: true, pane: 'markerPane'};
+      
+      let so_1 = L.geoJSON(s_orde_1, {
+        onEachFeature: onEachFeature, 
+        style: {color: '#1f56b5'}})
+        .addTo(map);
+      let so_2 = L.geoJSON(s_orde_2, {
+        onEachFeature: onEachFeature,
+        style: {color: '#3e83fa'}
+      }).addTo(map);
+      let so_3 = L.geoJSON(s_orde_3, {
+        onEachFeature: onEachFeature,
+        style: {weight: 1}
+      }).addTo(map);
+      let so_4 = L.geoJSON(s_orde_4, {
+        onEachFeature: onEachFeature,
+        style: {color: '#9de5fc', weight: 1}
+      }).addTo(map);
+
+      let sungaiMap = {
+        "Sungai Orde <b>1</b>":so_1, 
+        "Sungai Orde 2": so_2, 
+        "Sungai Orde 3": so_3,
+        "Sungai Orde 4": so_4
+      };
+      let layerControl = L.control.layers(null, sungaiMap).addTo(map);
+
+      let pdaOpt = {interactive: true, pane: 'markerPane', radius: 6, fillOpacity: 1.0};
       const ordeColor = ['#888888', '#1f56b5', '#3e83fa', '#9de5fc']
       for (let i =0; i < pdas.length; i++) {
         pdaOpt.color = ordeColor[pdas[i].orde];
@@ -86,25 +120,14 @@
               <p><b class="text-secondary">Manual</b><br>&nbsp;Sejak: <b></b></br>
               &nbsp;Tertinggi: </p>
               <p>
-                  <a class="card-link" href="/pda/${pdas[i].id}">Hari ini</a> | <a href="/pda/${pdas[i].id}/{{ ctx.s.strftime('%Y/%m')}}">Bulan Ini</a> | <a href="/pda/${pdas[i].id}">Tahun</a>
+                  <a class="card-link" href="/pda/${pdas[i].id}">Hari ini</a> | <a href="/pda/${pdas[i].id}/{{ ctx.s.strftime('%Y/%m')}}">Bulan Ini</a>
               </p>
               </div>`;
         marker.bindPopup(cnt);
         marker.addTo(pda_group);
       }
-      //let lPda = L.layerGroup(listPda);
-      //lPda.addTo(map);
+
       loadDas(lDas);
-/*
-      let posMap = {"Daerah Aliran Sungai": lDas};
-
-      let layerControl = L.control.layers(null, posMap).addTo(map);
-      */
-      //layerControl.expand();
-      //console.log(layerControl.getContainer());
-
-      //let myControl = L.control.layers(null, {"Hello": L.DivOverlay({collapsed: false})}).addTo(map)
-
       
 
         L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid2lkb3lvIiwiYSI6ImNsNG1kcGFucTFicWUza21uMmJudTRkd3AifQ.-AhfUIYwXDOIwfD6nVFxxw', {
