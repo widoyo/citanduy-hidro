@@ -22,6 +22,7 @@
                         <th colspan="2" class="text-center">Pagi</th>
                         <th colspan="2" class="text-center">Siang</th>
                         <th colspan="2" class="text-center">Sore</th>
+                        <th colspan="3" class="text-center">Telemetri Terakhir</th>
                     </tr>
                     <tr>
                         <th style="background-color:#D7FBC1;">Manual</th>
@@ -30,12 +31,15 @@
                         <th style="background-color:#F1F1F1;">Telemetri</th>
                         <th style="background-color:#D7FBC1;">Manual</th>
                         <th style="background-color:#F1F1F1;">Telemetri</th>
+                        <th style="background-color:#F1F1F1;">Waktu</th>
+                        <th style="background-color:#F1F1F1;">TMA (Cm)</th>
+                        <th style="background-color:#F1F1F1;">Debit (M<sup>3</sup>/Dtk)</th>
                     </tr>
                 </thead>
                 <tbody class="table-group-divider">
                 {% for k, v in ctx.sungai.items() %}
                     <tr>
-                        <th colspan="7"><b class="fs-6">Sungai {{ k }}</b> <i class="ms-1 me-2 dot dot-orde-{{ v.0.orde }}"></i></th>
+                        <th colspan="10"><b class="fs-6">Sungai {{ k }}</b> <i class="ms-1 me-2 dot dot-orde-{{ v.0.orde }}"></i></th>
                     </tr>
                 {% for p in v %}
                 <tr>
@@ -46,6 +50,9 @@
                     <td class="text-end" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_12}}</td>
                     <td class="text-end" style="background-color:#D7FBC1;">{{ p.m_tma_17}}</td>
                     <td class="text-end" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_17}}</td>
+                    <td>{% if p.latest_sampling %}{{ p.latest_sampling[11:16] }}{% endif %}</td>
+                    <td class="text-end">{{ p.latest_tma }}</td>
+                    <td class="text-end">{% if p.debit %}{{ "%.2f"|format(p.debit) }}{% else %}-{% endif %}</td>
                 </tr>
                 {% endfor %}
                 {% endfor %}
