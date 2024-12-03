@@ -3,8 +3,8 @@
 <h2 class="border-start border-5 border-danger ps-2 fw-lighter">Pos Debit (<b>{{ ctx.poses|length}}</b>)</h2>
 <div class="row">
     <div class="col-sm-10">
-        Q = c * (TMA + a)^b
-        <div class="table-responsive">
+        Rumus Debit: <span class="fw-bold font-monospace">Q = C * (TMA + A)^B</span>
+        <div class="mt-2 table-responsive">
             <table class="table table-bordered table-hover table-striped">
                 <thead>
                     <tr>
@@ -14,15 +14,15 @@
                         <th>C</th>
                         <th>A</th>
                         <th>B</th>
-                        <th title="Uji / Test hitung Debit">TMA (cm) <sup><i class="bi bi-info-circle-fill"></i></sup></th>
-                        <th>Debit (Q) (cm<sup>3</sup>/detik)</th>
+                        <th title="Uji / Test hitung Debit">TMA (Meter) <sup><i class="bi bi-info-circle-fill"></i></sup></th>
+                        <th>Debit (Q) (M<sup>3</sup>/detik)</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for p in ctx.poses %}
                     <tr>
                         <td>{{ loop.index }}</td>
-                        <td>{{ p.pos.nama }} <span class="float-end">{{ p.pos.id }}</span></td>
+                        <td><a href="/pda/{{ p.pos.id }}">{{ p.pos.nama }}</a> <span class="float-end">{{ p.pos.id }}</span></td>
                         <td>{{ p.versi }}</td>
                         <td class="text-end c_">{{ p.c_ }}</td>
                         <td class="text-end a_">{{ p.a_ }}</td>
@@ -48,9 +48,8 @@
         const a_ = tr.querySelector('.a_').innerText;
         const b_ = tr.querySelector('.b_').innerText;
         let elq = tr.querySelector('.q_');
-        let q = parseFloat(c_) * (parseFloat(tma) + parseFloat(a_));
-        elq.innerText = q;
-        console.log(`${tma}`);
+        let q = parseFloat(c_) * (parseFloat(tma) + parseFloat(a_)) ** parseFloat(b_);
+        elq.innerText = q.toFixed(2);
     }
 </script>
 {% endblock %}
