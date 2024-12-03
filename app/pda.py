@@ -189,15 +189,10 @@ def index():
                 setattr(p, 'tma_' + jam, '{:.1f}'.format(float(v.get('wlevel'))))
             if p.id in l_debits:
                 ld = l_debits[p.id]
-                print('ld.c_:', ld.c_)
-                print('ld.a_:', ld.a_)
-                print('ld.b_:', ld.b_)
                 raw = json.loads(rdailies[p.id].raw)[-1]
                 p.latest_sampling = raw.get('sampling')
                 p.latest_tma = p.source == 'SA' and int(raw.get('wlevel')) or int(raw.get('wlevel') * 100)
-                a = ld.c_ * ((p.latest_tma * 0.01) + ld.a_)
-                p.debit = a ** ld.b_
-                print('==p.debit: ', p.debit)
+                p.debit = ld.c_ * ((p.latest_tma * 0.01) + ld.a_) ** ld.b_
     sungai = set([p.sungai for p in pdas])
     ruas = {}
     for s in sungai:
