@@ -59,7 +59,14 @@
         return wlevels;
       }
 
-      let pdas = [{% for p in ctx.pos_da if p.ll %}{id: {{p.id}}, name: '{{p.nama}}', ll: [{{ p.ll or 0 }}], elevasi: {{ p.elevasi or 0 }}, orde: {{ p.orde or 0 }}, sungai: '{{ p.sungai or '-'}}' },{% endfor %}];
+      let pdas = [{% for p in ctx.pos_da if p.ll %}
+      {id: {{p.id}}, name: '{{p.nama}}', 
+      ll: [{{ p.ll or 0 }}], elevasi: {{ p.elevasi or 0 }}, 
+      orde: {{ p.orde or 0 }}, sungai: '{{ p.sungai or '-'}}', 
+      tma: {{ p.latest_tma or 0 }}, 
+      latest_sampling: '{{ p.latest_sampling or '-' }}',
+      vendor: '{{ p.vendor or '-'}}'
+      },{% endfor %}];
       let map = L.map('mymap');
 
       let pda_group = L.featureGroup().addTo(map);
@@ -85,7 +92,7 @@
         .addTo(map);
       let so_2 = L.geoJSON(s_orde_2, {
         onEachFeature: onEachFeature,
-        style: {color: '#3e83fa'}
+        style: {color: '#3e83fa', weight: 1.5}
       }).addTo(map);
       let so_3 = L.geoJSON(s_orde_3, {
         onEachFeature: onEachFeature,
@@ -97,10 +104,10 @@
       }).addTo(map);
 
       let sungaiMap = {
-        "Sungai Orde <b>1</b>":so_1, 
-        "Sungai Orde 2": so_2, 
-        "Sungai Orde 3": so_3,
-        "Sungai Orde 4": so_4
+        "Sungai Orde <b>1</b>": so_1, 
+        "Sungai Orde <b>2</b>": so_2, 
+        "Sungai Orde <b>3</b>": so_3,
+        "Sungai Orde <b>4</b>": so_4
       };
       let layerControl = L.control.layers(null, sungaiMap).addTo(map);
 
@@ -113,12 +120,8 @@
               <h5>${pdas[i].name} <span class="text-secondary">(+${pdas[i].elevasi} mdpl)</span>
               </h5>
               <h6 class="text-secondary">Sungai ${pdas[i].sungai} (orde: ${pdas[i].orde})</h6>
-              <h6 class="text-secondary">{{ ctx.s.strftime('%d %b %Y') }}</h6>
-              <p><b class="text-secondary">Telemetri</b><br>
-                  
-              &nbsp;vendor</p>
-              <p><b class="text-secondary">Manual</b><br>&nbsp;Sejak: <b></b></br>
-              &nbsp;Tertinggi: </p>
+              <h6 class="text-secondary"><small class="fw-light">JAM:</small> ${pdas[i].latest_sampling.slice(11, 16)} <small class="fw-light">TMA:</small> <b>${pdas[i].tma}</b> cm</h6>
+              <p>${pdas[i].vendor}</p>
               <p>
                   <a class="card-link" href="/pda/${pdas[i].id}">Hari ini</a> | <a href="/pda/${pdas[i].id}/{{ ctx.s.strftime('%Y/%m')}}">Bulan Ini</a>
               </p>

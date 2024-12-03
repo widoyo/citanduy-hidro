@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request
 import datetime
+import json
 
-from app.models import Pos
+from app.models import Pos, RDaily, VENDORS
 from app import get_sampling
 bp = Blueprint('map', __name__, url_prefix='/map')
 
@@ -33,13 +34,24 @@ def sungai():
      orde 3: #76a4f5 rbg(181, 208, 255)
     '''
     (_s, s, s_) = get_sampling(request.args.get('s'))
-    poses = Pos.select().order_by(Pos.tipe, Pos.nama)
-    pdas = [p for p in poses if p.tipe=='2']
+    poses = Pos.select().where(Pos.tipe=='2').order_by(Pos.nama)
+    for p in poses:
+        try:
+            rd = p.rdaily_set.where(RDaily.sampling==s).first()
+            raw = json.loads(rd.raw)
+            p.latest_sampling = raw[-1]['sampling']
+            p.latest_tma = rd.source == 'SA' and int(raw[-1]['wlevel']) or int(raw[-1]['wlevel']) * 100
+            p.vendor = VENDORS[rd.source].get('nama')
+            print(p.nama)
+            print(p.latest_tma)
+            print(p.latest_sampling)
+        except:
+            pass
     ctx = {
         '_s': _s,
         's': s,
         's_': s_,
-        'pos_da': pdas,
+        'pos_da': poses,
     }
     return render_template('map/sungai.html', ctx=ctx)
 
