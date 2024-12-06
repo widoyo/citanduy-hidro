@@ -1,7 +1,51 @@
 from app.models import RDaily
-
+import click
+import datetime
+import json
 
 def register(app):
+    @app.cli.command('ews-rain')
+    def ews_rain(now=datetime.datetime.now()):
+        rd = RDaily.select().where(RDaily.sampling==now.date())
+        rain_list = []
+        for r in rd:
+            raw = json.loads(r.raw)
+            if 'rain' not in raw[0]:
+                continue
+            minute_start = datetime.datetime.fromisoformat(raw[-1]['sampling'])
+            durasi = datetime.timedelta()
+            hujan = 0
+            if r.source in ('SA', 'SB'):
+                for ra in reversed(raw):
+                    sampling = datetime.datetime.fromisoformat(ra['sampling'])
+                    if sampling < now - datetime.timedelta(minutes=60):
+                        continue
+                    if float(ra['rain']) > 0.0:
+                        durasi += minute_start - sampling
+                        minute_start = sampling
+                    hujan += float(ra['rain'])
+            else:
+                l = raw[-1]['rain']
+                for ra in reversed(raw):
+                    sampling = datetime.datetime.fromisoformat(ra['sampling'])
+                    if sampling < now - datetime.timedelta(minutes=60):
+                        continue
+                    rain_now = l - ra['rain']
+                    if rain_now > 0.0:
+                        durasi += minute_start - sampling
+                        minute_start = sampling
+                    hujan += rain_now
+                    l = ra['rain']
+                    #click.echo('{} {}'.format(sampling.strftime('%H:%M'), ra['rain']))
+            if hujan > 0.0:
+                rain_list.append({'pos': r.pos != None and r.pos.nama or r.nama, })
+                try:
+                    click.echo('Pos: {} {}'.format(r.pos.nama, len(raw)))
+                except:
+                    click.echo('{} {}'.format(r.nama, len(raw)))
+                click.echo('Hujan: {} Durasi: {}'.format(hujan, durasi))
+
+                
     @app.cli.command('hello')
     def hello():
         panjalu_11nop = RDaily.get(15813)

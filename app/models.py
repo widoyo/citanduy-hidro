@@ -403,6 +403,16 @@ class Pos(BaseModel):
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
     orde = pw.IntegerField(null=True)
+            
+    @property
+    def url(self):
+        if self.tipe in ('1', '3'):
+            pos = 'pch'
+        elif self.tipe == '2':
+            pos = 'pda'
+        else:
+            return None
+        return '/' + pos + '/' + self.id
     
     @property
     def s_nama(self):
