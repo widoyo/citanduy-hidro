@@ -55,6 +55,36 @@
     </div>
     </div>
     </p>
+    <div class="row mb-4">
+      <div class="col">
+        <b>Kategori Hujan</b><br>
+        <small style="font-size:9pt;">
+          <span class="small dot dot-hujan-ringan"></span> Ringan
+          <span class="dot dot-hujan-sedang"></span> Sedang
+          <span class="dot dot-hujan-lebat"></span> Lebat
+          <span class="dot dot-hujan-sangatlebat"></span> Sangat Lebat
+        </small>
+      </div>
+    </div>
+    <h6>Curah Hujan <b>{{ ctx.sampling.strftime('%d %b')}}</b></h6>
+    <table class="table table-bordered table-hover table-striped">
+        <thead>
+            <tr>
+                <th style="font-size:smaller">Jam</th>
+                <th style="font-size:smaller">CH Tele</th>
+                <th style="font-size:smaller"># Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for k, r in ctx.this_day._rain().get('hourly').items() %}
+            <tr>
+                <td class="">jam {{ k }}</td>
+                <td class="text-end rain" style="background-color:#F1F1F1;"><span class="ch">{{ r.rain|round(1, 'ceil') }}</span></td>
+                <td class="text-end">{{ r.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     <small class="fw-bold">Skala Hujan per&nbsp;Jam</small>
     <table class="table table-sm" style="font-size: 0.8rem;">
         <tr>
@@ -69,7 +99,7 @@
       <tr>
         <td><span style="border-radius: 10%; padding: 2px; background-color:rgb(32, 255, 32)">1 - 5</span></td><th>Hujan Ringan</th>
       </tr>
-    </table>      
+    </table>       
   </div>
 
   </div>
@@ -79,6 +109,53 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <script>
+function domReady () {
+    const chs = document.getElementsByClassName('ch');
+    for(let i = 0; i < chs.length; i++) {
+        categorizeRain(chs[i]);
+    }
+}
+
+function categorizeRain(el) {
+    value = parseFloat(el.innerText);
+    if (value >= 0.5) {
+        el.style.borderRadius = "15%";
+        el.style.padding = "2px";
+    }
+    if (value >= 0.5 && value <= 5) {
+        // hujan ringan
+        el.style.backgroundColor = "rgb(32, 255, 32)";
+    } else if (value > 5 && value <= 10) {
+        // hujan sedang
+        el.style.backgroundColor = "rgb(214, 193, 5)";
+    } else if (value > 10 && value <= 20) {
+        // hujan lebat
+        el.style.backgroundColor = "rgb(255, 165, 0)";
+    } else if (value > 20){
+        // hujan sangat lebat
+        el.style.backgroundColor = "rgb(255, 32, 32)";
+        el.style.color = "rgb(255, 255, 255)";
+    }    
+}
+
+// Mozilla, Opera, Webkit 
+if ( document.addEventListener ) {
+  document.addEventListener( "DOMContentLoaded", function(){
+    document.removeEventListener( "DOMContentLoaded", arguments.callee, false);
+    domReady();
+  }, false );
+
+// If IE event model is used
+} else if ( document.attachEvent ) {
+  // ensure firing before onload
+  document.attachEvent("onreadystatechange", function(){
+    if ( document.readyState === "complete" ) {
+      document.detachEvent( "onreadystatechange", arguments.callee );
+      domReady();
+    }
+  });
+}
+
   let msgBox = document.getElementById('msg');
   let submit = document.getElementById('msgSubmit')
   msgBox.addEventListener("input", () => {

@@ -103,6 +103,18 @@ background: linear-gradient( 263deg, rgb(42, 7, 238) 0%, rgb(238, 204, 7) 100% )
   background-color:rgb(157, 229, 252);
 }
 
+.dot-hujan-ringan {
+  background-color:rgb(32, 255, 32);
+}
+.dot-hujan-sedang {
+  background-color:rgb(214, 193, 54);
+}
+.dot-hujan-lebat {
+  background-color:rgb(255, 165, 0);
+}
+.dot-hujan-sangatlebat {
+  background-color:rgb(255, 32, 32);
+}
 .dot-sa {
   height: 8px;
   width: 8px;
