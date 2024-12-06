@@ -12,6 +12,13 @@ def register(app):
             raw = json.loads(r.raw)
             if 'rain' not in raw[0]:
                 continue
+            pos = r.nama
+            pos_id = None
+            if r.pos != None:
+                pos = r.pos.nama
+                pos_id = r.pos.id
+            if 'PDA' in pos:
+                continue
             minute_start = datetime.datetime.fromisoformat(raw[-1]['sampling'])
             durasi = datetime.timedelta()
             hujan = 0
@@ -38,12 +45,13 @@ def register(app):
                     l = ra['rain']
                     #click.echo('{} {}'.format(sampling.strftime('%H:%M'), ra['rain']))
             if hujan > 0.0:
-                rain_list.append({'pos': r.pos != None and r.pos.nama or r.nama, })
+                rain_list.append({'pos': pos, 'pos_id': pos_id, 'rain': hujan, 'duration': durasi.total_seconds()})
                 try:
                     click.echo('Pos: {} {}'.format(r.pos.nama, len(raw)))
                 except:
                     click.echo('{} {}'.format(r.nama, len(raw)))
                 click.echo('Hujan: {} Durasi: {}'.format(hujan, durasi))
+        click.echo(rain_list)
 
                 
     @app.cli.command('hello')
