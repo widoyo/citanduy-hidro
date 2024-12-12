@@ -1,9 +1,22 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, abort
 from flask_login import login_required
 import datetime
 from app.models import OPos
 
 bp = Blueprint('rpos', __name__, url_prefix='/rpos')
+
+@bp.route('/<int:id>/del', methods=['GET', 'POST'])
+@login_required
+def delete_(id):
+    try:
+        opos = OPos.get(id)
+    except:
+        return abort(404)
+    ctx = {
+        'opos': opos
+    }
+    
+    return render_template('rpos/del_.html', ctx=ctx)
 
 @bp.route('/')
 @login_required

@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/static/css/custom.css">
     <style>
       img.pda { filter: hue-rotate(120deg); }
-
+      .pos-label { background-color: rgba(255,255,255,0.8); padding:0px}
       #mymap {height: 89vh; width: 100%}
       .go-up {
         display: inline-block;
@@ -116,6 +116,7 @@
       for (let i =0; i < pdas.length; i++) {
         pdaOpt.color = ordeColor[pdas[i].orde];
         let marker = L.circleMarker(pdas[i].ll, pdaOpt);
+        marker.bindTooltip(pdas[i].name, {permanent: true, className: 'pos-label'});
         let cnt = `<div>
               <h5>${pdas[i].name} <span class="text-secondary">(+${pdas[i].elevasi} mdpl)</span>
               </h5>

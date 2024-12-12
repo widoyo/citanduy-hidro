@@ -6,6 +6,20 @@ from app.models import Pos
 from app import get_sampling
 bp = Blueprint('pklimat', __name__, url_prefix='/pklimat')
 
+'''
+Pengukuran Manual Klimat:
+Curah Hujan (mm)
+Thermometer Max (7, 12, 17)
+Thermometer Min (7, 12, 17)
+Bola Kering (7, 12, 17)
+Bola Basah (7, 12, 17)
+Thermometer Apung Max, Min
+Pembacaan Hoog (naik/Turun)
+Lama Penyinaran (jam)
+Anemomter Speedometer
+Anemometer Km/Hari
+Penguapan
+'''
 @bp.route('/')
 def index():
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))

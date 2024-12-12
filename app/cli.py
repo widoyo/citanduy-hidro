@@ -1,9 +1,203 @@
-from app.models import RDaily
+import requests
+from app.models import RDaily, Pos, ManualDaily, FetchLog
+from app.config import SOURCE_A, SOURCE_B, SOURCE_C, BOT_TOKEN, CTY_OFFICE_ID
 import click
 import datetime
 import json
 
 def register(app):
+    @app.cli.command('send-terlambat-pda7')
+    def send_terlambat_pda():
+        today = datetime.date.today()
+        pdas = Pos.select().where(Pos.tipe=='2')
+        mds = ManualDaily.select().where(ManualDaily.sampling==today)
+        #print(','.join([p.nama for p in pchs]))
+        #print('PEMISAH')
+        #print(','.join([m.pos.nama for m in mds if m.pos]))
+        msg = 'Data Manual PDA Belum Diterima\n\n'
+        msg += '*Tanggal: ' + today.strftime('%d %b %Y*\n')
+        late = [p for p in pdas if p.nama not in [m.pos.nama for m in mds if m.pos]]
+        msg += 'Jam: ' + datetime.datetime.now().strftime('%H:%M\n')
+        msg += '{:.1f}'.format((len(late) / pdas.count()) * 100) + '% (' + str(len(late)) + '/'+ str(pdas.count())+') data belum diterima.\n\n'
+        msg += '\n'.join(['{}: {}'.format(p.nama, ','.join([pt.nama for pt in p.petugas_set]) or '-') for p in late])
+        url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CTY_OFFICE_ID + '&text=' + msg
+        resp = requests.get(url)
+
+    @app.cli.command('send-terlambat-pch')
+    def send_terlambat_pch():
+        today = datetime.date.today()
+        pchs = Pos.select().where(Pos.tipe=='1')
+        mds = ManualDaily.select().where(ManualDaily.sampling==today - datetime.timedelta(days=1))
+        #print(','.join([p.nama for p in pchs]))
+        #print('PEMISAH')
+        #print(','.join([m.pos.nama for m in mds if m.pos]))
+        msg = 'Data Manual PCH Belum Diterima\n\n'
+        msg += '*Tanggal: ' + today.strftime('%d %b %Y*\n')
+        late = [p for p in pchs if p.nama not in [m.pos.nama for m in mds if m.pos]]
+        msg += 'Jam: ' + datetime.datetime.now().strftime('%H:%M\n')
+        msg += '{:.1f}'.format((len(late) / pchs.count()) * 100) + '% (' + str(len(late)) + '/'+ str(pchs.count())+') data belum diterima.\n\n'
+        msg += '\n'.join(['{}: {}'.format(p.nama, ','.join([pt.nama for pt in p.petugas_set]) or '-') for p in late])
+        url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CTY_OFFICE_ID + '&text=' + msg
+        resp = requests.get(url)
+        
+    @app.cli.command('fetch-sda')
+    def fetch_sdatelemetry():
+        '''Membaca data pada server SDATELEMETRY'''
+        x = requests.get(SOURCE_A)
+        fl = FetchLog.create(url=x.url, response=x.status_code, body=x.text, source='SA')
+        fl.sa_to_daily()
+            
+    @app.cli.command('fetch-telemet')
+    def fetch_telemet():
+        '''Membaca data pada server Omtronik'''
+        x = requests.get(SOURCE_B)
+        body = ''
+        inside = False
+        for l in x.text.split('\n'):
+            if l.startswith('<table'):
+                inside = True
+            if l.startswith('</table'):
+                body += l
+                inside = False
+            if len(l) > 3 and inside:
+                if l.startswith('<td>Date') or l.startswith('<td>RTU') or l.startswith('<td>Chann') or l.startswith('<td>Value') or l.startswith('<td>Satuan'):
+                    pass
+                else:
+                    body += l
+                    
+        fl = FetchLog.create(url=x.url, response=x.status_code, body=body, source='SB')
+        fl.sb_to_daily()
+
+    @app.cli.command('fetch-luwes')
+    def fetch_luwes():
+        '''Membaca data dari luwes'''
+        for l in LuwesPos.select():
+            data = {'a': 'stat', 'imei': l.imei}
+            x = requests.post(SOURCE_C, data=data)
+            fl = FetchLog.create(url=x.url, response=x.status_code, body=x.text, source='SC')
+            fl.sc_to_daily()
+    
+######################## DEVELOPMENT ONLY #########################
+    @app.cli.command('ksi_to_daily')
+    def ksi_to_daily():
+        '''
+        all_rec = 
+            RW67_Manganti_2024-10-17
+            2024-10-17 00:00:00 {'battery': 12.7, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 00:15:00 {'rain': 0.0}
+            2024-10-17 00:30:00 {'rain': 0.0}
+            2024-10-17 00:45:00 {'rain': 0.0}
+            2024-10-17 01:00:00 {'battery': 12.7, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 01:15:00 {'rain': 0.0}
+            2024-10-17 01:30:00 {'rain': 0.0}
+            2024-10-17 01:45:00 {'rain': 0.0}
+            2024-10-17 02:00:00 {'battery': 12.6, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 02:15:00 {'rain': 0.0}
+            2024-10-17 02:30:00 {'rain': 0.0}
+            2024-10-17 02:45:00 {'rain': 0.0}
+            2024-10-17 03:00:00 {'battery': 12.6, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 03:15:00 {'rain': 0.0}
+            2024-10-17 03:30:00 {'rain': 0.0}
+            2024-10-17 03:45:00 {'rain': 0.0}
+            2024-10-17 04:00:00 {'battery': 12.6, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 04:15:00 {'rain': 0.0}
+            2024-10-17 04:30:00 {'rain': 0.0}
+            2024-10-17 04:45:00 {'rain': 0.0}
+            2024-10-17 05:00:00 {'battery': 12.6, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 05:15:00 {'rain': 0.0}
+            2024-10-17 05:30:00 {'rain': 0.0}
+            2024-10-17 05:45:00 {'rain': 0.0}
+            2024-10-17 06:00:00 {'battery': 12.6, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 06:15:00 {'rain': 0.0}
+            2024-10-17 06:30:00 {'rain': 0.0}
+            2024-10-17 06:45:00 {'rain': 0.0}
+            2024-10-17 07:00:00 {'battery': 13.3, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 07:15:00 {'rain': 0.0}
+            2024-10-17 07:30:00 {'rain': 0.0}
+            2024-10-17 07:45:00 {'rain': 0.0}
+            2024-10-17 08:00:00 {'battery': 14.1, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 08:15:00 {'rain': 0.0}
+            2024-10-17 08:30:00 {'rain': 0.0}
+            2024-10-17 08:45:00 {'rain': 0.0}
+            2024-10-17 09:00:00 {'battery': 14.0, 'rain': 0.0, 'wlevel': 10.2}
+            2024-10-17 09:15:00 {'rain': 0.0}
+            2024-10-17 09:30:00 {'rain': 0.0}
+            2024-10-17 09:45:00 {'rain': 0.0}
+            2024-10-17 10:00:00 {'battery': 13.3, 'rain': 0.0, 'wlevel': 10.1}
+            2024-10-17 10:15:00 {'rain': 0.0}
+            2024-10-17 10:30:00 {'rain': 0.0}
+            2024-10-17 10:45:00 {'rain': 0.0}
+            2024-10-17 11:00:00 {'battery': 13.2, 'rain': 0.0, 'wlevel': 10.1}        
+        '''
+        from app.models import Incoming, RDaily, PosMap, OPos
+        ids = ['KJc48Vp56VBpjbGdEd5N6V', 'iZPcitEsytdydHaKoGMSbQ', 'hkyy7zy5hXYJdXXKUcTm76']
+        ids = ['hkyy7zy5hXYJdXXKUcTm76']
+        chann_no = {'1': 'rain', '2': 'battery', '3': 'wlevel'}
+        chann_name = {'Rain Fall': 'rain', 'Battery': 'battery', 'Water Level': 'wlevel'}
+        all_rec = {}
+        for i in ids:
+            rec = Incoming.get(Incoming.id==i)
+            data = json.loads(rec.body.replace("'", '"'))
+            #print()
+            for r in data:
+                try:
+                    field = chann_name[r['channel']]
+                except KeyError:
+                    field = chann_no[r['channel_no']]
+                
+                rec_sampling = r['date_time'].replace(' ', 'T')
+                this_key = r['name'] + '_' + rec_sampling[0:10]
+                new_rec = {rec_sampling: {field: round(float(r['value']), 1)}}
+                if this_key in all_rec:
+                    existing_rec = all_rec[this_key]
+                    if rec_sampling in existing_rec:
+                        existing_rec[rec_sampling].update(new_rec[rec_sampling])
+                    else:
+                        all_rec[this_key].update(new_rec)
+                else:
+                    all_rec[this_key] = new_rec
+
+        # INSERT or UPDATE Database (RDaily)
+        posmaps = dict([(p.nama, p.pos_id) for p in PosMap.select()])
+        for k, v in all_rec.items():
+            (nama, this_sampling) = k.rsplit('_', 1)
+            pos_id = posmaps.get(nama, None)
+            
+            tipe = '1' if 'rain' in str(list(v.items())[0]) else '2'
+            opos, created = OPos.get_or_create(nama=nama, source='SB',
+                                        defaults={'tipe':tipe,
+                                                'latest_sampling': datetime.datetime.now()})
+            
+            new_raw = []
+            for sam, vv in v.items():
+                vv.update({'sampling': sam})
+                new_raw.append(vv)
+                print(vv)
+            
+            # mengupdate latest_sampling
+            opos.latest_sampling = new_raw[-1].get('sampling')
+            
+            rd, created = RDaily.get_or_create(source='SB',
+                                        nama=nama,
+                                        sampling=this_sampling,
+                                        defaults={'pos_id': pos_id,
+                                                'raw': json.dumps(new_raw)})
+            if not created:
+                print('RECALL: ', rd.id, rd.nama)
+                existing_data = json.loads(rd.raw)
+                print(rd.raw)
+                existing_sampling = [data['sampling'] for data in existing_data]
+                for row in new_raw:
+                    if row.get('sampling') not in existing_sampling:
+                        existing_data.append(row)
+                        print('APPEND: ', row)
+                rd.raw = json.dumps(existing_data)
+                rd.save()
+            else:
+                print('CREATED: ', rd.nama, rd.sampling)
+    
+######################## DEVELOPMENT ONLY #########################
+
     @app.cli.command('ews-rain')
     def ews_rain(now=datetime.datetime.now()):
         rd = RDaily.select().where(RDaily.sampling==now.date())
@@ -44,14 +238,20 @@ def register(app):
                     hujan += rain_now
                     l = ra['rain']
                     #click.echo('{} {}'.format(sampling.strftime('%H:%M'), ra['rain']))
-            if hujan > 0.0:
+            if hujan > 0.1:
                 rain_list.append({'pos': pos, 'pos_id': pos_id, 'rain': hujan, 'duration': durasi.total_seconds()})
                 try:
                     click.echo('Pos: {} {}'.format(r.pos.nama, len(raw)))
                 except:
                     click.echo('{} {}'.format(r.nama, len(raw)))
                 click.echo('Hujan: {} Durasi: {}'.format(hujan, durasi))
-        click.echo(rain_list)
+        msg = ''
+        if rain_list:
+            msg = '[EWS RAIN] BBWS Citanduy\n**{}**\n\n'.format(now.strftime('%d %b %Y %H:%M'))
+            for i in range(len(rain_list)):
+                data = rain_list[i]
+                msg += '{}. {} **{:.1f}** mm selama **{}** menit\n'.format(i+1, data['pos'], data['rain'], int(data['duration'] /60))
+        click.echo(msg)
 
                 
     @app.cli.command('hello')

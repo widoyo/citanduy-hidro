@@ -76,6 +76,7 @@
             </tr>
         </thead>
         <tbody>
+          {% if ctx.this_day %}
             {% for k, r in ctx.this_day._rain().get('hourly').items() %}
             <tr>
                 <td class="">jam {{ k }}</td>
@@ -83,6 +84,11 @@
                 <td class="text-end">{{ r.count }}</td>
             </tr>
             {% endfor %}
+            {% else %}
+            <tr>
+              <td class="text-center" colspan="3">Tidak ada data hari ini</td>
+            </tr>
+            {% endif %}
         </tbody>
     </table>
     <small class="fw-bold">Skala Hujan per&nbsp;Jam</small>
