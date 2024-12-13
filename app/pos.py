@@ -13,7 +13,7 @@ bp = Blueprint('pos', __name__, url_prefix='/pos')
 @bp.route('/luwes')
 def pos_luwes():
     ctx = {
-        'poses': LuwesPos.select().order_by(LuwesPos.nama)
+        'poses': LuwesPos.select().order_by(LuwesPos.tipe, LuwesPos.nama)
     }
     return render_template('pos/luwes.html', ctx=ctx)
 

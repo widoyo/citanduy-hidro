@@ -9,6 +9,7 @@
                     <tr>
                         <th>No</th>
                         <th>Nama</th>
+                        <th>Pos (kita)</th>
                         <th>Imei</th>
                         <th>Tipe</th>
                     </tr>
@@ -17,6 +18,7 @@
                 {% for p in ctx.poses %}
                     <tr>
                         <td>{{ loop.index }}</td>
+                        <td>{{ p.nama }}</td>
                         <td>{{ p.pos.nama }}</td>
                         <td>{{ p.imei }}</td>
                         <td>{% if p.tipe == '1' %}<span class="fw-normal badge rounded-pill text-bg-info">ARR</span>{% else %}<span class="fw-normal badge rounded-pill text-bg-warning">AWLR</span>{% endif %}</td>
