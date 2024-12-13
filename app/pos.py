@@ -4,11 +4,18 @@ import json
 import datetime
 from peewee import DoesNotExist, fn
 
-from app.models import Pos, ManualDaily, PosMap, OPos, LengkungDebit
+from app.models import Pos, ManualDaily, PosMap, OPos, LengkungDebit, LuwesPos
 from app import get_sampling
 from app.forms import CurahHujanForm, TmaForm
 bp = Blueprint('pos', __name__, url_prefix='/pos')
 
+
+@bp.route('/luwes')
+def pos_luwes():
+    ctx = {
+        'poses': LuwesPos.select().order_by(LuwesPos.nama)
+    }
+    return render_template('pos/luwes.html', ctx=ctx)
 
 @bp.route('/manual/kinerja')
 def kinerja_manual():

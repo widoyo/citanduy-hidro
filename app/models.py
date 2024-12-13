@@ -590,7 +590,7 @@ class Petugas(BaseModel):
 
 class PosMap(BaseModel):
     pos = pw.ForeignKeyField(Pos, unique=True)
-    nama = pw.CharField(max_length=30)
+    nama = pw.CharField(max_length=60)
     
     
 class LuwesPos(BaseModel):

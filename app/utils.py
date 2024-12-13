@@ -3,13 +3,12 @@ import re
 
 def classify_request(user_request):
     # Categories
-    categories = {"chart": ["chart", "graph", "plot", "grafik"], 
-                  "data": ["data", "list", "records"], 
-                  "summary": ["summarize", "summary", "overview", "gambaran"],
-                  "hujan": ["hujan", "curah hujan", "pch", "pos hujan"],
-                  "max": ["tertinggi", "maksimum"],
-                  "tma": ["pda", "duga air", "tinggi muka air"],
-                  "petugas": ["siapa", "petugas"],
+    categories = {"petugas": ["siapa", "petugas", "pos", "penjaga"], 
+                  "goto": ["halaman", "ke", "tolong"], 
+                  "total_hujan": ["total", "berapa", "hujan"],
+                  "status_logger": ["mana", "tidak aktif"],
+                  "hujan_tertinggi": ["hujan tertinggi", "mana", "berapa"],
+                  "dimana_hujan": ["mana", "hujan", "terjadi"],
                   "pos": ["pos hidrologi", "pos duga air", "pos hujan"]}
     
     # Check for keywords to classify the request
@@ -39,12 +38,26 @@ def extract_date_range(user_request):
         return None
 
 # Example user request
-user_request = "Can you show me a chart of water levels from December 1st to December 10th?"
+user_requests = [
+    'Siapa petuugas pos Majalengka?',
+    'Siapa petuugas pos PDA Pataruman?',
+    'Pos mana saja yang saat ini tidak aktif?',
+    'Berapa total hujan bulan ini?',
+    'Berapa total hujan bulan Desember?',
+    'Hujan tertinggi bulan November?',
+    'Hari ini hujan terjadi di mana saja?',
+    'Tolong ke halaman peta hujan!</li>',
+    'Tolong ke halaman peta hujan tanggal 4 Desember 2024!',
+    'Tolong ke halaman hujan tanggal 4 desember 2024!',
+    'Pos debit di mana saja?',
+]
 
-# Classify request
-request_type = classify_request(user_request)
-print(f"Request type: {request_type}")
+if __name__ == '__main__':
+    # Classify request
+    for i in range(len(user_requests)):
+        request_type = classify_request(user_requests[i])
+        print(f"Request type: {request_type} {user_requests[i]}")
 
-# Extract date range
-date_range = extract_date_range(user_request)
-print(f"Date range: {date_range}")
+    # Extract date range
+    date_range = extract_date_range(user_request)
+    print(f"Date range: {date_range}")
