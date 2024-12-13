@@ -1,5 +1,5 @@
 import requests
-from app.models import RDaily, Pos, ManualDaily, FetchLog
+from app.models import RDaily, Pos, ManualDaily, FetchLog, LuwesPos
 from app.config import SOURCE_A, SOURCE_B, SOURCE_C, BOT_TOKEN, CTY_OFFICE_ID
 import click
 import datetime
