@@ -634,3 +634,10 @@ class LengkungDebit(BaseModel):
     b_ = pw.FloatField()
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     
+
+class UserQuery(BaseModel):
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    q = pw.TextField() # user query / asking
+    intent = pw.TextField() # json
+    entity = pw.TextField() # json
+    
