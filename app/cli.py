@@ -238,7 +238,7 @@ def register(app):
                     hujan += rain_now
                     l = ra['rain']
                     #click.echo('{} {}'.format(sampling.strftime('%H:%M'), ra['rain']))
-            if hujan > 0.1:
+            if hujan > 10.0:
                 rain_list.append({'pos': pos, 'pos_id': pos_id, 'rain': hujan, 'duration': durasi.total_seconds()})
                 try:
                     click.echo('Pos: {} {}'.format(r.pos.nama, len(raw)))
@@ -247,10 +247,12 @@ def register(app):
                 click.echo('Hujan: {} Durasi: {}'.format(hujan, durasi))
         msg = ''
         if rain_list:
-            msg = '[EWS RAIN] BBWS Citanduy\n**{}**\n\n'.format(now.strftime('%d %b %Y %H:%M'))
+            msg = '*[EWS RAIN] BBWS Citanduy*\n\ndibuat: *{}*\n\n'.format(now.strftime('%d %b %Y jam %H:%M'))
             for i in range(len(rain_list)):
                 data = rain_list[i]
-                msg += '{}. {} **{:.1f}** mm selama **{}** menit\n'.format(i+1, data['pos'], data['rain'], int(data['duration'] /60))
+                msg += '{}\. {} *{:.0f}mm* (*{}* menit)\n'.format(i+1, data['pos'], data['rain'], int(data['duration'] /60))
+            url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CTY_OFFICE_ID + '&text=' + msg + '&parse_mode=MardkdownV2'
+            resp = requests.get(url)
         click.echo(msg)
 
                 
