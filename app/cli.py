@@ -247,10 +247,10 @@ def register(app):
                 click.echo('Hujan: {} Durasi: {}'.format(hujan, durasi))
         msg = ''
         if rain_list:
-            msg = '*[EWS RAIN] BBWS Citanduy*\n\ndibuat: *{}*\n\n'.format(now.strftime('%d %b %Y jam %H:%M'))
+            msg = '*\[EWS RAIN\] BBWS Citanduy*\n\ndibuat: *{}*\n\n'.format(now.strftime('%d %b %Y jam %H:%M'))
             for i in range(len(rain_list)):
                 data = rain_list[i]
-                msg += '{}\. {} *{:.0f}mm* (*{}* menit)\n'.format(i+1, data['pos'], data['rain'], int(data['duration'] /60))
+                msg += '{}\. {} *{:.0f}mm* \(*{}* menit\)\n'.format(i+1, data['pos'], data['rain'], int(data['duration'] /60))
             url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CTY_OFFICE_ID + '&text=' + msg + '&parse_mode=MardkdownV2'
             resp = requests.get(url)
         click.echo(msg)
