@@ -138,6 +138,7 @@ def pch_show(id: int):
         return jsonify({
             'code': 404,
             'ok': False})
+    rd = pos.rdaily_set.limit(1).first()
     max = ManualDaily.select().where(ManualDaily.pos==pos).order_by(ManualDaily.ch.desc()).first()
     min = ManualDaily.select().where(ManualDaily.pos==pos).order_by(ManualDaily.sampling).first()
     count = ManualDaily.select(fn.Count(ManualDaily.id)).scalar()
@@ -145,8 +146,10 @@ def pch_show(id: int):
     pos.max = max
     pos.min = min
     pos.count = count
+    vendor = VENDORS[rd.source]['nama'] if VENDORS[rd.source] else '-'
     dict_pos = model_to_dict(pos)
     dict_pos.update({
+        'vendor': vendor,
         'manual': {
             'max': 
                 {'sampling': max.sampling if max else '-', 'ch': max.ch if max else '-'},

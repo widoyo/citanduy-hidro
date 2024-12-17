@@ -175,7 +175,7 @@
               <h6 class="text-secondary">{{ ctx.s.strftime('%d %b %Y') }}</h6>
               <p><b class="text-secondary">Telemetri</b><br>
                   &nbsp;${kh === 'cerah' ? kh : 'Hujan ' + kh} <small class="fw-normal">(${rain.length > 0 ? rain[0].telemetri.rain24.toFixed(1) : 0} mm)</small><br>
-              &nbsp;${rain.length != 0 ? rain[0].vendor.nama : '-'}</p>
+                 &nbsp;vendor: ${data.pos.vendor}</p>
               <p><b class="text-secondary">Manual</b><br>&nbsp;Sejak: <b>${since}</b></br>
               &nbsp;Tertinggi: ${max_to_show}</p>
               <p>

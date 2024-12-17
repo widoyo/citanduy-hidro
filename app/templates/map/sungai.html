@@ -116,7 +116,7 @@
       for (let i =0; i < pdas.length; i++) {
         pdaOpt.color = ordeColor[pdas[i].orde];
         let marker = L.circleMarker(pdas[i].ll, pdaOpt);
-        marker.bindTooltip(pdas[i].name, {permanent: true, className: 'pos-label'});
+        //marker.bindTooltip(pdas[i].name, {permanent: true, className: 'pos-label'});
         let cnt = `<div>
               <h5>${pdas[i].name} <span class="text-secondary">(+${pdas[i].elevasi} mdpl)</span>
               </h5>
