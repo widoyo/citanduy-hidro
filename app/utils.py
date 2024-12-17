@@ -2,6 +2,7 @@ import dateparser
 import re
 import json
 import datetime
+import random
 from peewee import DoesNotExist, fn
 from flask import jsonify
 
@@ -41,20 +42,24 @@ def request_handler(user_text):
     return classify_request(user_text)
 
 def classify_request(user_request):
-    pattern = r"(?P<hujan>hujan(?:\s+)?(?P<status_hujan>tertinggi\s+)?(?P<waktu>(kemarin|(((hari ini|\d+\s+hari lalu|bulan ini|(\d+\s+)?(bulan lalu|tahun lalu))|((?:bulan\s+)?\w+(\s+\d+)?)))))?((?:\s+di\s+)(?P<namapos>\w+))?)|(?P<petugas>petugas\s+(?:(di|pada)\s+)?(?:pos\s+)?)(?P<nama>\w+)|(?P<status>status\s+((?:(di|pada)\s+)?)pos\s+(?P<status_pos>\w+))"
+    pattern = r"(?P<hujan>hujan(?:\s+)?(?P<status_hujan>tertinggi\s+)?(?P<waktu>(kemarin|(((hari ini|\d+\s+hari lalu|bulan ini|(\d+\s+)?(bulan lalu|tahun lalu))|((?:bulan\s+)?\w+(\s+\d+)?)))))?((?:\s+di\s+)(?P<namapos>\w+))?)|(?P<petugas>petugas\s+(?:(di|pada)\s+)?(?:pos\s+)?)(?P<nama>\w+)|(?:\w+\s+)(?P<status>status\s+((?:(di|pada)\s+)?)pos\s+(?P<status_pos>\w+))"
     match = re.match(pattern, user_request, re.IGNORECASE)
-    ret = {'intent': None, 'entities': None}
+    ret = {'intent': None, 'entities': None, 'result': {'msg': ''}}
+    default_msgs = [
+        'Kami belum paham maksud anda',
+        'Mohon maaf, kami masih perlu belajar, permintaan anda telah kami simpan.',
+        'Saat ini kami baru menangani permintaan \'status pos\''
+    ]
+    ret['result']['msg'] = default_msgs[random.randint(0, len(default_msgs))]
     if not match:
         return ret
     req_dict = match.groupdict()
     if req_dict.get('status'):
-        print('status')
         pos = req_dict.get('status_pos')
         ret['intent'] = 'status_logger'
         ret['entities'] = {'LOC': pos}
         q = status_telemetri(pos)
         ret['result'] = q
-        print(ret)
     elif req_dict.get('petugas'):
         pos = req_dict.get('nama')
         ret = petugas_pos(pos)

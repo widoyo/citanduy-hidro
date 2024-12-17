@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.4/dist/purify.min.js"></script>
     <style>
         .row1 {
-            height: 80vh; /* First row takes 80% of viewport height */
+            height: 60vh; /* First row takes 80% of viewport height */
             overflow-y: auto; /* Makes the content scrollable */
         }
         .row2 {
@@ -62,11 +62,11 @@
         <!-- Row 1 (Scrollable Content) -->
         <div class="row row1 bg-light text-dark  align-items-center justify-content-center text-center">
             <div class="col p-3 align-items-center justify-content-center">
-                <div class="p-2 mx-auto w-50 text-end rounded border">
+                <div class="p-2 mx-auto w-sm-50 text-end rounded border">
                     <span id="transcription" class="fst-italic text-secondary lead">&nbsp;</span>
                 </span>
                 </div>
-                <div class="p-2 mt-4 mx-auto w-50 text-start border rounded">
+                <div class="p-2 mt-4 mx-auto w-sm-50 text-start border rounded">
                     <div id="response" class="lead"></div>
                 </span>
                 </div>
@@ -99,7 +99,7 @@
         if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const recognition = new SpeechRecognition();
-            recognition.lang = 'id'; // Set language
+            recognition.lang = 'id-ID'; // Set language
 
             // Start recording on button click
             startRecording.onclick = () => {
