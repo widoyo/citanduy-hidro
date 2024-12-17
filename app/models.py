@@ -638,6 +638,8 @@ class LengkungDebit(BaseModel):
 class UserQuery(BaseModel):
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     q = pw.TextField() # user query / asking
-    intent = pw.TextField() # json
-    entity = pw.TextField() # json
+    intent = pw.TextField(null=True) # json
+    entity = pw.TextField(null=True) # json {"LOC": "LokasiA", "DATE": "bulan lalu"}
+    username = pw.CharField(max_length=35, null=True)
+    reaction = pw.CharField(max_length=1, null=True)
     

@@ -21,9 +21,9 @@ load_dotenv()
 db_wrapper = FlaskDB()
 csrf = CSRFProtect()
 
-from app.models import FetchLog, User, RDaily, LuwesPos, ManualDaily, Pos
+from app.models import FetchLog, User, RDaily, UserQuery, ManualDaily, Pos
 from app.forms import CurahHujanForm, TmaForm
-from app.utils import classify_request, extract_date_range
+from app.utils import request_handler
 
 def get_sampling(s: str = None) -> list:
     try:
@@ -103,18 +103,21 @@ def create_app():
         if request.method == 'POST':
             data = request.json
             user_text = data.get('text', '')
-            request_type = classify_request(user_text)
-            date_range = extract_date_range(user_text)
-            parsed_date = dateparser.parse(user_text)
-            response = {
-                "request_type": request_type,
-                "date_range": date_range,
-                "date": parsed_date
-            }
+            q = request_handler(user_text)
+            uq = UserQuery.create(q=user_text, intent=q.get('intent'))
+            return jsonify(q)
+        return render_template('ai.html')
+
+    @app.route('/c', methods=['GET', 'POST'])
+    def ch():
+        if request.method == 'POST':
+            data = request.json
+            user_text = data.get('text', '')
+            response = request_handler(user_text)
+            #uq = UserQuery.create(q=user_text, intent=response)
             return jsonify(response)
         return render_template('chat.html')
-
-    
+        
 
     @app.route('/download', methods=['GET', 'POST'])
     @login_required
