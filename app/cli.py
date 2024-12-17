@@ -247,7 +247,7 @@ def register(app):
                 click.echo('Hujan: {} Durasi: {}'.format(hujan, durasi))
         msg = ''
         if rain_list:
-            msg = '*\[EWS RAIN\] BBWS Citanduy*\n\ndibuat: *{}*\n\n'.format(now.strftime('%d %b %Y jam %H:%M'))
+            msg = '*\[PERINGATAN HUJAN\] BBWS Citanduy*\n\ndibuat: *{}*\n\n'.format(now.strftime('%d %b %Y jam %H:%M'))
             for i in range(len(rain_list)):
                 data = rain_list[i]
                 msg += '{}\. {} *{:.0f}mm* \(*{}* menit\)\n'.format(i+1, data['pos'], data['rain'], int(data['duration'] /60))
