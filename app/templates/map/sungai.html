@@ -154,7 +154,7 @@
               <h5>${pdas[i].name} <span class="text-secondary">(+${pdas[i].elevasi} mdpl)</span>
               </h5>
               <h6 class="text-secondary">Sungai ${pdas[i].sungai} (orde: ${pdas[i].orde})</h6>
-              <h6 class="text-secondary"><small class="fw-light">JAM:</small> ${pdas[i].latest_sampling.slice(11, 16)} <small class="fw-light">TMA:</small> <b>${pdas[i].tma}</b> cm</h6>
+              <h6 class="text-secondary"><small class="fw-light">JAM:</small> ${pdas[i].latest_sampling.slice(11, 16)} <small class="fw-light">TMA:</small> <b>${pdas[i].tma.toFixed(0)}</b> cm</h6>
               <p>${pdas[i].vendor}</p>
               <p>
                   <a class="card-link" href="/pda/${pdas[i].id}">Hari ini</a> | <a href="/pda/${pdas[i].id}/{{ ctx.s.strftime('%Y/%m')}}">Bulan Ini</a>
