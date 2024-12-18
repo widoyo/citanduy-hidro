@@ -40,11 +40,10 @@ def sungai():
             rd = p.rdaily_set.where(RDaily.sampling==s).first()
             raw = json.loads(rd.raw)
             p.latest_sampling = raw[-1]['sampling']
-            p.latest_tma = rd.source == 'SA' and int(raw[-1]['wlevel']) or int(raw[-1]['wlevel']) * 100
+            p.latest_tma = raw[-1]['wlevel']
+            if rd.source != 'SA':
+                p.latest_tma = raw[-1]['wlevel'] * 100
             p.vendor = VENDORS[rd.source].get('nama')
-            print(p.nama)
-            print(p.latest_tma)
-            print(p.latest_sampling)
         except:
             pass
     ctx = {

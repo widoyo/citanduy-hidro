@@ -46,6 +46,39 @@
    crossorigin=""></script>
    <script src="/static/js/sungai.js"></script>
    <script>
+        // Custom control to add a checkbox inside the map
+          const TooltipControl = L.Control.extend({
+            options: {
+              position: 'topright' // Position of the control box
+            },
+            onAdd: function () {
+              // Create a container for the control
+              const container = L.DomUtil.create('div', 'leaflet-control-custom');
+
+              // Add a checkbox and label
+              container.innerHTML = `
+                <input type="checkbox" id="toggleTooltip" checked>
+                <label for="toggleTooltip">Nama PDA</label>
+            `;
+
+              // Prevent clicks inside the control from propagating to the map
+              L.DomEvent.disableClickPropagation(container);
+
+              // Add event listener for checkbox
+              const checkbox = container.querySelector('#toggleTooltip');
+              checkbox.addEventListener('change', function () {
+                pda_group.eachLayer(marker => {
+                  if (checkbox.checked) {
+                    marker.openTooltip(); // Show tooltips
+                  } else {
+                    marker.closeTooltip(); // Hide tooltips
+                  }
+                });
+              });
+
+              return container;
+            }
+          });
       async function loadDas(lDas) {
         let resp = await fetch('/static/js/citanduy.json');
         let das = await resp.json();
@@ -110,13 +143,13 @@
         "Sungai Orde <b>4</b>": so_4
       };
       let layerControl = L.control.layers(null, sungaiMap).addTo(map);
-
+      const tooltip_control = new TooltipControl().addTo(map);
       let pdaOpt = {interactive: true, pane: 'markerPane', radius: 6, fillOpacity: 1.0};
       const ordeColor = ['#888888', '#1f56b5', '#3e83fa', '#9de5fc']
       for (let i =0; i < pdas.length; i++) {
         pdaOpt.color = ordeColor[pdas[i].orde];
         let marker = L.circleMarker(pdas[i].ll, pdaOpt);
-        //marker.bindTooltip(pdas[i].name, {permanent: true, className: 'pos-label'});
+        marker.bindTooltip(pdas[i].name, {permanent: true, className: 'pos-label'});
         let cnt = `<div>
               <h5>${pdas[i].name} <span class="text-secondary">(+${pdas[i].elevasi} mdpl)</span>
               </h5>
