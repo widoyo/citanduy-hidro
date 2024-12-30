@@ -43,6 +43,7 @@
     <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
    crossorigin=""></script>
+   <script src="/static/js/adm.js"></script>
    <script>
       let mapBound;
       let rains = [];
@@ -121,16 +122,23 @@
         //marker.addTo(map);
         listKlimat.push(marker);
       }
+      let adm = L.geoJSON(administratif, 
+        {onEachFeature: (f, l) => { 
+          let popUpContent = `<p>${f.properties.NAMOBJ}</p>`;
+          l.bindPopup(popUpContent);
+        },
+        style: {color:'gray', fillColor: 'beigi', fillOpacity: 0.1, weight: 1}}).addTo(map);
 
       let lgPch = L.layerGroup(listPch);
       let lgKlimat = L.layerGroup(listKlimat);
       lgPch.addTo(map);
       lgKlimat.addTo(map);
 
-      let posMap = {"<b>Pos</b> Curah Hujan": lgPch, 
-      "Pos Klimatologi": lgKlimat};
-
-
+      let posMap = {
+        "Pos Curah Hujan": lgPch, 
+        "Pos Klimatologi": lgKlimat,
+        "Administratif": adm
+      };
 
       const onEachFeaturePch = (feature, layer) => {
         let happen = [];

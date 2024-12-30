@@ -45,6 +45,7 @@
    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
    crossorigin=""></script>
    <script src="/static/js/sungai.js"></script>
+   <script src="/static/js/adm.js"></script>
    <script>
         // Custom control to add a checkbox inside the map
           const TooltipControl = L.Control.extend({
@@ -118,7 +119,12 @@
 
       let lDas = L.geoJSON(null, {style: dasStyle}).addTo(map);
       loadDas(lDas);
-      
+      let adm = L.geoJSON(administratif, 
+        {onEachFeature: (f, l) => { 
+          let popUpContent = `<p>${f.properties.NAMOBJ}</p>`;
+          l.bindPopup(popUpContent);
+        },
+        style: {color:'gray', fillColor: 'beigi', fillOpacity: 0.1, weight: 1}}).addTo(map);
       let so_1 = L.geoJSON(s_orde_1, {
         onEachFeature: onEachFeature, 
         style: {color: '#1f56b5'}})
@@ -140,7 +146,9 @@
         "Sungai Orde <b>1</b>": so_1, 
         "Sungai Orde <b>2</b>": so_2, 
         "Sungai Orde <b>3</b>": so_3,
-        "Sungai Orde <b>4</b>": so_4
+        "Sungai Orde <b>4</b>": so_4,
+        "Batas Das": lDas,
+        "Administratif": adm
       };
       let layerControl = L.control.layers(null, sungaiMap).addTo(map);
       const tooltip_control = new TooltipControl().addTo(map);
