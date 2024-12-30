@@ -52,7 +52,7 @@
                     <td class="text-end" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_17}}</td>
                     <td>{% if p.latest_sampling %}{{ p.latest_sampling[11:16] }}{% endif %}</td>
                     <td class="text-end">{{ p.latest_tma }}</td>
-                    <td class="text-end">{% if p.debit %}{{ "%.2f"|format(p.debit) }}{% else %}-{% endif %}</td>
+                    <td class="text-end">{% if p.debit %}{{ "%.2f"|format(p.debit.real) }}{% else %}-{% endif %}</td>
                 </tr>
                 {% endfor %}
                 {% endfor %}

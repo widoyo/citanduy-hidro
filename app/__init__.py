@@ -11,6 +11,8 @@ from playhouse.flask_utils import FlaskDB
 from dotenv import load_dotenv
 from peewee import fn
 import dateparser
+from bs4 import BeautifulSoup
+from gtts import gTTS
 
 import requests
 import datetime
@@ -105,6 +107,13 @@ def create_app():
             user_text = data.get('text', '')
             q = request_handler(user_text)
             uq = UserQuery.create(q=user_text, intent=q.get('intent'))
+            try:
+                soup = BeautifulSoup(q.get('result').get('msg'), 'html.parser')
+                to_voice = soup.get_text()
+                speech = gTTS(text=to_voice, lang='id', slow=False)
+                speech.save('app/static/audio/output.mp3')
+            except:
+                pass
             return jsonify(q)
         return render_template('ai.html')
 
@@ -123,6 +132,37 @@ def create_app():
     @login_required
     def download():
         if request.method == 'POST':
+            if request.form.get('sumber') == 'telemetri':
+                # Download data telemetri per tipe pos, untuk Laporan Siaga
+                sampling = request.form.get('sampling')
+                tipe = request.form.get('tipe')
+                if tipe == '1':
+                    fname = 'CurahHujan_' + sampling + '.csv'
+                    pos_ids = [p.id for p in Pos.select().where(Pos.tipe.in_(['1', '3'])).order_by(Pos.nama)]
+                else:
+                    fname = 'TinggiMukaAir_' + sampling + '.csv'
+                    pos_ids = [p.id for p in Pos.select().where(Pos.tipe==tipe)]
+                rd = RDaily.select().where(RDaily.sampling==sampling, RDaily.pos_id.in_(pos_ids))
+                csv_data = tipe == '1' and 'Curah Hujan ' or 'Tinggi Muka Air'
+                csv_data += ' ' + sampling + '\n'
+                csv_data += 'Diunduh: {}\n'.format(datetime.datetime.now().strftime('%d %b %Y jam %H:%M:%S'))
+                jam = ','.join([str(i) for i in range(0, 24)]) + '\n'
+                if tipe == '1':
+                    jam = ','.join([str(d) for d in list(rd[0]._rain().get('hourly').keys())])
+                csv_data += 'Pos, Kabupaten,' + jam + '\n'
+
+                for r in rd:
+                    if tipe == '1':
+                        data = ''
+                        if r._rain() != None:
+                            data = ['{:.1f}'.format(d.get('rain')) for d in list(r._rain().get('hourly').values())]
+                    else:
+                        data = [str(d.get('wlevel')) for d in r._24jam().values()]
+                    csv_data += r.pos.nama + ',' + (r.pos.kabupaten or '-') + ',' + ','.join(data) + '\n'
+                response = Response(csv_data, content_type="text/csv")
+                response.headers["Content-Disposition"] = "attachment; filename={}".format(fname)
+                return response
+            
             try:
                 data = request.form
                 
@@ -177,7 +217,8 @@ def create_app():
             p.count = p.manualdaily_set.count()
         ctx = {
             'pdas': pdas,
-            'pchs': pchs
+            'pchs': pchs,
+            'today': datetime.date.today()
         }
         return render_template('download/index.html', ctx=ctx)
     

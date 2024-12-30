@@ -3,6 +3,36 @@
 {% block page_desc %}Download Data BBWS Citanduy{% endblock %}
 {% block content %}
 <h2 class="border-start border-5 border-primary ps-2 fw-lighter mb-3">Download</h1>
+    <div class="row mb-5">
+        <div class="col">
+            <div class=" border radius-10 p-3">
+            <h4><i class="bi bi-cloud-download me-2"></i> Data Telemetri</h4>
+            <form action="/download" method="POST" class="mt-3">
+                <input type="hidden" name="sumber" value="telemetri">
+                <input type="hidden" value={{ csrf_token() }} name="csrf_token">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipe" value="1" id="pch">
+                    <label class="form-check-label" for="pch">
+                      Curah Hujan <strong>{{ ctx.pchs|length }}</strong> pos
+                    </label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio" name="tipe" value="2" id="pda" checked>
+                    <label class="form-check-label" for="flexRadioDefault2">
+                      TMA <strong>{{ ctx.pdas|length }}</strong> pos
+                    </label>
+                  </div>
+                <div class="mb-3">
+                    <label for="sampling" class="form-label">Tanggal</label>
+                    <input type="date" style="width: 160px !important" name="sampling" value="{{ ctx.today }}" class="form-control" id="sampling">
+                </div>
+                <div>
+                    <input type="submit" name="submit" class="btn btn-outline-primary" id="submit" value="Download">
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-sm-6 mt-2">
             <h4><i class="bi bi-water me-2"></i> Data Tinggi Muka Air (Manual)</h4>
