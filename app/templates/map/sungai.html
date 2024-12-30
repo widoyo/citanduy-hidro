@@ -125,6 +125,7 @@
           l.bindPopup(popUpContent);
         },
         style: {color:'gray', fillColor: 'beigi', fillOpacity: 0.1, weight: 1}}).addTo(map);
+      adm.remove();
       let so_1 = L.geoJSON(s_orde_1, {
         onEachFeature: onEachFeature, 
         style: {color: '#1f56b5'}})
