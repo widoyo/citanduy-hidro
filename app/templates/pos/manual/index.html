@@ -34,7 +34,7 @@
                 <tbody>
                 {% for d in ctx.pch %}
                     <tr>
-                        <td>{{ d.nama }} <a href="/pos/{{ d.id }}/manual/{{ctx.sampling.year}}/{{ ctx.sampling.month - 1}}"><i class="bi bi-graph-up-arrow"></i></a><span class="float-end font-monospace" style="font-size:8pt;">{{ d.petugas or '<b class="text-danger">kosong</b>'|safe}}</span></td>
+                        <td>{{ d.nama }} <a href="/pos/{{ d.id }}/manual/{{ctx.sampling.year}}/{{ ctx.sampling.month }}"><i class="bi bi-graph-up-arrow"></i></a><span class="float-end font-monospace" style="font-size:8pt;">{{ d.petugas or '<b class="text-danger">kosong</b>'|safe}}</span></td>
                         <td class="text-end" x-data="FormHujan({{d.id}}, {{d.ch}})" x-html="cnt" @click="openForm()" @click.outside="closeForm()"></td>
                     </tr>
                 {% endfor %}
