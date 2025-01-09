@@ -6,7 +6,82 @@ import random
 from peewee import DoesNotExist, fn
 from flask import jsonify
 
-from app.models import Pos, RDaily
+from app.models import Pos, RDaily, ManualDaily
+
+def classify_intent(text):
+    return 'pic_pos'
+
+def extract_entity(text):
+    return []
+
+def extract_date_month(text):
+    return datetime.date.today()
+
+def get_info_pos(pos_id):
+    try:
+        pos_data = Pos.get(Pos.id == int(pos_id))
+        petugas = pos_data.petugas_set.first()
+        result = {
+            'LOC': pos_data.nama,
+            'LATLON': pos_data.ll,
+            'ELEV': pos_data.elevasi,
+            'KAB': pos_data.kabupaten,
+            'PIC': {'nama': petugas.nama,
+                    'hp': petugas.hp} if petugas else None
+        }
+    except DoesNotExist:
+        result = {'error': 'Pos not found'}
+    return result
+
+def get_info_hujan_pos_hari(pos, waktu):
+    '''Return dictionary of hujan info for a specific pos and day'''
+    result = {'LOC': pos, 'TIME': waktu}
+    return result
+
+def get_info_hujan_pos_bulan(pos, waktu):
+    '''Return dictionary of hujan info for a specific pos and month'''
+    result = {'LOC': pos, 'TIME': waktu}
+    return result
+
+def get_info_hujan_pos_tahun(pos, waktu):
+    '''Return dictionary of hujan info for a specific pos and year'''
+    result = {'LOC': pos, 'TIME': waktu}
+    return result
+
+def get_info_hujan_wilayah_hari(pos, waktu):
+    '''Return dictionary of hujan info for a specific region (kabupaten) 
+    and day'''
+    result = {'LOC': pos, 'TIME': waktu}
+    return result
+
+def get_info_hujan_wilayah_bulan(pos, waktu):
+    '''Return dictionary of hujan info for a specific region (kabupaten)
+    and month'''
+    result = {'LOC': pos, 'TIME': waktu}
+    return result
+
+def get_info_hujan_wilayah_tahun(pos, waktu):
+    '''Return dictionary of hujan info for a specific region (kabupaten)
+    and year'''
+    result = {'LOC': pos, 'TIME': waktu}
+    return result
+
+def request_clues():
+    reqs = [
+        'Siapa petugas pos Majalengka?', # "petugas_pos" LOC: Majalengka
+        'hujan bulan november', # "hujan_range" TIME: November
+        'hujan kemarin', # "hujan_range" TIME: kemarin
+        'Hari ini hujan terjadi di mana saja?', # "hujan_range" TIME: hari ini
+        'Pos mana saja yang saat ini tidak aktif?', # "missing_telemetri"
+        'hujan pos PCH Ciamis kemarin', # "hujan_range" LOC: Ciamis TIME: kemarin
+        'grafik hujan bulan ini seluruh pos', # "hujan_range" TIME: bulan ini
+        'Hujan tertinggi bulan November?', # "hujan_tertinggi" TIME: November
+        'Tolong ke halaman peta hujan!', # "goto" PAGE: peta hujan
+        'Pos debit di mana saja?', # "pos_debit"
+        'Siapa penjaga pos Majalengka', # "petugas_pos" LOC: Majalengka
+        'Petugas mana saja yang belum kirim data hari ini', # "missing_manual" ATTRIBUTE: petugas TIME: hari ini
+    ]
+    return reqs
 
 def extract_loc(user_request):
     id_names = [(p.id, p.nama.replace('PCH', '').replace('PDA', '').lower().strip()) for p in Pos.select()]
@@ -42,7 +117,19 @@ def request_handler(user_text):
     return classify_request(user_text)
 
 def classify_request(user_request):
-    pattern = r"(?P<hujan>hujan(?:\s+)?(?P<status_hujan>tertinggi\s+)?(?P<waktu>(kemarin|(((hari ini|\d+\s+hari lalu|bulan ini|(\d+\s+)?(bulan lalu|tahun lalu))|((?:bulan\s+)?\w+(\s+\d+)?)))))?((?:\s+di\s+)(?P<namapos>\w+))?)|(?P<petugas>petugas\s+(?:(di|pada)\s+)?(?:pos\s+)?)(?P<nama>\w+)|(?:\w+\s+)(?P<status>status\s+((?:(di|pada)\s+)?)pos\s+(?P<status_pos>\w+))"
+    pattern = (
+        r"(?P<hujan>hujan(?:\s+)?"
+        r"(?P<status_hujan>tertinggi\s+)?"
+        r"(?P<waktu>(kemarin|"
+        r"(((hari ini|\d+\s+hari lalu|bulan ini|(\d+\s+)?(bulan lalu|tahun lalu))|"
+        r"((?:bulan\s+)?\w+(\s+\d+)?)))))?"
+        r"((?:\s+di\s+)(?P<namapos>\w+))?)|"
+        r"(?P<petugas>petugas\s+(?:(di|pada)\s+)?(?:pos\s+)?)(?P<nama>\w+)|"
+        r"(?:\w+\s+)(?P<status>status\s+((?:(di|pada)\s+)?)pos\s+(?P<status_pos>\w+))|"
+        r"(?P<daftar_pch>daftar\s+pos\s+hujan)|"
+        r"(?P<daftar_pda>daftar\s+pos\s+duga\s+air)|"
+        r"(?P<daftar>daftar\s+pos)"
+    )
     match = re.match(pattern, user_request, re.IGNORECASE)
     ret = {'intent': None, 'entities': None, 'result': {'msg': ''}}
     default_msgs = [
@@ -50,7 +137,7 @@ def classify_request(user_request):
         'Mohon maaf, kami masih perlu belajar, permintaan anda telah kami simpan.',
         'Saat ini kami baru menangani permintaan \'status pos\''
     ]
-    ret['result']['msg'] = default_msgs[random.randint(0, len(default_msgs))]
+    ret['result']['msg'] = '?'
     if not match:
         return ret
     req_dict = match.groupdict()
@@ -60,9 +147,22 @@ def classify_request(user_request):
         ret['entities'] = {'LOC': pos}
         q = status_telemetri(pos)
         ret['result'] = q
+    elif req_dict.get('daftar'):
+        ret['result']['msg'] = 'Daftar **Pos Hidrologi** \n\n1. ' + '1. '.join([p.nama + '\n' for p in Pos.select().order_by(Pos.tipe, Pos.nama)])
+    elif req_dict.get('daftar_pch'):
+        ret['result']['msg'] = 'Daftar **Pos Curah Hujan** \n\n1. ' + '1. '.join([p.nama + '\n' for p in Pos.select().order_by(Pos.tipe, Pos.nama) if p.tipe == '1'])
+    elif req_dict.get('daftar_pda'):
+        ret['result']['msg'] = 'Daftar **Pos Duga Air** \n\n1. ' + '1. '.join(['**{}** (+{} M) di sungai {}\n'.format(p.nama, p.elevasi, p.sungai) for p in Pos.select().order_by(Pos.sungai, Pos.nama, Pos.elevasi) if p.tipe == '2'])
     elif req_dict.get('petugas'):
-        pos = req_dict.get('nama')
-        ret = petugas_pos(pos)
+        nama_pos = req_dict.get('nama')
+        q = Pos.select().where(Pos.nama.ilike('%{}%'.format(nama_pos)))
+        if q.count() > 1:
+            ret['result']['msg'] = 'Ada beberapa pos: ' + ','.join([p.nama for p in q])
+        elif q is not None:
+            p = petugas_pos(q.first().id)
+            msg = 'Petugas pos **{}** adalah **{}** hp: {}'.format(p['pos'].get('nama'), p['petugas'].get('nama'), p['petugas'].get('hp'))
+            msg += '\n\n**Kontribusi Data:**\n\n 1. ' + '1. '.join(['{}-{}: {}\n'.format(*r) for r in p['kontribusi']])
+            ret['result']['msg'] = msg
     elif req_dict.get('hujan'):
         pos = req_dict.get('namapos') or ''
         waktu = req_dict.get('waktu')
@@ -105,12 +205,27 @@ def status_telemetri(q_pos_name):
         msgs += '</ol>'
     return {'msg': msgs}
 
-def petugas_pos(nama_pos):
+def petugas_pos(pos_id):
     try:
-        poses = Pos.select().where(Pos.nama.like==nama_pos)
+        pos = Pos.get(pos_id)
+        petugas = pos.petugas_set.first()
     except DoesNotExist:
-        pos = None
-    return ','.join([p.nama for p in poses])
+        return None
+    pos_fields = 'nama_kecamatan_kabupaten'.split('_')
+    petugas_dict = {}
+    kontribusi = None
+    if petugas:
+        petugas_fields = 'nama_hp_nik_dusun_desa_kecamatan_kabupaten'.split('_')
+        petugas_dict = {f: getattr(petugas, f) for f in petugas_fields}
+        kontribusi = (ManualDaily
+                      .select(ManualDaily.sampling.year.alias('year'), ManualDaily.sampling.month.alias('month'), fn.COUNT(ManualDaily.id).alias('count'))
+                      .where(ManualDaily.username==petugas.username)
+                      .group_by(ManualDaily.sampling.year, ManualDaily.sampling.month)
+                      .order_by(ManualDaily.sampling.year.desc(), ManualDaily.sampling.month.desc())
+                      )
+    return {'pos': {f: getattr(pos, f) for f in pos_fields}, 
+            'petugas': petugas_dict,
+            'kontribusi': [(r.year, r.month, r.count) for r in kontribusi] if kontribusi else []}
         
     
 def is_hujan_request(req):

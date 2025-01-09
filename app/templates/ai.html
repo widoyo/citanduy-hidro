@@ -61,9 +61,9 @@
     <div class="container-fluid p-0">
         <!-- Row 1 (Scrollable Content) -->
         <div class="row row1 bg-light text-dark  align-items-center justify-content-center text-center">
-            <div class="col p-3 align-items-center justify-content-center">
-                <div class="p-2 mx-auto w-sm-50 text-end rounded border">
-                    <span id="transcription" class="fst-italic text-secondary lead">&nbsp;</span>
+            <div class="col-sm-6 p-3 align-items-center justify-content-center">
+                <div class="p-2 mx-auto text-end rounded border">
+                    <span id="transcription" class="fst-italic lead">&nbsp;</span>
                 </span>
                 </div>
                 <div class="p-2 mt-4 mx-auto w-sm-50 text-start border rounded">
@@ -74,7 +74,7 @@
             </div>
         </div>
         <!-- Row 2 with Toggle Mic Icons -->
-        <div class="row row2 bg-light d-flex align-items-center justify-content-center">
+        <div class="row row2 bg-light d-flex align-items-center justify-content-center text-center">
             <div id="start-recording" class="mic-container"">
                 <!-- Mic On Icon -->
                 <svg id="mic-on" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="mic-icon bi bi-mic d-none" viewBox="0 0 16 16">
@@ -87,14 +87,42 @@
                     <path d="m9.486 10.607-.748-.748A2 2 0 0 1 6 8v-.878l-1-1V8a3 3 0 0 0 4.486 2.607m-7.84-9.253 12 12 .708-.708-12-12z"/>
                 </svg>
             </div>
-        </div>
+            <label class="mt-2">
+                <input type="checkbox" id="autoplayCheckbox"> Bunyikan Suara
+            </label>
+            <audio id="audioPlayer" src="/static/audio/output.mp3"></audio>
     </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         const startRecording = document.getElementById("start-recording");
         const transcription = document.getElementById("transcription");
         const response_l = document.getElementById("response");
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const autoplayCheckbox = document.getElementById('autoplayCheckbox');
+        const audioPlayer = document.getElementById('audioPlayer');
 
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedPreference = localStorage.getItem('autoplayEnabled');
+            if (savedPreference === 'true') {
+                autoplayCheckbox.checked = true;
+                audioPlayer.play().catch(error => {
+                    console.log("Autoplay blocked:", error);
+                });
+            }
+        });
+        autoplayCheckbox.addEventListener('change', () => {
+            const autoplayEnabled = autoplayCheckbox.checked;
+            localStorage.setItem('autoplayEnabled', autoplayEnabled);
+
+            if (autoplayEnabled) {
+                audioPlayer.play().catch(error => {
+                    console.log("Autoplay blocked:", error);
+                });
+            } else {
+                audioPlayer.pause();
+            }
+        });
         // Check browser support
         if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -115,6 +143,8 @@
                 const text = event.results[0][0].transcript;
                 startRecording.classList.remove('text-success');
                 transcription.innerText = `${text}`;
+                //const sanitizedHTML = DOMPurify.sanitize(marked.parse('_memproses..._'));
+                //response_l.innerHTML = sanitizedHTML;
                 
                 // Send text to the backend
                 fetch("/ai", {
@@ -128,8 +158,8 @@
                 .then(response => response.json())
                 .then(data => {
                     toggleMic();
-                    console.log(data);
-                    const sanitizedHTML = DOMPurify.sanitize(data.result.msg);
+                    response_l.innerText = ``;
+                    const sanitizedHTML = DOMPurify.sanitize(marked.parse(data.result.msg));
                     response_l.innerHTML += sanitizedHTML;
                 });
             };
