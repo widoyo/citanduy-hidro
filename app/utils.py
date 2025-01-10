@@ -118,12 +118,10 @@ def request_handler(user_text):
 
 def classify_request(user_request):
     pattern = (
-        r"(?P<hujan>hujan(?:\s+)?"
-        r"(?P<status_hujan>tertinggi\s+)?"
-        r"(?P<waktu>(kemarin|"
-        r"(((hari ini|\d+\s+hari lalu|bulan ini|(\d+\s+)?(bulan lalu|tahun lalu))|"
-        r"((?:bulan\s+)?\w+(\s+\d+)?)))))?"
-        r"((?:\s+di\s+)(?P<namapos>\w+))?)|"
+        r"(?P<hujan>hujan ).*?"
+        r"(?P<hari>(kemarin|hari ini|\d+ hari lalu))?"
+        r"(?P<bulan>(bulan ini|(\d+ )?bulan lalu))?"
+        r"(?: di (?:pos )?(?P<lokasi>\w+))?|"
         r"(?P<petugas>petugas\s+(?:(di|pada)\s+)?(?:pos\s+)?)(?P<nama>\w+)|"
         r"(?:\w+\s+)(?P<status>status\s+((?:(di|pada)\s+)?)pos\s+(?P<status_pos>\w+))|"
         r"(?P<daftar_pch>daftar\s+pos\s+hujan)|"
@@ -165,8 +163,47 @@ def classify_request(user_request):
             ret['result']['msg'] = msg
     elif req_dict.get('hujan'):
         pos = req_dict.get('namapos') or ''
-        waktu = req_dict.get('waktu')
-        ret = 'hujan' + pos +' waktu: ' + waktu
+        hari = req_dict.get('hari')
+        bulan = req_dict.get('bulan')
+        pchs_id = [p.id for p in Pos.select().where(Pos.tipe.in_(('1', '3')))]
+        msg = '?'
+        if bulan:
+            sampling = dateparser.parse(bulan)
+            start = sampling.replace(day=1)
+            end = (start + datetime.timedelta(days=32)).replace(day=1)
+            if datetime.date.today().month == sampling.month:
+                end = datetime.date.today()
+            q = RDaily.select().where(RDaily.pos_id.in_(pchs_id), RDaily.sampling >= start, RDaily.sampling < end)
+            if not q:
+                msg = 'Bulan {} tidak ada data hujan'.format(sampling.strftime('%B %Y'))
+            else:
+                rain = sum([r._rain().get('rain24') for r in q if r._rain()])
+                if rain == 0:
+                    msg = 'Bulan {} tidak ada hujan'.format(sampling.strftime('%B %Y'))
+                else:
+                    msg = 'Bulan {} hujan terjadi {:.1f} mm di {} pos pada {} kabupaten.\n\n'.format(sampling.strftime('%B %Y'), rain, len(set(list([p.pos_id for p in q]))), len(set([r.pos.kabupaten for r in q])))
+                    msg += 'Rata-rata tergolong hujan **{}**.\n\n'.format('ringan' if rain < 50 else 'sedang' if rain < 100 else 'lebat')
+            '''
+            Bulan (ini|Agustus 2024) hujan terjadi az mm di x pos pada y kabupaten.
+            Rata-rata tergolong hujan ringan|sedang|lebat.
+            
+            Daftar Pos yang terjadi hujan pada waktu tersebut:
+            1. Pos A (hujan: az mm)
+            '''
+        elif hari:
+            sampling = dateparser.parse(hari)
+            string_hari = sampling.date() == datetime.date.today() and 'Hari ini' or sampling.strftime('Tanggal %d %B %Y')
+            q = RDaily.select().where(RDaily.pos_id.in_(pchs_id), RDaily.sampling == sampling)
+            if not q:
+                msg = '{} tidak ada data hujan'.format(string_hari)
+            else:
+                rain = sum([r._rain().get('rain24') for r in q if r._rain()])
+                if rain == 0:
+                    msg = '{} tidak ada hujan'.format(string_hari)
+                else:
+                    msg = '{} hujan terjadi {:.1f} mm di {} pos pada {} kabupaten.\n\n'.format(string_hari, rain, len(list(set([p.pos_id for p in q]))), len(set([r.pos.kabupaten if r.pos else '' for r in q])))
+                    msg += 'Rata-rata tergolong hujan **{}**.\n\n'.format('ringan' if rain < 50 else 'sedang' if rain < 100 else 'lebat')
+        ret['result']['msg'] = msg
     else:
         pass
     return ret  # Default category if none matches
