@@ -642,4 +642,14 @@ class UserQuery(BaseModel):
     entity = pw.TextField(null=True) # json {"LOC": "LokasiA", "DATE": "bulan lalu"}
     username = pw.CharField(max_length=35, null=True)
     reaction = pw.CharField(max_length=1, null=True)
-    
+
+
+class HasilUjiKualitasAir(BaseModel):
+    '''Hasil Uji Kualitas Air'''
+    pos = pw.ForeignKeyField(Pos, null=True)
+    sampling = pw.DateField() # tanggal pengambilan sampel
+    ll = pw.CharField(max_length=60, null=True) # koordinat pengambilan sample
+    doc_path = pw.CharField(null=True) # path file yang diupload '/static/ka/_tahun/_bulan'
+    lembaga = pw.CharField(max_length=50, null=True) # nama lab
+    username = pw.CharField(max_length=20, null=True) # username yang upload
+    cdate = pw.DateTimeField(default=datetime.datetime.now)

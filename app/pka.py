@@ -20,6 +20,16 @@ def map():
 def index():
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     poska = Pos.select().where(Pos.tipe=='4').order_by(Pos.sungai)
+    if sampling.month < 7:
+        sampling = sampling.replace(month=1)
+        _sampling = _sampling.replace(month=7, year=sampling.year - 1)
+        if sampling_:
+            sampling_ = sampling_.replace(month=7)
+    else:
+        sampling = sampling.replace(month=7)
+        _sampling = _sampling.replace(month=1)
+        if sampling_:
+            sampling_ = sampling_.replace(month=1, year=sampling.year + 1)
     sungai = set([p.sungai for p in poska])
     out = {}
     for s in sungai:

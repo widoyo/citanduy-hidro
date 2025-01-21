@@ -4,11 +4,66 @@ import json
 import datetime
 from peewee import DoesNotExist, fn
 
-from app.models import Pos, ManualDaily, PosMap, OPos, LengkungDebit, LuwesPos
+from app.models import Pos, ManualDaily, PosMap, OPos, LengkungDebit, LuwesPos, HasilUjiKualitasAir
 from app import get_sampling
 from app.forms import CurahHujanForm, TmaForm
 bp = Blueprint('pos', __name__, url_prefix='/pos')
 
+
+@bp.route('/ka/add')
+def add_data_ka():
+    pos_id = request.args.get('pid')
+    try:
+        pos = Pos.get(int(pos_id))
+    except DoesNotExist:
+        return abort(404)
+    
+    try:
+        s = request.args.get('s')
+        sampling = datetime.date(int(s.split('-')[0]), int(s.split('-')[1]), 1)
+    except:
+        sampling = datetime.date.today()
+    ctx = {
+        'pos': pos,
+        'sampling': sampling
+    }
+    return render_template('pos/add_ka.html', ctx=ctx)
+
+@bp.route('/ka')
+def data_ka():
+    (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
+    poska = Pos.select().where(Pos.tipe=='4').order_by(Pos.sungai)
+    if sampling.month < 7:
+        sampling = sampling.replace(month=1)
+        _sampling = _sampling.replace(month=7, year=sampling.year - 1)
+        if sampling_:
+            sampling_ = sampling_.replace(month=7)
+    else:
+        sampling = sampling.replace(month=7)
+        _sampling = _sampling.replace(month=1)
+        if sampling_:
+            sampling_ = sampling_.replace(month=1, year=sampling.year + 1)
+    sungai = set([p.sungai for p in poska])
+    months = [sampling.month + m for m in range(6)]
+    huka = (HasilUjiKualitasAir.select()
+            .where(HasilUjiKualitasAir.sampling.year==sampling.year,
+                   HasilUjiKualitasAir.sampling.month.in_(months))
+            .order_by(HasilUjiKualitasAir.sampling))
+    hasil_uji = []
+    for hu in huka:
+        hasil_uji[hu.pos_id][hu.sampling.month] = hu
+    out = {}
+    for s in sungai:
+        out.update({s: [p for p in poska if p.sungai==s]})
+    ctx = {
+        '_sampling': _sampling,
+        'sampling': sampling,
+        'sampling_': sampling_,
+        'poses': poska,
+        'sungai': out,
+        'hasil_uji': hasil_uji
+    }
+    return render_template('pos/data_ka.html', ctx=ctx)
 
 @bp.route('/luwes')
 def pos_luwes():
