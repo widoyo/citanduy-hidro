@@ -5,9 +5,10 @@
 <div class="row">
     <div class="col-sm-10">
         <div class="text-end mb-3">
-            <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%d')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%d')}}</span> {{ ctx.sampling.strftime('%b') }} 
-            {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%d')}}</a>
-            {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
+            <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%b %Y')}} <i class="bi bi-chevron-left"></i></a> 
+            <span class="fs-3">{{ ctx.sampling.strftime('%Y')}}</span> 
+            {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}"><i class="bi bi-chevron-right"></i> {{ ctx.sampling_.strftime('%b %Y')}}</a>
+            {% else %}<button class="btn btn-outline-secondary ms-5 disabled" aria-disabled="true">-</button>{% endif %}</span>
         </div>
         <small class="text-secondary"></small>
         <div class="table-responsive">
@@ -15,20 +16,23 @@
                 <thead>
                     <tr>
                         <th>Lokasi</th>
-                        <th>?</th>
-                        <th>?</th>
+                        {% for i in range(6) %}{% set bulan = ctx.sampling.replace(month=ctx.sampling.month + i) %}
+                        <th>{{ bulan.strftime('%b %y') }}</th>
+                        {% endfor %}
+                        
                     </tr>
                 </thead>
                 <tbody>
                 {% for s, poses in ctx.sungai.items() %}
                     <tr>
-                        <th colspan="3">Sungai {{s}} ({{ poses|length }})</th>
+                        <th colspan="8" class="fw-bold">Sungai {{s}} ({{ poses|length }})</th>
                     </tr>
                     {% for p in poses %}
                     <tr>
                         <td><span class="ms-3">{{ p.nama }}</span></td>
+                        {% for i in range(6) %}
                         <td>-</td>
-                        <td>-</td>
+                        {% endfor %}
                     </tr>
                     {% endfor %}
                 {% endfor %}
