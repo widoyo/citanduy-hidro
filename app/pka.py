@@ -4,7 +4,7 @@ from flask_login import current_user
 from peewee import DoesNotExist
 
 from app import get_sampling
-from app.models import Pos
+from app.models import Pos, HasilUjiKualitasAir
 bp = Blueprint('pka', __name__, url_prefix='/pka')
 
 
@@ -31,6 +31,15 @@ def index():
         if sampling_:
             sampling_ = sampling_.replace(month=1, year=sampling.year + 1)
     sungai = set([p.sungai for p in poska])
+    months = [sampling.month + m for m in range(6)]
+    huka = (HasilUjiKualitasAir.select()
+            .where(HasilUjiKualitasAir.sampling.year==sampling.year,
+                   HasilUjiKualitasAir.sampling.month.in_(months))
+            .order_by(HasilUjiKualitasAir.sampling))
+    hasil_uji = {}
+    for hu in huka:
+        hasil_uji.update({'{}_{}'.format(hu.pos_id, hu.sampling.month):  hu})
+    
     out = {}
     for s in sungai:
         out.update({s: [p for p in poska if p.sungai==s]})
@@ -39,6 +48,7 @@ def index():
         'sampling': sampling,
         'sampling_': sampling_,
         'poses': poska,
-        'sungai': out
+        'sungai': out,
+        'hasil_uji': hasil_uji
     }
     return render_template('pka/index.html', ctx=ctx)

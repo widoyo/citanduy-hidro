@@ -10,28 +10,44 @@
             {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}"><i class="bi bi-chevron-right"></i> {{ ctx.sampling_.strftime('%b %Y')}}</a>
             {% else %}<button class="btn btn-outline-secondary ms-5 disabled" aria-disabled="true">-</button>{% endif %}</span>
         </div>
-        <small class="text-secondary"></small>
+        <small class="text-secondary">{% if ctx.hasil_uji %}<span class="text-success">Terdapat: <strong>{{ ctx.hasil_uji|length }}</strong> hasil uji{% else %}
+        <span class="text-danger">Tidak ada hasil uji</span>{% endif %}</small>
         <div class="table-responsive">
             <table class="table table-striped table-hover table-bordered">
                 <thead>
                     <tr>
                         <th>Lokasi</th>
                         {% for i in range(6) %}{% set bulan = ctx.sampling.replace(month=ctx.sampling.month + i) %}
-                        <th>{{ bulan.strftime('%b %y') }}</th>
+                        <th>{{ bulan.strftime('%b') }}</th>
                         {% endfor %}
                         
                     </tr>
                 </thead>
                 <tbody>
                 {% for s, poses in ctx.sungai.items() %}
+                {% if poses[0].orde == 1 %}
+                {% set orde_color = "rgb(31, 86, 181)" %}
+                {% elif poses[0].orde == 2 %}
+                {% set orde_color = "rgb(62, 131, 250)" %}
+                {% elif poses[0].orde == 3 %}
+                {% set orde_color = "rgb(157, 229, 252)" %}
+                {% endif %}
                     <tr>
-                        <th colspan="8" class="fw-bold">Sungai {{s}} ({{ poses|length }})</th>
+                        <th colspan="8" class="fw-bold" style="color: {{ orde_color }}">Sungai {{s}} <i class="ps-3 fw-light">orde: {{ poses[0].orde }}</i></th>
                     </tr>
                     {% for p in poses %}
                     <tr>
                         <td><span class="ms-3">{{ p.nama }}</span></td>
                         {% for i in range(6) %}
-                        <td>-</td>
+                        {% set k = '{}_{}'.format(p.id, i+1) %}
+                        {% set hu = ctx.hasil_uji.get(k) %}
+                        <td class="text-center">
+                            {% if hu %}
+                            <a href="{{ hu.doc_path }}"><i class="bi bi-file-earmark-richtext"></i></a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
                         {% endfor %}
                     </tr>
                     {% endfor %}

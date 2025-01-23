@@ -189,7 +189,9 @@ def index():
                 setattr(p, 'tma_' + jam, '{:.1f}'.format(float(v.get('wlevel'))))
             raw = json.loads(rdailies[p.id].raw)[-1]
             p.latest_sampling = raw.get('sampling')
-            p.latest_tma = p.source == 'SA' and int(raw.get('wlevel')) or int(raw.get('wlevel') * 100)
+            p.latest_tma = None
+            if raw.get('wlevel'):
+                p.latest_tma = p.source == 'SA' and int(raw.get('wlevel')) or int(raw.get('wlevel') * 100)
             if p.id in l_debits:
                 ld = l_debits[p.id]
                 raw = json.loads(rdailies[p.id].raw)[-1]

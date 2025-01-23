@@ -39,11 +39,17 @@
                 <tbody class="table-group-divider">
                 {% for k, v in ctx.sungai.items() %}
                     <tr>
-                        <th colspan="10"><b class="fs-6">Sungai {{ k }}</b> <i class="ms-1 me-2 dot dot-orde-{{ v.0.orde }}"></i></th>
+                        <th colspan="10"><strong class="fs-6">Sungai {{ k }}</strong> <i class="ms-1 me-2 dot dot-orde-{{ v.0.orde }}"></i></th>
                     </tr>
                 {% for p in v %}
                 <tr>
-                    <td><i class="ms-1 me-2 dot dot-orde-{{ p.orde }}"></i><a href="/pda/{{ p.id }}">{{ p.nama }}</a> {% if p.elevasi %}<span class="text-secondary float-end">(+{{ p.elevasi }} mdpl)</span>{% endif %}</td>
+                    <td><i class="ms-1 me-2 dot dot-orde-{{ p.orde }}"></i><a href="/pda/{{ p.id }}">{{ p.nama }}</a> {% if p.elevasi %}{% endif %}
+                        <div>
+                            {% if p.sh %}<span style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(32, 255, 32);">{{ p.sh|int }}</span>{% endif %}
+                            {% if p.sk %}<span style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(214, 193, 54);">{{ p.sk|int }}</span>{% endif %}
+                            {% if p.sm %}<span style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(255, 32, 32);" class="text-light">{{ p.sm|int }}</span>{% endif %}
+                        </div>
+                    </td>
                     <td class="text-end" style="background-color:#D7FBC1;">{{ p.m_tma_07 }}</td>
                     <td class="text-end" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_07 }}</td>
                     <td class="text-end" style="background-color:#D7FBC1;">{{ p.m_tma_12}}</td>

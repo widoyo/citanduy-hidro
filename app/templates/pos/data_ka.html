@@ -24,14 +24,41 @@
                 </thead>
                 <tbody>
                 {% for s, poses in ctx.sungai.items() %}
+                {% if poses[0].orde == 1 %}
+                {% set orde_color = "rgb(31, 86, 181)" %}
+                {% elif poses[0].orde == 2 %}
+                {% set orde_color = "rgb(62, 131, 250)" %}
+                {% elif poses[0].orde == 3 %}
+                {% set orde_color = "rgb(157, 229, 252)" %}
+                {% endif %}
                     <tr>
-                        <th colspan="8">Sungai {{s}} ({{ poses|length }})</th>
+                        <th colspan="8" class="fw-bold" style="color: {{ orde_color }}">Sungai {{s}} <i class="ps-3 fw-light">orde: {{ poses[0].orde }}</i></th>
                     </tr>
                     {% for p in poses %}
                     <tr>
                         <td><span class="ms-3">{{ p.nama }}</span></td>
                         {% for i in range(6) %}
-                        <td> <a href="/pos/ka/add?pid={{ p.id }}&s={{ ctx.sampling.year }}-{{ ctx.sampling.month + i }}" class="float-end"><i class="bi bi-plus-circle"></i></a></td>
+                        {% set k = '{}_{}'.format(p.id, i+1) %}
+                        {% set hu = ctx.hasil_uji.get(k) %}
+                        <td class="text-center">
+                        {% if hu %}
+                        <div class="dropdown">
+                            <a class="icon-link" data-bs-toggle="dropdown" aria-expanded="true"><i class="bi bi-file-earmark-richtext"></i></a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="" class="dropdown-item" role="button" data-bs-toggle="dropdown" data-bs-title="Dokumen"><i class="bi bi-file-earmark-richtext" title="{{ hu.sampling }}"></i> Download</a>
+                                </li>
+                                <li>
+                                    <a href="" class="dropdown-item" role="button" data-bs-toggle="dropdown" data-bs-title="Dokumen"><i class="bi bi-file-earmark-richtext" title="{{ hu.sampling }}"></i> Hapus</a>
+                                </li>
+                            </ul>
+                            
+
+                        </div>
+                    {% else %}
+                            <a href="/pos/ka/add?pid={{ p.id }}&s={{ ctx.sampling.year }}-{{ ctx.sampling.month + i }}" class="float-end"><i class="bi bi-plus" title="Tambah Hasil Uji {{ p.nama }}"></i></a>
+                        {% endif %}
+                        </td>
                         {% endfor %}
                     </tr>
                     {% endfor %}

@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block page_description %}Pos Duga Air BBWS Citanduy{% endblock %}
+{% block title %}Pos Duga Air{% endblock %}
+{% block extra_head %}
+<!-- Plugin -->
+<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.14.0/dist/cdn.min.js"></script>
+<!-- Alpine Core -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
+{% endblock %}
+{% block content %}
+<h2 class="fw-lighter">Pos Duga Air (<b>{{ ctx.poses|length}}</b>)</h2>
+
+<div class="row">
+    <div class="col-sm-10">
+        <div class="text-end mb-3">
+        <small>Satuan Siaga dalam Centimeter</small>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-center">Nama <span class="float-end text-secondary">ID</span></th>
+                        <th class="text-center">Sungai</th>
+                        <th class="text-center">Elevasi</th>
+                        <th class="text-center"><span style="font-size:8pt;border-radius: 10%; padding: 4px; background-color: rgb(32, 255, 32);">Siaga Hijau</span></th>
+                        <th class="text-center"><span style="font-size:8pt;border-radius: 10%; padding: 4px; background-color: rgb(214, 193, 54);">Siaga Kuning</span></th>
+                        <th class="text-center"><span style="font-size:8pt;color:#fff;border-radius: 10%; padding: 4px; background-color: rgb(255, 32, 32);">Siaga Merah</span></th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                {% for p in ctx.poses %}
+                <tr>
+                    <td><i class="ms-1 me-2 dot dot-orde-{{ p.orde }}"></i>{{ p.nama }} <span class="float-end text-secondary">{{ p.id }}</span></td>
+                    <td>{{ p.sungai or '...' }}</td>
+                    <td class="text-end">+{{ p.elevasi or '...' }} M</td>
+                    <td class="text-end" x-data="posUpdate({{ p.id }}, 'sh', {{ p.sh or '' }})" x-html="cnt" @click="openForm()" @click.outside="closeForm()">{{ p.sh or '' }}</td>
+                    <td class="text-end" x-data="posUpdate({{ p.id }}, 'sk', {{ p.sk or '' }})" x-html="cnt" @click="openForm()" @click.outside="closeForm()">{{ p.sk or '' }}</td>
+                    <td class="text-end" x-data="posUpdate({{ p.id }}, 'sm', {{ p.sm or '' }})" x-html="cnt" @click="openForm()" @click.outside="closeForm()">{{ p.sm or '' }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+    </div>
+    <div class="col-sm-2">
+
+    </div>
+</div>
+<script>
+    document.addEventListener('alpine:init', () => {
+//        Alpine.plugin(Focus);
+        Alpine.data('posUpdate', (pid, field, value) => ({
+            cnt: value !== undefined ? value: '...',
+            prevVal: value,
+            field: field,
+            value: value,
+            pid: pid,
+            formData: {
+                field: field,
+                value: this.value
+            },
+            validateForm(e) {
+                if (!/^\d*$/.test(e.key)) {
+                    e.preventDefault();
+                }
+                if (e.key === 'Enter') {
+                    this.save();
+                }
+            },
+            save() {
+                fetch(`/api/pos/${this.pid}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(this.formData)
+                }).then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Network response was not ok.');
+                    }
+                }).then(data => {
+                    console.log(data);
+                    this.cnt = this.formData.value;
+                    this.value = this.formData.value;
+                }).catch(error => {
+                    console.error('There has been a problem with your fetch operation:', error);
+                });
+            },
+            openForm() {
+                this.cnt = `<form @submit.prevent='save'>
+                <input type='hidden' name='field' x-model='formData.field'>
+                <input type='text' @keypress='validateForm' name='value' size='3' autofocus style='text-align:right' x-model='formData.value'>
+                </form>`;
+            },
+            closeForm() {
+                this.cnt = this.prevVal !== undefined ? this.prevVal : '...';
+            }
+
+
+        })
+        );
+    });
+function formSiaga(pid, siaga, nilai) {
+    return {
+        cnt: nilai === undefined ? '...': nilai,
+        prevValue: '',
+        siaga: siaga,
+        nilai: nilai,
+        pid: pid,
+        formData: {
+            siaga: siaga,
+            nilai: this.nilai
+        },
+        validateForm(e) {
+            if (e.key === 'Enter') {
+                this.save();
+            }
+        },
+        save() {
+            if (this.cnt == '') {
+                this.cnt = this.nilai;
+            }
+            fetch(`/api/pos/${this.pid}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(this.formData)
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Network response was not ok.');
+                }
+            }).then(data => {
+                console.log(data);
+                this.prevValue = this.cnt;
+                this.cnt = this.formData.nilai;
+            }).catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+        },
+        cancel() {
+            this.cnt = this.prevValue;
+        },
+        openForm() {
+            this.cnt = `<form @submit.prevent='save'>
+                <input type='hidden' name='siaga' x-model='formData.siaga'>
+                <input type='text' @keypress='validateForm' name='nilai' size='3' autofocus style='text-align:right' x-model='formData.nilai'>
+                </form>`;
+        },
+        closeForm() {
+            this.cnt = this.prevVal === undefined ? '...': this.prevVal;
+        }
+    }
+}
+</script>
+{% endblock %}

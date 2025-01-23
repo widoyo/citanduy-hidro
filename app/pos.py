@@ -1,18 +1,30 @@
-from flask import Blueprint, render_template, jsonify, request, abort, redirect
+from flask import Blueprint, render_template, jsonify, request
+from flask import abort, redirect, flash, current_app
 from flask_login import current_user, login_required
+import os
 import json
 import datetime
 from peewee import DoesNotExist, fn
 
 from app.models import Pos, ManualDaily, PosMap, OPos, LengkungDebit, LuwesPos, HasilUjiKualitasAir
 from app import get_sampling
-from app.forms import CurahHujanForm, TmaForm
+from app.forms import CurahHujanForm, TmaForm, HasilUjiKAForm
 bp = Blueprint('pos', __name__, url_prefix='/pos')
 
 
-@bp.route('/ka/add')
+@bp.route('/da')
+@login_required
+def pos_da():
+    ctx = {
+        'poses': Pos.select().where(Pos.tipe=='2').order_by(Pos.nama)
+    }
+    return render_template('pos/duga_air.html', ctx=ctx)
+
+@bp.route('/ka/add', methods=['GET', 'POST'])
+@login_required
 def add_data_ka():
     pos_id = request.args.get('pid')
+    form = HasilUjiKAForm()
     try:
         pos = Pos.get(int(pos_id))
     except DoesNotExist:
@@ -23,13 +35,41 @@ def add_data_ka():
         sampling = datetime.date(int(s.split('-')[0]), int(s.split('-')[1]), 1)
     except:
         sampling = datetime.date.today()
+    if form.validate_on_submit():
+        if 'fname' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['fname']
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        doc_path = f"{current_app.config['KUALITAS_AIR_FOLDER']}/{sampling.strftime('_%Y/_%m')}"
+        if not os.path.isdir(doc_path):
+            os.makedirs(doc_path)
+        doc_path += f"/{file.filename}"
+        file.save(doc_path)
+        flash(f'File {file.filename} uploaded successfully!')
+        ret = {'pos': form.pos.data, 
+               'sampling': form.sampling.data, 
+               'll': form.ll.data, 
+               'doc_path': doc_path, 
+               'lembaga': form.lembaga.data,
+               'username': current_user.username
+               }
+        hu = HasilUjiKualitasAir.create(**ret)
+    else:
+        form.pos.data = pos_id
+        form.sampling.data = request.args.get('s')
+        form.ll.data = pos.ll
     ctx = {
         'pos': pos,
-        'sampling': sampling
+        'sampling': sampling,
+        'form': form
     }
     return render_template('pos/add_ka.html', ctx=ctx)
 
 @bp.route('/ka')
+@login_required
 def data_ka():
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     poska = Pos.select().where(Pos.tipe=='4').order_by(Pos.sungai)
@@ -49,9 +89,10 @@ def data_ka():
             .where(HasilUjiKualitasAir.sampling.year==sampling.year,
                    HasilUjiKualitasAir.sampling.month.in_(months))
             .order_by(HasilUjiKualitasAir.sampling))
-    hasil_uji = []
+    hasil_uji = {}
     for hu in huka:
-        hasil_uji[hu.pos_id][hu.sampling.month] = hu
+        hasil_uji.update({'{}_{}'.format(hu.pos_id, hu.sampling.month):  hu})
+
     out = {}
     for s in sungai:
         out.update({s: [p for p in poska if p.sungai==s]})
@@ -66,6 +107,7 @@ def data_ka():
     return render_template('pos/data_ka.html', ctx=ctx)
 
 @bp.route('/luwes')
+@login_required
 def pos_luwes():
     ctx = {
         'poses': LuwesPos.select().order_by(LuwesPos.tipe, LuwesPos.nama)
@@ -73,6 +115,7 @@ def pos_luwes():
     return render_template('pos/luwes.html', ctx=ctx)
 
 @bp.route('/manual/kinerja')
+@login_required
 def kinerja_manual():
     sampling = request.args.get('s', None) == None and \
         datetime.datetime.now() or \
@@ -127,6 +170,7 @@ def kinerja_manual():
 
 
 @bp.route('/manual')
+@login_required
 def manual():
     formhujan = CurahHujanForm()
     if current_user.is_anonymous:
@@ -226,6 +270,7 @@ def show_manual(pos_id, tahun=datetime.date.today().year, bulan=datetime.date.to
     return render_template('pos/manual/show.html', ctx=ctx)
 
 @bp.route('/<int:id>/manual', methods=['POST'])
+@login_required
 def upsert_manual(id):
     pos = Pos.get(id)
     if pos.tipe in ('1', '3'):
@@ -282,6 +327,7 @@ def upsert_manual(id):
         return redirect('/')
 
 @bp.route('/debit')
+@login_required
 def lengkung_debit():
     '''Hitung DEBIT
     Q = c (H + a)^b

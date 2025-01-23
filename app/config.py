@@ -13,6 +13,7 @@ SDATELEMETRY_POS_EXCLUDES = environ.get('SDATELEMETRY_POS_EXCLUDES')
 
 BOT_TOKEN = environ.get('BOT_TOKEN')
 CTY_OFFICE_ID = environ.get('CTY_KANTOR_ID')
+KUALITAS_AIR_FOLDER = 'app/static/ka'
 
 DATABASE = {
     'engine': 'playhouse.pool.PooledPostgresqlDatabase',

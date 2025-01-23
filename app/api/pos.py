@@ -1,4 +1,4 @@
-from flask import abort, jsonify
+from flask import abort, jsonify, request
 from peewee import DoesNotExist
 from playhouse.shortcuts import model_to_dict
 
@@ -33,4 +33,12 @@ def pos(id):
 
 @bp.route('/pos/<int:id>', methods=['PUT'])
 def update_pos(id):
-    pass
+    try:
+        pos = Pos.get(id)
+    except DoesNotExist:
+        return jsonify({'ok': False, 'message': 'Pos not found'}), 404
+    data = request.get_json()
+    setattr(pos, data['field'], float(data['value']))
+    pos.save()
+    print(data)
+    return jsonify({'ok': True, 'data': data})

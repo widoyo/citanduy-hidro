@@ -1,8 +1,53 @@
 {% extends 'base.html' %}
 {% block content %}
-tambah hasil uji Kualitas Air
-Pos {{ ctx.pos.nama }}
-Sampling {{ ctx.sampling.strftime('%b %Y') }}
+<div class="row">
+    <div class="col">
+        <h2 class="fw-lighter">Tambah Hasil Uji Kualitas Air</h2>
+        <p>Pos <strong>{{ ctx.pos.nama }}</strong></p>
+        <p>Sampling <strong>{{ ctx.sampling.strftime('%b %Y') }}</strong></p>
+                
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-6">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+        <form action="/pos/ka/add?pid={{ ctx.pos.id }}&s={{ ctx.sampling.strftime('%Y-%m-%d') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="pos_id" value="{{ ctx.pos.id }}">
+            {{ ctx.form.pos }}
+            <div class="mb-3">
+                <label for="sampling" class="form-label">Tanggal Uji</label>
+                <input type="text" class="form-control" id="sampling" name="sampling" value="{{ ctx.sampling.strftime('%Y-%m-%d') }}">
+            </div>
+            <div class="mb-3">
+                <label for="fname" class="form-label">File Hasil Uji Lab</label>
+                <input type="file" class="form-control" id="fname" name="fname">
+            </div>
+            <div class="mb-3">
+                <label for="doc_date" class="form-label">Lembaga Lab</label>
+                <input type="text" class="form-control" id="lembaga" name="lembaga" placeholder="UPTD Lab LH Jawa Barat">
+            </div>
+            <div class="mb-3">
+                <label for="doc_date" class="form-label">Lokasi Pengambilan Sample Air (lonlat)</label>
+                {{ ctx.form.ll(class_="form-control")|safe }}
+            </div>
+            
+            <input type="submit" class="btn btn-primary">
+        </form>
+        
+    </div>
+    <div class="col-sm-6">
+
+    </div>
+</div>
 {% endblock %}
 {% block js_foot %}
 {% endblock %}

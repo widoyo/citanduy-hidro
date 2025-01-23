@@ -85,7 +85,7 @@
             <h5>${data.nama} </h5>
             <p class="text-secondary">Elevasi: <span class="text-dark fw-bold">+${data.elevasi|'-'} mdpl</span></br>
             LonLat: <span class="text-dark fw-bold">${data.ll}</span></p>
-          <p><i class="bi bi-person-raised-hand"></i> ${data.petugas.nama} <span class="ps-3"><i class="bi bi-whatsapp"></i> ${data.petugas.hp}</i> </span></p>
+          <p><i class="bi bi-person-raised-hand"></i> ${data.petugas?.nama | '-'} <span class="ps-3"><i class="bi bi-whatsapp"></i> ${data.petugas?.hp|'-'}</i> </span></p>
             </div>`;
           marker.bindPopup(cnt);
           marker.openPopup();
@@ -105,7 +105,7 @@
             <h5>${data.nama} </h5>
             <p class="text-secondary">Elevasi: <span class="text-dark fw-bold">+${data.elevasi|'-'} mdpl</span></br>
             LonLat: <span class="text-dark fw-bold">${data.ll}</span></p>
-          <p><i class="bi bi-person-raised-hand"></i> ${data.petugas.nama} <span class="ps-3"><i class="bi bi-whatsapp"></i> ${data.petugas.hp}</i> </span></p>
+          <p><i class="bi bi-person-raised-hand"></i> ${data.petugas?.nama || '-'} <span class="ps-3"><i class="bi bi-whatsapp"></i> ${data.petugas?.hp || '-'}</i> </span></p>
             </div>`;
           marker.bindPopup(cnt);
           marker.openPopup();
@@ -117,6 +117,7 @@
       }
       for (let i =0; i < pklimats.length; i++) {
         let marker = L.marker(pklimats[i].ll, {title: pklimats[i].name});
+        marker.bindPopup(pklimats[i].name);
         all_poses.addLayer(marker);
         listKlimat.push(marker);
       }
