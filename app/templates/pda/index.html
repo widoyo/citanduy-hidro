@@ -42,20 +42,20 @@
                 <tr>
                     <td><a href="/pda/{{ p.id }}">{{ p.nama }}</a> {% if p.elevasi %}{% endif %}
                         <div>
-                            {% if p.sh %}<span style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(32, 255, 32);">{{ p.sh|int }}</span>{% endif %}
-                            {% if p.sk %}<span style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(214, 193, 54);">{{ p.sk|int }}</span>{% endif %}
-                            {% if p.sm %}<span style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(255, 32, 32);" class="text-light">{{ p.sm|int }}</span>{% endif %}
+                            {% if p.sh %}<span data-sh="{{ p.sh|int }}" style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(32, 255, 32);">{{ p.sh|int }}</span>{% endif %}
+                            {% if p.sk %}<span data-sk="{{ p.sk|int }}" style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(214, 193, 54);">{{ p.sk|int }}</span>{% endif %}
+                            {% if p.sm %}<span data-sm="{{ p.sm|int }}" style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(255, 32, 32);" class="text-light">{{ p.sm|int }}</span>{% endif %}
                         </div>
                     </td>
                     <td><span class="text-orde-{{ p.orde }}">{{ p.sungai }}</span></td>
-                    <td class="text-end" style="background-color:#D7FBC1;">{{ p.m_tma_07 }}</td>
-                    <td class="text-end" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_07 }}</td>
-                    <td class="text-end" style="background-color:#D7FBC1;">{{ p.m_tma_12}}</td>
-                    <td class="text-end" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_12}}</td>
-                    <td class="text-end" style="background-color:#D7FBC1;">{{ p.m_tma_17}}</td>
-                    <td class="text-end" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_17}}</td>
+                    <td class="text-end tma-val" style="background-color:#D7FBC1;">{{ p.m_tma_07 }}</td>
+                    <td class="text-end tma-val" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_07 }}</td>
+                    <td class="text-end tma-val" style="background-color:#D7FBC1;">{{ p.m_tma_12}}</td>
+                    <td class="text-end tma-val" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_12}}</td>
+                    <td class="text-end tma-val" style="background-color:#D7FBC1;">{{ p.m_tma_17}}</td>
+                    <td class="text-end tma-val" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_17}}</td>
                     <td>{% if p.latest_sampling %}{{ p.latest_sampling[11:16] }}{% endif %}</td>
-                    <td class="text-end">{{ p.latest_tma }}</td>
+                    <td class="text-end tma-val">{{ p.latest_tma }}</td>
                     <td class="text-end">{% if p.debit %}{{ "%.2f"|format(p.debit.real) }}{% else %}-{% endif %}</td>
                 </tr>
                 {% endfor %}
@@ -64,5 +64,42 @@
             </div>
     </div>
 </div>
+{% endblock %}
+{% block js_foot %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const rows = document.querySelectorAll('.table-group-divider tr');
+        rows.forEach((row, i) => {
+            const smRef = row.querySelector('[data-sm]');
+            const skRef = row.querySelector('[data-sk]');
+            const shRef = row.querySelector('[data-sh]');
+            const tmaVals = row.querySelectorAll('.tma-val');
 
+            tmaVals.forEach(tmaVal => {
+                const tma = parseFloat(tmaVal.textContent);
+                let siaga = '';
+                if (shRef) {
+                    if (parseInt(shRef.textContent) < tma) {
+                        siaga = 'rgb(32, 255, 32)';
+                    }
+                }
+                if (skRef) {
+                    if (parseInt(skRef.textContent) < tma) {
+                        siaga = 'rgb(214, 193, 54)';
+                    }
+                } 
+                if (smRef) {
+                    if (parseInt(smRef.textContent) < tma) {
+                        siaga = 'rgb(255, 32, 32)';
+                    }
+                }
+                if (siaga !== '') {
+                    tmaVal.style.backgroundColor = siaga;
+                }
+                
+            })
+
+        });
+    });    
+</script>
 {% endblock %}
