@@ -92,6 +92,15 @@ background: linear-gradient( 263deg, rgb(42, 7, 238) 0%, rgb(238, 204, 7) 100% )
   border-radius: 50%;
   display: inline-block;
 }
+.text-orde-1 {
+  color:rgb(31, 86, 181);
+}
+.text-orde-2 {
+  color:rgb(62, 131, 250);
+}
+.text-orde-3 {
+  color:rgb(157, 229, 252);
+}
 
 .dot-orde-1 {
   background-color:rgb(31, 86, 181);
