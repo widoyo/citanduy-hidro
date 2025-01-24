@@ -6,7 +6,7 @@
 <h2 class="border-start border-5 border-danger ps-2 fw-lighter">Pos Duga Air (<b>{{ ctx.pdas|length}}</b>)</h2>
 
 <div class="row">
-    <div class="col-sm-10">
+    <div class="col-sm-12">
         <div class="text-end mb-3">
             <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%d')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%d')}}</span> {{ ctx.sampling.strftime('%b') }} 
             {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}">{{ ctx.sampling_.strftime('%d')}}</a>
@@ -19,6 +19,7 @@
                 <thead>
                     <tr>
                         <th rowspan="2" class="text-center">Nama</th>
+                        <th rowspan="2" class="text-center">Sungai</th>
                         <th colspan="2" class="text-center">Pagi</th>
                         <th colspan="2" class="text-center">Siang</th>
                         <th colspan="2" class="text-center">Sore</th>
@@ -37,19 +38,16 @@
                     </tr>
                 </thead>
                 <tbody class="table-group-divider">
-                {% for k, v in ctx.sungai.items() %}
-                    <tr>
-                        <th colspan="10"><strong class="fs-6">Sungai {{ k }}</strong> <i class="ms-1 me-2 dot dot-orde-{{ v.0.orde }}"></i></th>
-                    </tr>
-                {% for p in v %}
+                {% for p in ctx.pdas %}
                 <tr>
-                    <td><i class="ms-1 me-2 dot dot-orde-{{ p.orde }}"></i><a href="/pda/{{ p.id }}">{{ p.nama }}</a> {% if p.elevasi %}{% endif %}
+                    <td><a href="/pda/{{ p.id }}">{{ p.nama }}</a> {% if p.elevasi %}{% endif %}
                         <div>
                             {% if p.sh %}<span style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(32, 255, 32);">{{ p.sh|int }}</span>{% endif %}
                             {% if p.sk %}<span style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(214, 193, 54);">{{ p.sk|int }}</span>{% endif %}
                             {% if p.sm %}<span style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(255, 32, 32);" class="text-light">{{ p.sm|int }}</span>{% endif %}
                         </div>
                     </td>
+                    <td><span class="text-orde-{{ p.orde }}">{{ p.sungai }}</span></td>
                     <td class="text-end" style="background-color:#D7FBC1;">{{ p.m_tma_07 }}</td>
                     <td class="text-end" style="background-color:#F1F1F1;"><span class="mt-2 float-start dot-{{ p.source|lower }}"></span>{{ p.tma_07 }}</td>
                     <td class="text-end" style="background-color:#D7FBC1;">{{ p.m_tma_12}}</td>
@@ -61,13 +59,9 @@
                     <td class="text-end">{% if p.debit %}{{ "%.2f"|format(p.debit.real) }}{% else %}-{% endif %}</td>
                 </tr>
                 {% endfor %}
-                {% endfor %}
                 </tbody>
             </table>
             </div>
-    </div>
-    <div class="col-sm-2">
-
     </div>
 </div>
 

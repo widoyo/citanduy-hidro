@@ -92,8 +92,9 @@ def show_month(id, tahun, bulan):
         df_wlevel.set_index('sampling', inplace=True)
         df_wlevel.index = pd.to_datetime(df_wlevel.index)
         desc = df_wlevel.describe()
-        telemetri_obj.max = '{:.1f}'.format(desc.max().wlevel)
-        telemetri_obj.min = '{:.1f}'.format(desc.min().wlevel)
+        if desc.max().wlevel:
+            telemetri_obj.max = '{:.1f}'.format(desc.max().wlevel)
+            telemetri_obj.min = '{:.1f}'.format(desc.min().wlevel)
         df_wmean = df_wlevel['wlevel'].resample('1h').mean().to_frame(name='wlevel')
 
         # data 'wlevel' Luwes dijadikan CentiMeter
@@ -167,7 +168,7 @@ def show(id):
 @bp.route('/')
 def index():
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
-    pdas = Pos.select().where(Pos.tipe=='2').order_by(Pos.orde.asc(), Pos.elevasi.desc())
+    pdas = Pos.select().where(Pos.tipe=='2').order_by(Pos.sungai, Pos.elevasi.desc())
 
     rdailies = dict([(r.pos_id, r) for r in RDaily.select()
                      .where(RDaily.sampling==sampling.strftime('%Y-%m-%d'))])
