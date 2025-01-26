@@ -77,6 +77,12 @@ def show_month(id, tahun, bulan):
                     xaxis_title='Waktu',
                     yaxis_title='TMA',
                     template='plotly_white')
+    if pos.sh:
+        fig.add_hline(y=pos.sh, line_color='rgb(32, 255, 32)')
+    if pos.sk:
+        fig.add_hline(y=pos.sk, line_color='rgb(214, 193, 54)')
+    if pos.sm: 
+        fig.add_hline(y=pos.sm, line_color='rgb(255, 32, 32)')
 
     table_data = ''
     pos.vendor = '-'
