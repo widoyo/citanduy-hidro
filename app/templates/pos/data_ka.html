@@ -3,7 +3,7 @@
 <h2 class="ps-2 fw-lighter">Data Kualitas Air (<b>{{ ctx.poses|length}}</b>)</h2>
 
 <div class="row">
-    <div class="col-sm-10">
+    <div class="col">
         <div class="text-end mb-3">
             <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%b %Y')}} <i class="bi bi-chevron-left"></i></a> 
             <span class="fs-3">{{ ctx.sampling.strftime('%Y')}}</span> 
@@ -15,14 +15,15 @@
             <table class="table table-striped table-hover table-bordered">
                 <thead>
                     <tr>
-                        <th>Lokasi</th>
+                        <th>Lokasi <span class="float-end text-secondary">ID</span></th>
+                        <th>Sungai</th>
                         {% for i in range(6) %}{% set bulan = ctx.sampling.replace(month=ctx.sampling.month + i) %}
                         <th>{{ bulan.strftime('%b') }}</th>
                         {% endfor %}
                         
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="table-group-divider">
                 {% for s, poses in ctx.sungai.items() %}
                 {% if poses[0].orde == 1 %}
                 {% set orde_color = "rgb(31, 86, 181)" %}
@@ -31,12 +32,10 @@
                 {% elif poses[0].orde == 3 %}
                 {% set orde_color = "rgb(157, 229, 252)" %}
                 {% endif %}
-                    <tr>
-                        <th colspan="8" class="fw-bold" style="color: {{ orde_color }}">Sungai {{s}} <i class="ps-3 fw-light">orde: {{ poses[0].orde }}</i></th>
-                    </tr>
                     {% for p in poses %}
                     <tr>
-                        <td><span class="ms-3">{{ p.nama }}</span></td>
+                        <td><span class="ms-1">{{ p.nama }}</span> <span class="float-end text-secondary">{{ p.id }}</span></td>
+                        <td style="color: {{ orde_color }}">{{ p.sungai }}</td>
                         {% for i in range(6) %}
                         {% set k = '{}_{}'.format(p.id, i+1) %}
                         {% set hu = ctx.hasil_uji.get(k) %}
@@ -46,10 +45,11 @@
                             <a class="icon-link" data-bs-toggle="dropdown" aria-expanded="true"><i class="bi bi-file-earmark-richtext"></i></a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a href="" class="dropdown-item" role="button" data-bs-toggle="dropdown" data-bs-title="Dokumen"><i class="bi bi-file-earmark-richtext" title="{{ hu.sampling }}"></i> Download</a>
+                                    <a href="#" class="dropdown-item"><i class="bi bi-download me-2" title="{{ hu.sampling }}"></i> Download</a>
                                 </li>
+                                <li class="dropdown-divider"></li>
                                 <li>
-                                    <a href="" class="dropdown-item" role="button" data-bs-toggle="dropdown" data-bs-title="Dokumen"><i class="bi bi-file-earmark-richtext" title="{{ hu.sampling }}"></i> Hapus</a>
+                                    <a href="#" onclick="confirmDel({{ hu.id }}, '{{ hu.pos.nama }}')" class="dropdown-item"><i class="bi bi-trash me-2 text-danger" title="{{ hu.sampling }}"></i> Hapus?</a>
                                 </li>
                             </ul>
                             
@@ -67,9 +67,14 @@
             </table>
             </div>
     </div>
-    <div class="col-sm-2">
-
-    </div>
 </div>
-
+<script>
+    const confirmDel = (id, title) => {
+        if (confirm(`Pilih Ok untuk menghapus Hasil Uji "${title}"`)) {
+            console.log('hapus', id);
+        } else {
+            console.log('batal');
+        }
+    }
+</script>
 {% endblock %}

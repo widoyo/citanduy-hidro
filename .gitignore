@@ -3,3 +3,8 @@ __pycache__
 *.db*
 .DS_Store
 .env
+intent_entity_model
+*.pkl
+*.log
+data_ch
+app/static/ka/*

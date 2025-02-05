@@ -3,7 +3,7 @@
 <h2 class="border-start border-5 border-danger ps-2 fw-lighter">Kualitas Air (<b>{{ ctx.poses|length}}</b>)</h2>
 
 <div class="row">
-    <div class="col-sm-10">
+    <div class="col">
         <div class="text-end mb-3">
             <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%b %Y')}} <i class="bi bi-chevron-left"></i></a> 
             <span class="fs-3">{{ ctx.sampling.strftime('%Y')}}</span> 
@@ -17,13 +17,14 @@
                 <thead>
                     <tr>
                         <th>Lokasi</th>
+                        <th>Sungai</th>
                         {% for i in range(6) %}{% set bulan = ctx.sampling.replace(month=ctx.sampling.month + i) %}
                         <th>{{ bulan.strftime('%b') }}</th>
                         {% endfor %}
                         
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="table-group-divider">
                 {% for s, poses in ctx.sungai.items() %}
                 {% if poses[0].orde == 1 %}
                 {% set orde_color = "rgb(31, 86, 181)" %}
@@ -32,12 +33,10 @@
                 {% elif poses[0].orde == 3 %}
                 {% set orde_color = "rgb(157, 229, 252)" %}
                 {% endif %}
-                    <tr>
-                        <th colspan="8" class="fw-bold" style="color: {{ orde_color }}">Sungai {{s}} <i class="ps-3 fw-light">orde: {{ poses[0].orde }}</i></th>
-                    </tr>
                     {% for p in poses %}
                     <tr>
-                        <td><span class="ms-3">{{ p.nama }}</span></td>
+                        <td><span class="ms-1">{{ p.nama }}</span></td>
+                        <td style="color: {{ orde_color }}">{{ p.sungai }}</td>
                         {% for i in range(6) %}
                         {% set k = '{}_{}'.format(p.id, i+1) %}
                         {% set hu = ctx.hasil_uji.get(k) %}
@@ -55,9 +54,6 @@
                 </tbody>
             </table>
             </div>
-    </div>
-    <div class="col-sm-2">
-
     </div>
 </div>
 

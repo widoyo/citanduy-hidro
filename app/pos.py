@@ -41,7 +41,7 @@ def add_data_ka():
             return redirect(request.url)
         file = request.files['fname']
         if file.filename == '':
-            flash('No selected file')
+            flash('File Hasil Uji Lab belum diisi')
             return redirect(request.url)
         doc_path = f"{current_app.config['KUALITAS_AIR_FOLDER']}/{sampling.strftime('_%Y/_%m')}"
         if not os.path.isdir(doc_path):
