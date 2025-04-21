@@ -125,11 +125,11 @@ def show(id):
     (_sampling, sampling, sampling_) = get_sampling(request.args.get('s', None))
     
     manual_first = ManualDaily.select(fn.Min(ManualDaily.sampling).alias('sampling')).where(ManualDaily.pos==pos).first()
-    manual_max = ManualDaily.select(fn.Max(ManualDaily.ch).alias('ch')).where(ManualDaily.pos==pos).first()
+    manual_max = ManualDaily.select(fn.Max(ManualDaily.ch).alias('ch')).where(ManualDaily.pos==pos).scalar()
     
     query_max = (ManualDaily
              .select(ManualDaily.sampling, ManualDaily.ch)
-             .where(ManualDaily.ch == manual_max.ch)).first()
+             .where(ManualDaily.ch == manual_max)).first()
     manual_today = ManualDaily.select(ManualDaily.ch).where(ManualDaily.pos==pos, ManualDaily.sampling==sampling.strftime('%Y-%m-%d')).first()
     
     man_max = query_max if query_max != None else SimpleNamespace(ch=0, sampling=None)
