@@ -46,6 +46,15 @@ class PaginatedApiMixin(object):
 class BaseModel(db_wrapper.Model):
     pass
 
+class KodeWilayah(BaseModel):
+    '''Kode Wilayah'''
+    kode = pw.CharField(max_length=15, unique=True)
+    nama = pw.CharField(max_length=100)
+    level = pw.IntegerField(null=True) # 1: provinsi, 2: kabupaten, 3: kecamatan, 4: desa
+    parent = pw.ForeignKeyField('self', null=True)
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    mdate = pw.DateTimeField(null=True)
+    
 class Notes(BaseModel):
     '''Komentar/Catatan terhadap'''
     username = pw.CharField(max_length=20)
