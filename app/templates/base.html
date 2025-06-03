@@ -17,6 +17,15 @@
     <link rel="stylesheet" href="/static/css/custom.css">
     {% block extra_head %}{% endblock %}
   </head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ config.GTAG }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '{{ config.GTAG }}');
+</script>
   <body style="padding-top: 60px;">
     <div class="container-fluid mb-4">
       {% include '_navbar.html' %}
