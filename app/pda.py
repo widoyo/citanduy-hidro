@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, abort
+from flask import Blueprint, render_template, request, abort, url_for
 from flask_login import login_required
 from peewee import DoesNotExist
 import pandas as pd
@@ -209,6 +209,9 @@ def index():
     ruas = {}
     for s in sungai:
         ruas.update({s: [p for p in pdas if p.sungai==s]})
+    canonical_url = url_for('pda.index', _external=True)
+    prev_url = url_for('pda.index', s=_sampling.strftime('%Y-%m-%d'), _external=True) if _sampling else None
+    next_url = url_for('pda.index', s=sampling_.strftime('%Y-%m-%d'), _external=True) if sampling_ else None
     ctx = {
         'pdas': pdas,
         'sungai': ruas,
@@ -217,4 +220,8 @@ def index():
         'sampling_': sampling_
     }
     
-    return render_template('pda/index.html', ctx=ctx)
+    return render_template('pda/index.html', 
+                           ctx=ctx,
+                           canonical_url=canonical_url,
+                           prev_url=prev_url,
+                           next_url=next_url)

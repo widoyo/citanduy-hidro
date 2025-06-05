@@ -1,7 +1,7 @@
 import datetime
 from collections import defaultdict
 from types import SimpleNamespace
-from flask import Blueprint, render_template, request, abort
+from flask import Blueprint, render_template, url_for, abort, request
 from flask_login import login_required, current_user
 from peewee import DoesNotExist, fn
 
@@ -203,6 +203,9 @@ def index():
     wils = {}
     for k in kabs:
         wils.update({k: [p for p in pchs if p.kabupaten == k]})
+    canonical_url = url_for('pch.index', _external=True)
+    prev_url = url_for('pch.index', s=_sampling.strftime('%Y-%m-%d'), _external=True) if _sampling else None
+    next_url = url_for('pch.index', s=sampling_.strftime('%Y-%m-%d'), _external=True) if sampling_ else None
     ctx = {
         '_sampling': _sampling,
         'sampling': sampling,
@@ -211,4 +214,8 @@ def index():
         'wilayah': wils,
         'kabs': wilayah_adm
     }
-    return render_template('pch/index.html', ctx=ctx)
+    return render_template('pch/index.html', 
+                           ctx=ctx, 
+                           canonical_url=canonical_url,
+                           prev_url=prev_url,
+                           next_url=next_url)

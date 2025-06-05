@@ -127,7 +127,22 @@ def create_app():
             return jsonify(response)
         return render_template('chat.html')
         
+    from flask import send_from_directory
+    import os
+    @app.route('/google91b0d3511e72c1af.html')
+    def google_verify():
+        try:
+            return send_from_directory(os.path.join(os.getcwd(), 'app/static'), 'google91b0d3511e72c1af.html')
+        except:
+            abort(404)
 
+    @app.route('/sitemap.xml')
+    def sitemap():
+        try:
+            return send_from_directory(os.path.join(os.getcwd(), 'app/static'), 'sitemap.xml')
+        except:
+            abort(404)
+            
     @app.route('/download', methods=['GET', 'POST'])
     @login_required
     def download():
@@ -309,8 +324,8 @@ def create_app():
                 'num_ch': len(data_manual),
                 'num_tma': sum([len(v['tma']) for v in data_manual.values() if v['tma']])
             }
-            print((sampling_ and (sampling_ - datetime.timedelta(days=1)).day or today.day))
-            return render_template('home_petugas.html', ctx=ctx)
+            template = 'home_petugas.html'
+            return render_template(template, ctx=ctx)
         else:
             today = datetime.date.today()
             hujans = [r for r in RDaily.select().where(
@@ -319,7 +334,7 @@ def create_app():
             ctx = {
                 'hujans': hujans
             }
-            return render_template('index.html', ctx=ctx)
+            return render_template('index.html', ctx=ctx, canonical_url=url_for('homepage', _external=True))
                 
     return app
 
