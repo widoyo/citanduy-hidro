@@ -100,6 +100,26 @@ def create_app():
         except User.DoesNotExist:
             return None
     
+    @app.route('/ews')
+    def ews():
+        '''Endpoint untuk EWS, hanya untuk testing'''
+        if request.args.get('format', 'html') == 'json':
+            poses = Pos.select().order_by(Pos.nama)
+            data = []
+            for p in poses:
+                data.append({
+                    'id': p.id,
+                    'nama': p.nama,
+                    'kabupaten': p.kabupaten,
+                    'sungai': p.sungai,
+                    'elevasi': p.elevasi,
+                    'tipe': p.tipe,
+                    'll': p.ll
+                })
+            return jsonify(data)
+        return render_template('ews.html')
+    
+    
     @app.route('/ai', methods=['GET', 'POST'])
     def chat():
         if request.method == 'POST':
