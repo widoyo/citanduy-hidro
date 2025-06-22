@@ -1,9 +1,23 @@
 {% extends 'base.html' %}
+{%- block extra_head %}
+<style>
+  tr > th {
+    font-weight: bold;
+  }
+</style>
+{%- endblock %}
 {% block content %}
 <div class="row">
   <div class="col">
     <h2 class="border-start border-5 border-primary ps-2 fw-lighter">Data Logger (<b>{{ ctx.poses|length}}</b>)</h2>
   </div>
+</div>
+<div id="penyediaFilter" class="mb-3 text-end">
+  <label class="form-label me-3">Filter Penyedia:</label>
+  <label class="me-2">
+    <input type="radio" name="penyedia" value="all" checked> Semua (<span class="count fw-bold" data-value="all">0</span>)
+  </label>
+  <!-- Dynamic values like Komtronik will be added here by JavaScript -->
 </div>
   <div class="table-responsive">
   <table id="rpos" class="table table-striped table-bordered table-hover">
@@ -46,6 +60,53 @@
 {% endblock %}
 {% block js_foot %}
 <script>
+function updatePenyediaFilter() {
+  const rows = document.querySelectorAll('#rpos tbody tr');
+  const counts = {};
+
+  rows.forEach(row => {
+    const penyediaCell = row.cells[4];
+    if (!penyediaCell) return;
+
+    const penyedia = penyediaCell.textContent.trim();
+    counts[penyedia] = (counts[penyedia] || 0) + 1;
+  });
+
+  const filterDiv = document.getElementById('penyediaFilter');
+  let html = `
+    <label class="form-label me-3">Filter Penyedia:</label>
+    <label class="me-2">
+      <input type="radio" name="penyedia" value="all" checked> Semua (${Object.values(counts).reduce((a,b)=>a+b,0)})
+    </label>
+  `;
+
+  for (const [name, count] of Object.entries(counts)) {
+    html += `
+      <label class="me-2">
+        <input type="radio" name="penyedia" value="${name}"> ${name} (<b>${count}</b>)
+      </label>
+    `;
+  }
+
+  filterDiv.innerHTML = html;
+
+  // Add filtering event listeners
+  document.querySelectorAll('input[name="penyedia"]').forEach(radio => {
+    radio.addEventListener('change', function () {
+      const selected = this.value.toLowerCase();
+      rows.forEach(row => {
+        const penyediaCell = row.cells[4];
+        const penyediaText = penyediaCell?.textContent.trim().toLowerCase() || '';
+        const match = (selected === 'all') || penyediaText.includes(selected);
+        row.style.display = match ? '' : 'none';
+      });
+    });
+  });
+}
+
+// Run on page load
+updatePenyediaFilter();
+
   document.querySelectorAll('.timeago').forEach(e => { 
     /*
     > 1 tahun
