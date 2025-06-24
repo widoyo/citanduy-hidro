@@ -23,9 +23,70 @@ load_dotenv()
 db_wrapper = FlaskDB()
 csrf = CSRFProtect()
 
-from app.models import FetchLog, User, RDaily, UserQuery, ManualDaily, Pos
+from app.models import FetchLog, User, RDaily, UserQuery, ManualDaily, Pos, OPos
 from app.forms import CurahHujanForm, TmaForm
 from app.utils import request_handler
+
+
+def get_hard_rainfall(now: datetime.datetime = datetime.datetime.now()) -> list:
+    rd = RDaily.select().where(RDaily.sampling==now.date())
+    rain_list = []
+    for r in rd:
+        raw = json.loads(r.raw)
+        if 'rain' not in raw[0]:
+            continue
+        pos = r.nama
+        pos_id = None
+        if r.pos != None:
+            pos = r.pos.nama
+            pos_id = r.pos.id
+        if 'PDA' in pos:
+            continue
+        minute_start = datetime.datetime.fromisoformat(raw[-1]['sampling'])
+        durasi = datetime.timedelta()
+        hujan = 0
+        if r.source in ('SA', 'SB'):
+            for ra in reversed(raw):
+                sampling = datetime.datetime.fromisoformat(ra['sampling'])
+                if sampling < now - datetime.timedelta(minutes=60):
+                    continue
+                if float(ra['rain']) > 0.0:
+                    durasi += minute_start - sampling
+                    minute_start = sampling
+                hujan += float(ra['rain'])
+        else:
+            l = raw[-1]['rain']
+            for ra in reversed(raw):
+                sampling = datetime.datetime.fromisoformat(ra['sampling'])
+                if sampling < now - datetime.timedelta(minutes=60):
+                    continue
+                rain_now = l - ra['rain']
+                if rain_now > 0.0:
+                    durasi += minute_start - sampling
+                    minute_start = sampling
+                hujan += rain_now
+                l = ra['rain']
+                #click.echo('{} {}'.format(sampling.strftime('%H:%M'), ra['rain']))
+        if hujan > 10.0:
+            rain_list.append({'pos': pos, 'pos_id': pos_id, 'rain': hujan, 'duration': durasi.total_seconds()})
+    return rain_list
+
+def get_delayed_device() -> list:
+    '''Mengambil daftar perangkat yang tidak mengirimkan data dalam 24 jam terakhir'''
+    now = datetime.datetime.now()
+    device_list = []
+    for r in OPos.select().where(OPos.aktif==True, OPos.latest_sampling <= (now - datetime.timedelta(hours=2))):
+        device_list.append({
+            'id': r.id,
+            'logger_id': r.nama,
+            'source': r.source,
+            'latest_sampling': r.latest_sampling.strftime('%Y-%m-%d %H:%M:%S'),
+            'tipe': r.tipe,
+            'll': r.pos.ll if r.pos else None,
+            'nama': r.pos.nama if r.pos else None,
+        })
+    
+    return device_list
 
 def get_sampling(s: str = None) -> list:
     try:
@@ -117,6 +178,12 @@ def create_app():
                     'll': p.ll
                 })
             return jsonify(data)
+        if request.args.get('rain'):
+            rain_list = get_hard_rainfall()
+            return jsonify(rain_list)
+        if request.args.get('device'):
+            device_list = get_delayed_device()
+            return jsonify(device_list)
         return render_template('ews.html')
     
     
