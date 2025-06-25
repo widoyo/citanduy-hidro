@@ -37,9 +37,12 @@ def get_hard_rainfall(now: datetime.datetime = datetime.datetime.now()) -> list:
             continue
         pos = r.nama
         pos_id = None
+        pos_ll = ''
+        pos_source = r.source
         if r.pos != None:
             pos = r.pos.nama
             pos_id = r.pos.id
+            pos_ll = r.pos.ll
         if 'PDA' in pos:
             continue
         minute_start = datetime.datetime.fromisoformat(raw[-1]['sampling'])
@@ -68,7 +71,16 @@ def get_hard_rainfall(now: datetime.datetime = datetime.datetime.now()) -> list:
                 l = ra['rain']
                 #click.echo('{} {}'.format(sampling.strftime('%H:%M'), ra['rain']))
         if hujan > 10.0:
-            rain_list.append({'pos': pos, 'pos_id': pos_id, 'rain': hujan, 'duration': durasi.total_seconds()})
+            rain_list.append(
+                {
+                    'pos': pos, 
+                    'pos_id': pos_id,
+                    'pos_ll': pos_ll,
+                    'pos_source': pos_source,
+                    'start_sampling': minute_start, 
+                    'rain': hujan, 
+                    'duration': durasi.total_seconds()
+                })
     return rain_list
 
 def get_delayed_device() -> list:
