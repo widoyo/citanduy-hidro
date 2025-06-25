@@ -109,6 +109,59 @@
       <div class="px-4 py-5 text-center">
         
         <img class="d-block mx-auto mb-4 img-fluid" src="/static/img/cty-logo.png" width="180" height="129" alt="BBWS Citanduy">
+        <div id="current-hidrologi-status" style="display:none;">
+          <span id="hidrologi-typing" class="" style="font-size:1.5rem;"></span><span class="blinking-cursor"></span>
+        </div>
+        <style>
+          #current-hidrologi-status {
+            background: rgba(255,255,255,0.85);
+            border-radius: 1rem;
+            padding: 1.2rem 2rem;
+            display: inline-block;
+            margin: 1rem auto 0 auto;
+            min-width: 3rem;
+            min-height: 2.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+          }
+          .blinking-cursor {
+            display: inline-block;
+            width: 1ch;
+            height: 1.5em;
+            background: transparent;
+            border-right: 2px solid #333;
+            animation: blink-cursor 1s steps(1) infinite;
+            vertical-align: middle;
+            /* Remove margin-left for closer cursor */
+            margin-left: 0;
+          }
+          @keyframes blink-cursor {
+            0%, 100% { border-color: #333; }
+            50% { border-color: transparent; }
+          }
+        </style>
+        <script>
+          window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+              var el = document.getElementById('current-hidrologi-status');
+              if (el) el.style.display = 'inline-block';
+
+              // Typing effect for "Status Hidrologi" with slower, more human-like speed
+              const text = "Status Hidrologi";
+              const target = document.getElementById('hidrologi-typing');
+              let idx = 0;
+              function type() {
+                if (target) {
+                  target.textContent = text.slice(0, idx);
+                  if (idx < text.length) {
+                    idx++;
+                    setTimeout(type, 180 + Math.random() * 120);
+                  }
+                }
+              }
+              setTimeout(type, 1200);
+            }, 3000);
+          });
+        </script>
         <h1 class="display-5 pt-5 pb-3 fw-bold text-white">BBWS Citanduy</h1>
         <div class="col-lg-6 mx-auto">
           <p class="lead mb-5 text-light">Data Curah hujan dan Tinggi Muka Air</p>
