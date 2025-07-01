@@ -264,7 +264,131 @@
         // Initial fetch and periodic update every 5 minutes
         fetchAndUpdateDelayedBox();
         setInterval(fetchAndUpdateDelayedBox, 5 * 60 * 1000);
+        // --- Genangan Box (toggle GeoJSON layer) ---
+        const genanganBox = document.createElement('div');
+        genanganBox.style.position = "absolute";
+        genanganBox.style.right = "24px";
+        genanganBox.style.minWidth = "240px";
+        genanganBox.style.maxWidth = "340px";
+        genanganBox.style.background = "rgba(255,255,255,0.75)";
+        genanganBox.style.border = "1px solid #ccc";
+        genanganBox.style.borderRadius = "8px";
+        genanganBox.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+        genanganBox.style.padding = "18px 20px 16px 20px";
+        genanganBox.style.zIndex = "1002";
+        genanganBox.style.fontFamily = "sans-serif";
+        genanganBox.style.marginTop = "12px";
+        genanganBox.innerHTML = `
+            <div style="font-weight:600;color:#1a5c9c;margin-bottom:8px;">Genangan Potensial</div>
+        `;
+        document.body.appendChild(genanganBox);
 
+        // Position genanganBox below delayedBox after DOM is ready
+        function positionGenanganBox() {
+            const delayedRect = delayedBox.getBoundingClientRect();
+            genanganBox.style.top = (window.scrollY + delayedRect.bottom + 12) + "px";
+        }
+        window.addEventListener('resize', positionGenanganBox);
+        window.addEventListener('scroll', positionGenanganBox);
+        setTimeout(positionGenanganBox, 0);
+
+        // --- Genangan GeoJSON Layer logic ---
+        const data_genangan = [
+            {
+                "nama": "Bendung Cilopadang",
+                "fname": "pda_bendung_cilopadang.geojson",
+            },
+            {
+                "nama": "Bendung Cijalu",
+                "fname": "pda_bendung_cijalu.geojson",
+            },
+            {
+                "nama": "PDA Cikidang",
+                "fname": "pda_cikidang.geojson",
+            },
+            {
+                "nama": "PDA Pitulasi",
+                "fname": "pda_pitulasi.geojson",
+            },
+            {
+                "nama": "PDA Cukangleuleus",
+                "fname": "pda_cukangleuleus.geojson",
+            },
+            {
+                "nama": "PDA Stinggil",
+                "fname": "pda_stinggil.geojson",
+            },
+            {
+                "nama": "PDA Sukaharja",
+                "fname": "pda_sukaharja.geojson",
+            }
+        ];
+        // Create checkboxes for each genangan area
+        data_genangan.forEach(area => {
+            const checkbox_g = document.createElement('div');
+            checkbox_g.className = "checkbox";
+            checkbox_g.innerHTML = `
+                <label style="font-size:10pt">
+                    <input type="checkbox" class="genangan-checkbox" data-fname="${area.fname}">
+                    Area genangan ${area.nama}
+                </label>
+            `;
+            genanganBox.appendChild(checkbox_g);
+            // Add event listener for each checkbox
+            checkbox_g.querySelector('.genangan-checkbox').addEventListener('change', function() {
+                const fname = this.getAttribute('data-fname');
+                if (this.checked) {
+                    // Load GeoJSON and add to map
+                    fetch(`/static/map/${fname}`)
+                        .then(res => res.json())
+                        .then(geojson => {
+                            const layer = L.geoJSON(geojson, {
+                                style: {
+                                    color: "#b11c1c",
+                                    weight: 2,
+                                    fillColor: "#b11c1c",
+                                    fillOpacity: 0.25,
+                                    opacity: 0.8
+                                }
+                            }).addTo(map);
+                            this.layer = layer; // Store reference to layer
+                            this.layer.on('click', function(e) {
+                                console.log('Layer clicked:', e.layer.feature);
+                                const properties = e.layer.feature.properties || {};
+                                const popupContent = `
+                                    <strong>${properties.Lokasi || 'Area Genangan'}</strong><br>
+                                    ${properties.Tanggal || 'Tidak ada deskripsi'}<br>
+                                    ${properties['Luas (ha)']} Ha.
+                                `;
+                                L.popup()
+                                    .setLatLng(e.latlng)
+                                    .setContent(popupContent)
+                                    .openOn(map);
+                            });
+                        });
+                    // Add click event on geojson layer to show popup
+                    if (this.layer) {
+                        this.layer.on('click', function(e) {
+                            console.log('Layer clicked:', e.layer.feature);
+                            const properties = e.layer.feature.properties || {};
+                            const popupContent = `
+                                <strong>${properties.nama || 'Area Genangan'}</strong><br>
+                                ${properties.description || 'Tidak ada deskripsi'}
+                            `;
+                            L.popup()
+                                .setLatLng(e.latlng)
+                                .setContent(popupContent)
+                                .openOn(map);
+                        });
+                    }
+                } else {
+                    // Remove layer from map if exists
+                    if (this.layer && map.hasLayer(this.layer)) {
+                        map.removeLayer(this.layer);
+                    }
+                }
+            });
+        });
     // Modal HTML
     const modal = document.createElement('div');
     modal.id = "ews-help-modal";
