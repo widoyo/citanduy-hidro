@@ -40,7 +40,7 @@ def sensor_show(uuid):
 def wlevel():
     '''{pos: manual: telemetri: }'''
     get_newest = not request.args.get('s', None)
-    (_s, s, s_) = get_sampling(request.args.get('s', None))
+    (_s, s, s_) = get_sampling(request.args.get('s', ''))
     pdas = Pos.select().where(Pos.tipe=='2').order_by(Pos.sungai, Pos.elevasi.desc())
     pids = [p.id for p in pdas]
     if not get_newest:
@@ -146,6 +146,8 @@ def wlevel():
                 wlevel_trends['t_15_min']['wlevel'] = wlevel_trends['t_15_min']['wlevel'] * 100 if wlevel_trends['t_15_min']['wlevel'] else None
                 wlevel_trends['t_60_min']['wlevel'] = wlevel_trends['t_60_min']['wlevel'] * 100 if wlevel_trends['t_60_min']['wlevel'] else None    
                 p.telemetri['trend'] = wlevel_trends
+                if 'rain' in p.telemetri:
+                    del p.telemetri['rain']
             p.vendor = r.vendor if r else None
             p.manual = manual
             
@@ -153,11 +155,13 @@ def wlevel():
         'meta': {
             'description': 'Tinggi Muka Air semua Pos Duga Air', 
             'sampling': s.strftime('%Y-%m-%d')}, 
-        'items': [{'nama': p.nama, 
-                   'elevasi': p.elevasi, 
-                   'sungai': p.sungai,
+        'items': [{'pos': {
+            'nama': p.nama, 
+            'latlon': p.ll, 
+            'id': p.id, 
+            'sungai': p.sungai, 
+            'elevasi': p.elevasi},
                    'telemetri': p.telemetri,
-                   'trend': p.trend if hasattr(p, 'trend') else None,
                    'vendor': p.vendor,
                    'manual': p.manual} for p in pdas]
     })
