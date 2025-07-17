@@ -192,11 +192,11 @@ def rain():
             manual = None
         row = {'pos': {'nama': r.pos and r.pos.nama or r.nama,
                        'id': r.pos and r.pos.id or None,
-                       'latlon': r.ll,
-                       'elevasi': r.elevasi,
-                       'kabupaten': r.kabupaten,
-                       'kecamatan': r.kecamatan,
-                       'desa': r.desa},
+                       'latlon': r.pos and r.pos.ll or None,
+                       'elevasi': r.pos and r.pos.elevasi or None,
+                       'kabupaten': r.pos and r.pos.kabupaten or None,
+                       'kecamatan': r.pos and r.pos.kecamatan or None,
+                       'desa': r.pos and r.pos.desa or None},
                'vendor': VENDORS[r.source],
                'telemetri':  {
                 'count24': r._rain()['count24'], 
