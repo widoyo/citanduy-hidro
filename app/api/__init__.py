@@ -190,7 +190,13 @@ def rain():
             manual = mdaily[r.pos.id].ch
         except:
             manual = None
-        row = {'pos': {'nama': r.pos and r.pos.nama or r.nama, 'id': r.pos and r.pos.id or None},
+        row = {'pos': {'nama': r.pos and r.pos.nama or r.nama,
+                       'id': r.pos and r.pos.id or None,
+                       'latlon': r.ll,
+                       'elevasi': r.elevasi,
+                       'kabupaten': r.kabupaten,
+                       'kecamatan': r.kecamatan,
+                       'desa': r.desa},
                'vendor': VENDORS[r.source],
                'telemetri':  {
                 'count24': r._rain()['count24'], 
