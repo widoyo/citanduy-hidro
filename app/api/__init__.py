@@ -87,14 +87,21 @@ def wlevel():
                     and p.telemetri.get('wlevel'):
                     p.telemetri['wlevel'] = p.telemetri.get('wlevel') * 100 if p.telemetri.get('wlevel') else None
                     wlevel_trends['t_15_min']['wlevel'] = wlevel_trends['t_15_min']['wlevel'] * 100 if wlevel_trends['t_15_min']['wlevel'] else None
-                    wlevel_trends['t_60_min']['wlevel'] = wlevel_trends['t_60_min']['wlevel'] * 100 if wlevel_trends['t_60_min']['wlevel'] else None    
-                p.update(wlevel_trends)                                                                                                  
+                    wlevel_trends['t_60_min']['wlevel'] = wlevel_trends['t_60_min']['wlevel'] * 100 if wlevel_trends['t_60_min']['wlevel'] else None
+                    p.telemetri['trend'] = wlevel_trends
                 p.vendor = rd[p.id].vendor
             except KeyError:
                 p.telemetri = {}
                 p.vendor = None
             try:
-                p.manual = md[p.id]
+                manual = []
+                m = md[p.id]
+                if m:
+                    for k, v in json.loads(m.tma).items():
+                        if k in ('07', '12', '17'):
+                            manual.append({'sampling': m.sampling.strftime('%Y-%m-%dT') + k, 'tma': v})
+                
+                p.manual = manual
             except KeyError:
                 p.manual = []
     else:
