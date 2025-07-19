@@ -2,14 +2,75 @@
 {% block title %}Data Muka Air Sebulan {{ ctx.pos.nama }}{% endblock %}
 {% block page_description %}Data Muka Air Resmi Sebulan{% endblock %}
 {% block extra_head %}
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+  .water-flow-container {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 30px 0;
+      margin-bottom: 50px;
+  }
+
+  .water-flow-step {
+      flex-grow: 1; /* Allows steps to take equal space */
+      text-align: center;
+      position: relative; /* Penting untuk penempatan ::after */
+      padding: 10px 0;
+  }
+
+  .water-flow-point {
+      width: 25px;
+      height: 25px;
+      background-color: var(--bs-secondary-bg); /* Blue color for points */
+      border-radius: 50%;
+      display: inline-block;
+      position: relative;
+      z-index: 2; /* Ensure point is above line */
+  }
+
+  .water-flow-label {
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #333;
+  }
+
+  /* Garis penghubung menggunakan ::after pada setiap langkah, kecuali yang terakhir */
+  .water-flow-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 30%; /* Posisi vertikal di tengah */
+      left: calc(50% + 12.5px); /* Mulai setelah titik saat ini (radius titik) */
+      right: -50%; /* Rentangkan garis hingga ke tengah langkah berikutnya */
+      height: 4px; /* Ketebalan garis */
+      background-color: var(--bs-secondary-bg); /* Warna garis */
+      transform: translateY(-50%);
+      z-index: 1; /* Di belakang titik, di depan kontainer */
+  }
+
+  /* --- Gaya untuk langkah aktif --- */
+  .water-flow-step.active .water-flow-point {
+      background-color: var(--bs-orange); /* Green for active point */
+      border-color: var(--bs-orange);
+  }
+
+  /* Garis setelah langkah aktif harus berwarna aktif juga */
+  .water-flow-step.active:not(:last-child)::after {
+      background-color: var(--bs-orange); /* Green for line after active point */
+  }
+</style>
+<script src="https://cdn.plot.ly/plotly-3.0.1.js" charset="utf-8"></script>
 {% endblock %}
 {% block content %}
 <div class="row">
-    <div class="col">
-        <h1 class="fw-lighter">{{ ctx.pos.nama|replace('PDA ', '') }} <small class="fs-6 fw-normal badge rounded-pill" style="background-color: var(--bs-orange)">PDA</small> <small class="ms-3 fs-5 text-secondary">Sungai {{ ctx.pos.sungai }}</small></h1>
+    <div class="col-md-9">
+        <h1 class="fw-lighter">
+          {{ ctx.pos.nama|replace('PDA ', '') }} 
+          <small class="fs-6 fw-normal badge rounded-pill" style="background-color: var(--bs-orange)">PDA</small> 
+          <small class="ms-3 fs-5 text-secondary dropdown-toggle" data-bs-toggle="collapse" href="#collapseSungai">Sungai {{ ctx.pos.sungai }}</small>
+          <small class="ms-3 fs-5 text-secondary dropdown-toggle" data-bs-toggle="collapse" href="#collapseWilayah">{{ ctx.pos.kabupaten }}</small></h1>
     </div>
-    <div class="col text-end">
+    <div class="col-md-3 text-end">
         <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
             <a href="/pda/{{ ctx.pos.id }}" role="button" class="btn btn-outline-primary">Sehari</a>
             <button type="button" class="btn btn-outline-secondary disabled">Sebulan</button>
@@ -17,6 +78,27 @@
     
     </div>
 </div>
+<div class="row collapse" id="collapseSungai">
+  <div class="col">
+    <div class="water-flow-container">
+    {%- for p in ctx.sibling_pos %}
+      <div class="water-flow-step{%- if p.nama == ctx.pos.nama %} active{%- endif %}">
+        <div class="water-flow-point"></div>
+        <div class="water-flow-label">
+    {{ p.nama }} +{{ p.elevasi}} MDPL, 
+        </div>
+      </div>
+    {%- endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="row collapse" id="collapseWilayah">
+  <div class="col">
+    Kabupaten {{ ctx.pos.sungai }} - {{ ctx.pos.nama }} <br>
+  </div>
+</div>
+
 <div class="row">
   <div class="col-sm-6"><a href="/pda"><h2><i class="bi bi-arrow-left"></i></h2></a></div>
   <div class="col-sm-6">
@@ -29,9 +111,14 @@
   </div>
 </div>
 
+</div><!-- stop container untuk bioskop chart-->
+<div class="container-fluid border-top border-bottom">
+<div id="graph" style="width:100%;height:500px;"></div>
+</div>
+<div class="container"><!-- kembalikan container -->
 <div class="row">
     <div class="col-sm-9">
-      <div id="graph" style="width:100%;height:500px;"></div>
+      <div id="graph1" style="width:100%;height:500px;"></div>
       <p class="text-secondary"><b>Catatan:</b> Telemetri nilai rata-rata per jam</p>
     </div>
     <div class="col-sm-3">

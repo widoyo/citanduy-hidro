@@ -40,7 +40,7 @@
                 <tbody class="table-group-divider">
                 {% for p in ctx.pdas %}
                 <tr>
-                    <td><a href="/pda/{{ p.id }}">{{ p.nama }}</a> {% if p.elevasi %}{% endif %}
+                    <td><a href="/pda/{{ p.id }}/{{ ctx.sampling.strftime('%Y/%m')}}">{{ p.nama }}</a> {% if p.elevasi %}{% endif %}
                         <div>
                             {% if p.sh %}<span data-sh="{{ p.sh|int }}" style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(32, 255, 32);">{{ p.sh|int }}</span>{% endif %}
                             {% if p.sk %}<span data-sk="{{ p.sk|int }}" style="font-size:8pt;border-radius: 10%; padding: 2px; background-color: rgb(214, 193, 54);">{{ p.sk|int }}</span>{% endif %}

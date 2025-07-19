@@ -62,6 +62,12 @@ def show_month(id, tahun, bulan):
     else:
         sampling_ = (sampling + datetime.timedelta(days=32)).replace(day=1)
 
+    # Pos-pos pada sungai yang sama
+    try:
+        sibling_pos = Pos.select().where(Pos.sungai==pos.sungai, Pos.tipe=='2').order_by(Pos.elevasi.desc())
+    except DoesNotExist:
+        sibling_pos = []
+        
     rds = RDaily.select(RDaily.raw, RDaily.source).where(RDaily.pos_id==pos.id, 
                                 RDaily.sampling.year==sampling.year,
                                 RDaily.sampling.month==sampling.month).order_by(
@@ -76,7 +82,11 @@ def show_month(id, tahun, bulan):
     fig.update_layout(title='Tinggi Muka Air {}'.format(sampling.strftime('%b %Y')),
                     xaxis_title='Waktu',
                     yaxis_title='TMA',
-                    template='plotly_white')
+                    template='plotly_white',
+                    yaxis=dict(fixedrange=True, 
+                               title='Tinggi Muka Air (cm)',
+                               showgrid=True, zeroline=True, gridcolor='LightGray', zerolinecolor='LightGray'),
+                    )
     if pos.sh:
         fig.add_hline(y=pos.sh, line_color='rgb(32, 255, 32)')
     if pos.sk:
@@ -128,7 +138,8 @@ def show_month(id, tahun, bulan):
         '_sampling': _sampling,
         'sampling_': sampling_,
         'graph': graph_json,
-        'mean_table': table_data
+        'mean_table': table_data,
+        'sibling_pos': sibling_pos,
     }
     return render_template('pda/month.html', ctx=ctx)
 
