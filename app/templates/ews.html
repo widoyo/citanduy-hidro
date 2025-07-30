@@ -19,12 +19,115 @@
             position: absolute;
             top: 0; left: 0;
         }
+        /* Styling untuk container sidebar, ini sekarang akan berada di dalam div yang dibuat oleh Leaflet */
+        .leaflet-control-sidebar { /* Ini adalah kelas yang akan kita gunakan untuk container sidebar kita */
+            /* Kita tidak lagi perlu position: absolute di sini, karena Leaflet yang mengaturnya */
+            width: 280px;
+            max-height: calc(100vh - 40px); /* Batasi tinggi container agar tidak melebihi viewport */
+            overflow-y: auto; /* Aktifkan scroll jika konten box terlalu banyak */
+            background-color: rgba(255, 255, 255, 0.5); /* Latar belakang sedikit transparan */
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex; /* Gunakan flexbox untuk menata box-box di dalamnya secara vertikal */
+            flex-direction: column;
+            gap: 10px; /* Jarak antar box */
+            box-sizing: border-box; /* Pastikan padding tidak menambah lebar/tinggi */
+        }
+
+        .box {
+            background-color: rgba(240, 240, 240, 0.7);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .box-header {
+            padding: 10px 15px;
+            background-color: rgba(230, 230, 230, 0.95);
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0;
+        }
+
+        .box-header:hover {
+            background-color: rgba(220, 220, 220, 0.95);
+        }
+
+        .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+
+        .box-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+            padding: 0 15px;
+        }
+
+        .box:not(.collapsed) .box-content {
+            max-height: 500px; /* Sesuaikan jika konten sangat panjang */
+            padding: 10px 15px;
+        }
+
+        .box.collapsed .toggle-icon {
+            transform: rotate(0deg);
+        }
+
+        .box:not(.collapsed) .toggle-icon {
+            transform: rotate(45deg);
+        }
+
+        /* Override Leaflet's default padding for controls if needed */
+        .leaflet-right .leaflet-control {
+             margin-right: 10px; /* Sesuaikan padding agar lebih pas dengan 20px dari tepi */
+             margin-top: 10px; /* Sesuaikan padding agar lebih pas dengan 20px dari tepi */
+        }
+        .logo-container {
+            /* Terapkan Flexbox pada kontainer div */
+            display: flex;
+            /* Sejajarkan item secara vertikal di tengah */
+            align-items: center;
+            justify-content: space-between;
+            /* Beri sedikit jarak antar gambar dan teks */
+            gap: 20px; /* Jarak antara elemen flex */
+
+            /* Tambahan styling agar lebih terlihat */
+            padding: 5px;
+        }
+
+        .logo-text {
+            font-size: 20pt;
+            font-weight: lighter;
+            letter-spacing: 0.4rem;
+            color: #d00;
+            /*text-shadow: 0vw 0vw 0.5vw rgba(192, 192, 192, 0.9);*/
+            line-height: initial;
+            /* vertical-align tidak lagi diperlukan karena Flexbox yang mengatur */
+        }
+        .time-container {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-end;
+            color: #333;
+        }
+        
+        .hour-text {
+            font-size: xx-large;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <script src="/static/js/adm.js"></script>
-    
+    <script src="/static/js/sungai.js"></script>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
@@ -34,263 +137,527 @@
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
                 '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
                 'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-            id: 'mapbox/streets-v11'
+                    id: 'mapbox/streets-v11'
         }).addTo(map);
 
-        // Add EWS Hidrologi text on top right
-        const ewsLabel = document.createElement('div');
-        ewsLabel.innerHTML = `<img src="/static/img/cty-logo.png" alt="Citanduy project logo featuring a stylized river flowing beneath a mountain, conveying a calm and professional tone, positioned beside the EWS Hidrologi label in a web application interface" style="height:28px;vertical-align:middle;margin-right:10px;"> <span style="font-family: sans-serif; color: #fff; text-shadow: 0 0 4px #222, 0 0 4px #000; vertical-align:middle;">EWS Hidrologi</span>             <svg id="ews-help-btn" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#8a5c9c" style="cursor:pointer;vertical-align:middle;margin-left:8px;" viewBox="0 0 16 16">
-                <circle cx="8" cy="8" r="8" fill="#b3b3b3"/>
-                <text x="8" y="12" text-anchor="middle" font-size="12" fill="#1a5c9c" font-family="Arial" font-weight="bold">?</text>
-            </svg>
-`;
-        ewsLabel.style.position = "absolute";
-        ewsLabel.style.top = "16px";
-        ewsLabel.style.right = "24px";
-        ewsLabel.style.fontSize = "20pt";
-        ewsLabel.style.background = "rgba(240,240,240,0.8)";
-        ewsLabel.style.padding = "6px 18px";
-        ewsLabel.style.borderRadius = "8px";
-        ewsLabel.style.border = "1px solid #ccc";
-        ewsLabel.style.zIndex = "1001";
-        document.body.appendChild(ewsLabel);
-        // --- Info Box (dynamic content) ---
-        const infoBox = document.createElement('div');
-        infoBox.style.position = "absolute";
-        infoBox.style.top = "70px";
-        infoBox.style.right = "24px";
-        infoBox.style.minWidth = "240px";
-        infoBox.style.maxWidth = "340px";
-        infoBox.style.background = "rgba(255,255,255,0.75)";
-        infoBox.style.border = "1px solid #ccc";
-        infoBox.style.borderRadius = "8px";
-        infoBox.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
-        infoBox.style.padding = "18px 20px 16px 20px";
-        infoBox.style.zIndex = "1002";
-        infoBox.style.fontFamily = "sans-serif";
-        infoBox.innerHTML = `
-            <div style="margin-bottom:18px;display:flex;align-items:center;gap:10px;">
-            <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#e3e3e3;cursor:pointer;" id="ews-refresh-btn" title="Refresh">
-                <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 3v2.5a.5.5 0 0 0 .5.5h5.5a.5.5 0 0 0 .5-.5V3m-1.44 11.44A7 7 0 1 1 17 10" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <span id="ews-updated-text" style="color:#444;font-size:15px;">Updated 3 minutes ago</span>
-            </div>
-            <div style="margin-bottom:16px;">
-            <div style="font-weight:600;color:#1a5c9c;margin-bottom:4px;">Peringatan Hujan:</div>
-            <div id="ews-rain-alert" style="color:#2a2a2a;font-size:15px;">Aman, tidak ada hujan lebat</div>
-            <ol id="ews-rain-list" style="margin:8px 0 0 18px;padding:0;display:none;font-size:15px;color:#b11c1c;"></ol>
-            </div>
-            <div>
-            <div style="font-weight:600;color:#1a5c9c;margin-bottom:4px;">Peringatan Luapan Sungai:</div>
-            <div id="ews-water-alert" style="color:#2a2a2a;font-size:15px;">Aman, tidak ada luapan sungai</div>
-            <ol id="ews-water-list" style="margin:8px 0 0 18px;padding:0;display:none;font-size:15px;color:#b11c1c;"></ol>
-            </div>
-            <div class="checkbox" style="margin-top:16px;">
-            <label style="font-size:10pt">
-            <input type="checkbox" id="citanduyLayerCheckbox" checked>
-            Batas DAS Citanduy
-            </label>
-            </div>
-        `;
-        document.body.appendChild(infoBox);
+        // --- Daftar Layer GeoJSON yang akan dimuat ---
+        const geoJsonLayers = {}; // Objek untuk menyimpan referensi layer setelah dimuat
 
-        // --- Delayed Box (dynamic content, positioned relative to infoBox) ---
-        const delayedBox = document.createElement('div');
-        delayedBox.style.position = "absolute";
-        delayedBox.style.right = "24px";
-        delayedBox.style.minWidth = "240px";
-        delayedBox.style.maxWidth = "340px";
-        delayedBox.style.background = "rgba(255,255,255,0.75)";
-        delayedBox.style.border = "1px solid #ccc";
-        delayedBox.style.borderRadius = "8px";
-        delayedBox.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
-        delayedBox.style.padding = "18px 20px 16px 20px";
-        delayedBox.style.zIndex = "1002";
-        delayedBox.style.fontFamily = "sans-serif";
-        delayedBox.style.marginTop = "12px";
-        delayedBox.innerHTML = `
-            <div style="font-weight:600;color:#b11c1c;margin-bottom:8px;">Perangkat Mati</div>
-            <div id="delayed-iot-list" style="color:#2a2a2a;font-size:15px;">Tidak ada perangkat yang terlambat</div>
-        `;
-        document.body.appendChild(delayedBox);
+        // Definisi sungai yang akan ditampilkan
+        const sungaiToShow = [
+            { id: 'citanduy', label: 'Citanduy' },
+            { id: 'cijolang', label: 'Cijolang' },
+            { id: 'ciseel', label: 'Ciseel' },
+            { id: 'cibeureum', label: 'Cibeureum' },
+            { id: 'cijalu', label: 'Cijalu' },
+            { id: 'cikidang', label: 'Cikidang' },
+            { id: 'cimuntur', label: 'Cimuntur' },
+        ];
 
-        // Position delayedBox below infoBox after DOM is ready
-        function positionDelayedBox() {
-            const infoRect = infoBox.getBoundingClientRect();
-            delayedBox.style.top = (window.scrollY + infoRect.bottom + 12) + "px";
-        }
-        window.addEventListener('resize', positionDelayedBox);
-        window.addEventListener('scroll', positionDelayedBox);
-        setTimeout(positionDelayedBox, 0);
-
-        // Example: update delayedBox dynamically
-        // Fetch delayed IoT devices and update delayedBox
-        function fetchAndUpdateDelayedBox() {
-            fetch('/ews?device=1')
-            .then(res => res.json())
-            .then(data => {
-            // Group devices by delay: >1 hour, >1 day, >1 week
-            const now = new Date();
-            const groups = {
-                hour: [],
-                day: [],
-                week: []
-            };
-            data.forEach(device => {
-                if (device.latest_sampling) {
-                const lastSample = new Date(device.latest_sampling.replace(' ', 'T') + 'Z');
-                const diffMinutes = (now - lastSample) / 60000;
-                if (diffMinutes > 10080) { // > 1 week
-                    groups.week.push(device);
-                } else if (diffMinutes > 1440) { // > 1 day
-                    groups.day.push(device);
-                } else if (diffMinutes > 60) { // > 1 hour
-                    groups.hour.push(device);
-                }
-                }
-            });
-            updateDelayedBox(groups);
-            })
-            .catch(() => {
-            updateDelayedBox(null, true);
-            });
-        }
-
-        // Store delayed markers by group
-        const delayedMarkers = { week: [], day: [], hour: [] };
-
-        function updateDelayedBox(groups, error) {
-            const listDiv = document.getElementById('delayed-iot-list');
-            // Remove previous markers
-            Object.values(delayedMarkers).forEach(arr => {
-            arr.forEach(marker => {
-                if (marker && map.hasLayer(marker)) map.removeLayer(marker);
-            });
-            });
-            delayedMarkers.week = [];
-            delayedMarkers.day = [];
-            delayedMarkers.hour = [];
-
-            if (error) {
-            listDiv.textContent = 'Gagal memuat data perangkat';
-            return;
-            }
-            let html = '';
-            let any = false;
-            function groupRow(label, arr, groupKey) {
-                if (arr.length > 0) {
-                    any = true;
-                    html += `<div style="margin-bottom:8px;"><b>${label}:</b> ${arr.length} perangkat 
-                        <button class="show-delayed-list-btn" data-group="${groupKey}" style="margin-left:8px;padding:2px 10px;font-size:12px;border-radius:5px;border:1px solid #b11c1c;background:#fff;color:#b11c1c;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
-                            <span class="eye-icon-wrapper">
-                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" style="vertical-align:middle;">
-                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke="#b11c1c" stroke-width="2" fill="none"/>
-                                    <circle cx="12" cy="12" r="3" stroke="#b11c1c" stroke-width="2" fill="none"/>
-                                </svg>
-                            </span>
-                        </button>
-                    </div>`;
-                    html += `<ul class="delayed-list-ul" data-group="${groupKey}" style="display:none;margin:0 0 8px 18px;padding:0;font-size:15px;color:#b11c1c;">` +
-                    arr.map(d => `<li>${d.nama || d.logger_id || 'Perangkat'} (terakhir: ${d.latest_sampling})</li>`).join('') +
-                    '</ul>';
-                    // Prepare markers for this group
-                    arr.forEach(d => {
-                        let lat = null, lng = null;
-                        if (typeof d.ll === 'string' && d.ll.includes(',')) {
-                            [lat, lng] = d.ll.split(',').map(Number);
-                        }
-                        if (lat && lng) {
-                            const marker = L.marker([lat, lng], {
-                                icon: L.icon({
-                                    iconUrl: '/static/img/marker-icon-2x-red.png',
-                                    iconSize: [28, 38],
-                                    iconAnchor: [14, 38]
-                                })
-                            }).bindPopup(`${d.nama || d.logger_id || 'Perangkat'}<br>Terakhir: ${d.latest_sampling}`);
-                            delayedMarkers[groupKey].push(marker);
+        // load geojson dari sungai.js sesuai sungaiToShow
+        ['s_orde_1', 's_orde_2', 's_orde_3', 's_orde_4'].forEach(orde => {
+            if (window[orde]) {
+                console.log(`Filtering ${orde} to show only selected rivers`);
+                window[orde].features = window[orde].features.filter(f => sungaiToShow.some(s => s.id === f.properties.NAMOBJ?.toLowerCase()));
+                console.log(`Loaded ${window[orde].features.length} features for ${orde}`);
+                window[orde].features.forEach(f => {
+                    // Hanya tampilkan sungai yang ada di sungaiToShow
+                    let weight = 1;
+                    if (orde[orde.length - 1] === '1') {
+                        weight = 3;
+                    }
+                    const layer = L.geoJSON(f, {
+                        style: {color: '#1f56b5', weight: weight},
+                        onEachFeature: function(feature, layer) {
+                            if (feature.properties && feature.properties.NAMOBJ) {
+                                layer.bindTooltip(feature.properties.NAMOBJ, {sticky: true});
+                            }
                         }
                     });
+                    geoJsonLayers[f.properties.NAMOBJ.toLowerCase()] = layer; // Simpan referensi layer
+                    layer.addTo(map);
+                    console.log(`Loaded river: ${f.properties.NAMOBJ}`);
+                });
+            }
+        });
+        // Definisi semua layer yang ingin Anda tampilkan
+        const layerDefinitions = [
+            {
+                id: 'administrasi',
+                label: 'Wilayah Administrasi',
+                defaultVisible: false,
+                style: function(feature) {
+                    return {
+                        color: "#888800",
+                        weight: 1,
+                        fillOpacity: 0,
+                        opacity: 1
+                    };
+                },
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties && feature.properties.NAMOBJ) {
+                        layer.bindTooltip(feature.properties.NAMOBJ, {sticky: true});
+                    }
+                },
+                // Layer ini akan dimuat dari objek adm_js yang sudah ada di window
+                loadFromObject: true,
+                path: null // Tambahkan path: null agar tidak di-fetch
+            },
+            {
+                id: 'wscitanduy',
+                path: '/static/js/citanduy.json',
+                label: 'WS Citanduy',
+                defaultVisible: true,
+                style: function(feature) {
+                    return {
+                        color: "#006699",
+                        weight: 1,
+                        fillOpacity: feature.properties?.["fill-opacity"] || 0,
+                        opacity: feature.properties?.["stroke-opacity"] || 1
+                    };
+                },
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties && feature.properties.NAMA_DAS) {
+                        layer.bindTooltip(feature.properties.NAMA_DAS, {sticky: false});
+                    }
                 }
-            }
-            groupRow('&gt; 1 minggu', groups.week, 'week');
-            groupRow('&gt; 1 hari', groups.day, 'day');
-            groupRow('&gt; 1 jam', groups.hour, 'hour');
-            if (!any) {
-            html = 'Tidak ada perangkat yang terlambat';
-            }
-            listDiv.innerHTML = html;
+            },
+            {
+                id: 'faultyDevice',
+                path: '/ews?device=1',
+                label: 'Faulty Device',
+                defaultVisible: false,
+                type: 'json-list', // Tipe data yang diharapkan
+                style: function(feature) {
+                    return {
+                        color: "#FF0000",
+                        fillColor: "#FF0000",
+                        weight: 2,
+                        opacity: 0.8,
+                        fillOpacity: 0.5,
+                        radius: 4
+                    };
+                },
+                filter: function(feature) {
+                    if (!feature || !feature.properties || !feature.properties.latest_sampling) return false;
+                    const samplingTime = new Date(feature.properties.latest_sampling.replace(' ', 'T'));
+                    const now = new Date();
+                    const diffMs = now - samplingTime;
+                    const diffHours = diffMs / (1000 * 60 * 60);
+                    return diffHours > 2;
+                }, // Filter untuk layer ini
+                pointToLayer: (feature, latlng) => {
+                    return L.circleMarker(latlng, layerDefinitions.find(def => def.id === 'faultyDevice').style(feature));
+                },
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties && feature.properties.nama) {
+                        layer.bindPopup(`
+                            <div style="padding:4px; min-width:220px;">
+                                <h4 style="margin:0 0 8px 0; color:#d00;">Faulty Device</h4>
+                                <div style="font-weight:bold; margin-bottom:6px;">${feature.properties.nama}</div>
+                                <div style="font-size:0.95em; color:#555;">
+                                    <span>Last Sampling:</span><br>
+                                    <span style="font-weight:bold;">${feature.properties.latest_sampling}</span>
+                                </div>
+                                <div style="margin-top:8px; color:#d00; font-size:1.1em;">
+                                    Offline for <span id="offline-duration-${feature.properties.id || feature.properties.nama.replace(/\s/g,'')}"></span>
+                                </div>
+                            </div>
+                        `, {autoPan: true});
 
-            // Add event listeners for show marker buttons
-            Array.from(listDiv.querySelectorAll('.show-delayed-list-btn')).forEach(btn => {
-            btn.onclick = function() {
-                const group = btn.getAttribute('data-group');
-                const eyeIconWrapper = btn.querySelector('.eye-icon-wrapper');
-                // Remove all delayed markers from map first
-                Object.values(delayedMarkers).forEach(arr => {
-                arr.forEach(marker => {
-                    if (marker && map.hasLayer(marker)) map.removeLayer(marker);
-                });
-                });
-                // Toggle marker visibility for this group
-                // If currently eye (open), show marker and switch to eye (open)
-                // If currently eye-slash, hide marker and switch to eye-slash
-                const isEye = eyeIconWrapper.querySelector('.eye-icon') !== null;
-                if (isEye) {
-                    delayedMarkers[group].forEach(marker => marker.addTo(map));
-                    // Change to eye icon (open)
-                    eyeIconWrapper.innerHTML = `
-                        <svg class="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" style="vertical-align:middle;">
-                            <path d="M1 12s4-7 11-7c2.5 0 4.7.7 6.6 1.8M23 12s-4 7-11 7c-2.5 0-4.7-.7-6.6-1.8" stroke="#b11c1c" stroke-width="2" fill="none"/>
-                            <circle cx="12" cy="12" r="3" stroke="#b11c1c" stroke-width="2" fill="none"/>
-                            <line x1="4" y1="20" x2="20" y2="4" stroke="#b11c1c" stroke-width="2"/>
-                        </svg>
-                    `;
+                        // Calculate and set offline duration after popup opens
+                        layer.on('popupopen', function(e) {
+                            const samplingTime = new Date(feature.properties.latest_sampling.replace(' ', 'T'));
+                            const now = new Date();
+                            const diffMs = now - samplingTime;
+                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                            const diffMinutes = Math.floor((diffMs / (1000 * 60)) % 60);
+                            let durationText = '';
+                            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                            if (diffDays > 365) {
+                                durationText = 'more than a year';
+                            } else if (diffDays > 180) {
+                                durationText = 'more than 6 months';
+                            } else if (diffDays > 30) {
+                                durationText = 'more than 1 month';
+                            } else if (diffDays > 0) {
+                                durationText = `${diffDays} day${diffDays > 1 ? 's' : ''}, ${diffHours % 24} hour${(diffHours % 24) !== 1 ? 's' : ''}`;
+                            } else if (diffHours > 0) {
+                                durationText = `${diffHours} hour${diffHours > 1 ? 's' : ''}`;
+                            } else {
+                                durationText = `${diffMinutes} min`;
+                            }
+                            const elId = `offline-duration-${feature.properties.id || feature.properties.nama.replace(/\s/g,'')}`;
+                            const el = document.getElementById(elId);
+                            if (el) el.textContent = durationText;
+                        });
+                    }
+                }
+            },
+            {
+                id: 'rainSensor',
+                path: '/api/pos', // Path ke API tunggal
+                label: 'Rain Sensor',
+                type: 'json-list', // Tipe data yang diharapkan
+                defaultVisible: false,
+                filter: function(feature) { return feature && feature.properties && (feature.properties.tipe === '1' || feature.properties.tipe === '3'); }, // Filter untuk layer ini
+                style: function(feature) {
+                    return {
+                        color: "#0080FF",
+                        fillColor: "#0080FF",
+                        weight: 2,
+                        opacity: 0.8,
+                        fillOpacity: 0.6,
+                        radius: 5
+                    };
+                },
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, layerDefinitions.find(def => def.id === 'rainSensor').style(feature));
+                },
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties && feature.properties.nama) {
+                        layer.bindPopup("Rain Sensor: " + feature.properties.nama + " :" + feature.properties.tipe);
+                    }
+                }
+            },
+            {
+                id: 'waterLevelSensor',
+                path: '/api/pos', // Path ke API tunggal
+                label: 'Water Level Sensor',
+                type: 'json-list',
+                defaultVisible: false,
+                filter: function(feature) {
+                    return feature && feature.properties && feature.properties.tipe === '2'; 
+                }, // Filter untuk layer ini
+                style: function(feature) {
+                    return {
+                        color: "#00BFFF",
+                        fillColor: "#00BFFF",
+                        weight: 2,
+                        opacity: 0.8,
+                        fillOpacity: 0.6,
+                        radius: 5
+                    };
+                },
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, layerDefinitions.find(def => def.id === 'waterLevelSensor').style(feature));
+                },
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties && feature.properties.nama) {
+                        layer.bindPopup("Water Level Sensor: " + feature.properties.location + " :" + feature.properties.tipe);
+                    }
+                }
+            },
+        ];
+
+        // Objek untuk melacak URL yang sudah di-fetch agar tidak fetch berkali-kali
+        const fetchedGeoJSONData = {};
+
+        /**
+         * Mengkonversi daftar objek JSON biasa menjadi GeoJSON FeatureCollection.
+         * Asumsi: Setiap objek memiliki properti 'll' dalam format "latitude,longitude".
+         */
+        function convertJsonListToGeoJSON(jsonList) {
+            const features = jsonList.map(item => {
+                //console.log(item);
+                if (!item && !item.ll || typeof item.ll !== 'string' || !item.ll.includes(',')) {
+                    // Skip this item if ll is missing or invalid
+                    return null;
+                }
+                const [lat, lon] = item.ll.split(',').map(Number); // Pisahkan dan konversi ke angka
+                if (isNaN(lat) || isNaN(lon)) {
+                    // Skip this item if lat/lon are not valid numbers
+                    return null;
+                }
+                return {
+                    type: "Feature",
+                    properties: { ...item }, // Salin semua properti asli
+                    geometry: {
+                        type: "Point",
+                        coordinates: [lon, lat] // GeoJSON format: [longitude, latitude]
+                    }
+                };
+            }).filter(feature => feature !== null); // Hapus fitur yang null (invalid)
+
+            return {
+                type: "FeatureCollection",
+                features: features
+            };
+        }
+
+        // --- Fungsi untuk memuat dan memproses setiap layer ---
+        async function loadGeoJsonLayer(layerDef) {
+            try {
+                let geojson;
+                let processedGeoJSON;
+
+                // Khusus untuk layer administrasi, gunakan objek adm_js dari window
+                if (layerDef.loadFromObject && window.administratif) {
+                    geojson = window.administratif;
+                    processedGeoJSON = geojson;
                 } else {
-                    delayedMarkers[group].forEach(marker => {
-                        if (marker && map.hasLayer(marker)) map.removeLayer(marker);
-                    });
-                    // Change to eye icon (open)
-                    eyeIconWrapper.innerHTML = `
-                        <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" style="vertical-align:middle;">
-                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke="#b11c1c" stroke-width="2" fill="none"/>
-                            <circle cx="12" cy="12" r="3" stroke="#b11c1c" stroke-width="2" fill="none"/>
-                        </svg>
-                    `;
+                    // Cek apakah data untuk path ini sudah di-fetch
+                    if (fetchedGeoJSONData[layerDef.path]) {
+                        geojson = fetchedGeoJSONData[layerDef.path];
+                    } else {
+                        // Jika belum, fetch data dan simpan
+                        const res = await fetch(layerDef.path);
+                        if (!res.ok) {
+                            throw new Error(`Failed to load ${layerDef.path}: ${res.statusText}`);
+                        }
+                        const rawData = await res.json();
+                        fetchedGeoJSONData[layerDef.path] = rawData; // Simpan data yang di-fetch
+                        geojson = rawData;
+                    }
+                    // Jika ini adalah JSON list, konversi ke GeoJSON FeatureCollection
+                    if (layerDef.type === 'json-list') {
+                        processedGeoJSON = convertJsonListToGeoJSON(geojson);
+                    } else {
+                        // Jika sudah GeoJSON, langsung gunakan
+                        processedGeoJSON = geojson;
+                    }
                 }
-            };
-            });
+                //console.log(`Loading GeoJSON layer: ${layerDef.id} from ${layerDef.path}`);
+                //console.log(processedGeoJSON);
+                // Jika ada filter, buat objek GeoJSON baru yang difilter
+                let finalGeoJSON = processedGeoJSON;
+                if (layerDef.filter && processedGeoJSON.features) {
+                    finalGeoJSON = {
+                        ...geojson, // Copy properti lain dari geojson asli
+                        features: processedGeoJSON.features.filter(layerDef.filter)
+                    };
+                }
+
+                // Buat layer Leaflet dari GeoJSON yang sudah difilter
+                if (finalGeoJSON && finalGeoJSON.features && finalGeoJSON.features.length > 0) {
+                    const layer = L.geoJSON(finalGeoJSON, {
+                        style: layerDef.style,
+                        onEachFeature: layerDef.onEachFeature,
+                        pointToLayer: layerDef.pointToLayer
+                    });
+                    geoJsonLayers[layerDef.id] = layer; // Simpan referensi layer
+
+                    // Jika layer seharusnya terlihat secara default, tambahkan ke peta
+                    if (layerDef.defaultVisible) {
+                        if (layerDef.id === 'wscitanduy') {
+                            layer.addTo(map);
+                            layer.bringToBack();
+                        } else {
+                            layer.addTo(map);
+                        }
+                    }
+
+                    // Opsional: Atur batas peta ke layer GeoJSON pertama yang dimuat, atau semua layer
+                    if (layerDef.id === 'wscitanduy') { // Atau layer lain yang paling penting
+                        map.fitBounds(layer.getBounds());
+                    }
+                } else {
+                    console.warn(`Layer ${layerDef.id} tidak memiliki fitur yang valid dan tidak akan ditambahkan ke peta.`);
+                }
+
+            } catch (error) {
+                console.error("Error loading GeoJSON layer:", layerDef.id, error);
+            }
         }
 
-        // Initial fetch and periodic update every 5 minutes
-        fetchAndUpdateDelayedBox();
-        setInterval(fetchAndUpdateDelayedBox, 5 * 60 * 1000);
-        // --- Genangan Box (toggle GeoJSON layer) ---
-        const genanganBox = document.createElement('div');
-        genanganBox.style.position = "absolute";
-        genanganBox.style.right = "24px";
-        genanganBox.style.minWidth = "240px";
-        genanganBox.style.maxWidth = "340px";
-        genanganBox.style.background = "rgba(255,255,255,0.75)";
-        genanganBox.style.border = "1px solid #ccc";
-        genanganBox.style.borderRadius = "8px";
-        genanganBox.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
-        genanganBox.style.padding = "18px 20px 16px 20px";
-        genanganBox.style.zIndex = "1002";
-        genanganBox.style.fontFamily = "sans-serif";
-        genanganBox.style.marginTop = "12px";
-        genanganBox.innerHTML = `
-            <div style="font-weight:600;color:#1a5c9c;margin-bottom:8px;">Genangan Potensial</div>
-        `;
-        document.body.appendChild(genanganBox);
+        // Muat semua layer GeoJSON yang didefinisikan
+        layerDefinitions.forEach(loadGeoJsonLayer);
+        window.simulasi = false;
 
-        // Position genanganBox below delayedBox after DOM is ready
-        function positionGenanganBox() {
-            const delayedRect = delayedBox.getBoundingClientRect();
-            genanganBox.style.top = (window.scrollY + delayedRect.bottom + 12) + "px";
-        }
-        window.addEventListener('resize', positionGenanganBox);
-        window.addEventListener('scroll', positionGenanganBox);
-        setTimeout(positionGenanganBox, 0);
+
+        // --- Bagian Baru: Membuat Custom Leaflet Control ---
+        var SidebarControl = L.Control.extend({
+            options: {
+                position: 'topright' // Posisi kontrol di peta
+            },
+            customDate: new Date(), // Variabel untuk menyimpan tanggal khusus
+            isSimulasi: false,
+            isSimul: () => {
+                console.log('Simulasi status:', this.simulasi);
+                return this.simulasi === true;
+            },
+            onAdd: function (map) {
+                // Buat elemen div yang akan menjadi container sidebar
+                var container = L.DomUtil.create('div', 'leaflet-control-sidebar');
+                // Beri event handler agar Leaflet tidak menangani scroll atau klik di dalam kontrol
+                L.DomEvent.disableClickPropagation(container);
+                L.DomEvent.disableScrollPropagation(container);
+
+                // Expose isSimul to global scope so the button can call it
+                window.isSimul = this.isSimul.bind(this);
+
+                // Konten HTML untuk sidebar
+                let layerBoxContent = '';
+                layerDefinitions.forEach(def => {
+                    layerBoxContent += `
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="${def.id}LayerToggle" ${def.defaultVisible ? 'checked' : ''}>
+                            <label for="${def.id}LayerToggle">${def.label}</label>
+                        </div>
+                    `;
+                });
+                // Tambahkan checkbox untuk sungai yang ingin ditampilkan
+                layerBoxContent += '<h4>Sungai</h4>';
+                sungaiToShow.forEach(s => {
+                    layerBoxContent += `
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="${s.id}LayerToggle" checked>
+                            <label for="${s.id}LayerToggle">${s.label}</label>
+                        </div>
+                    `;
+                });
+
+                // Isi container dengan struktur HTML box-box Anda
+                container.innerHTML = `
+                    <div class="logo-container">
+                        <div><div class="logo-text">EWS</div>
+                            <div style="font-size:9pt;color:black;text-shadow: none !important;">Hidro Meteorologi</div>
+                        </div>
+                        <div class="time-container"><span class="date-text">23 Juli<br>2025</span><span class="hour-text">16:04</span></div>
+                    </div>
+                        <div class="box">
+                        <h3 class="box-header">Curah Hujan <span class="toggle-icon">+</span></h3>
+                        <div class="box-content">
+                            <p>Ini adalah isi dari Box Informasi 1. Anda bisa menempatkan teks, gambar, atau elemen UI lainnya di sini.</p>
+                            <p>Konten ini akan terlihat atau tersembunyi saat box di-collapse.</p>
+                        </div>
+                    </div>
+
+                    <div class="box">
+                        <h3 class="box-header">Tinggi Muka Air <span class="toggle-icon">+</span></h3>
+                        <div class="box-content">
+                            <p>Di sini Anda bisa menambahkan kontrol layer untuk Leaflet.</p>
+                            <ul>
+                                <li>Base Map A</li>
+                                <li>Overlay Layer X</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="box">
+                        <h3 class="box-header">Properti <span class="toggle-icon">+</span></h3>
+                        <div class="box-content layer-toggles">
+                        ${layerBoxContent}
+                        </div>
+                    </div>
+
+                    <div class="box">
+                        <h3 class="box-header">Rain Player <span class="toggle-icon">+</span></h3>
+                        <div class="box-content">
+                            <p>Simulasi Peringatan hujan</p>
+                            <button onclick="isSimul()">Tombol Aksi</button>
+                        </div>
+                    </div>
+                    `;
+
+                // Setelah container dan isinya dibuat, inisialisasi fungsionalitas collapse
+                // Perhatikan bahwa kita harus mencari elemen di dalam 'container' yang baru dibuat
+                setTimeout(() => { // Menggunakan setTimeout kecil untuk memastikan DOM sudah dirender
+                    container.querySelectorAll('.box-header').forEach(header => {
+                        header.addEventListener('click', () => {
+                            const box = header.closest('.box');
+                            const toggleIcon = header.querySelector('.toggle-icon');
+                            box.classList.toggle('collapsed');
+                        });
+                    });
+
+                    // Inisialisasi semua box sebagai collapsed secara default (opsional)
+                    container.querySelectorAll('.box').forEach(box => {
+                        box.classList.add('collapsed');
+                        box.querySelector('.toggle-icon').textContent = '+';
+                    });
+
+                    // --- Fungsionalitas Checkbox untuk Semua Layer ---
+                    // Dapatkan kontainer untuk toggle layer
+                    const layerTogglesContainer = container.querySelector('.layer-toggles');
+                    if (layerTogglesContainer) {
+                        // Iterasi semua checkbox di dalamnya
+                        layerTogglesContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                            const layerId = checkbox.id.replace('LayerToggle', ''); // Dapatkan ID layer dari ID checkbox
+
+                            checkbox.addEventListener('change', function() {
+                                const layer = geoJsonLayers[layerId]; // Ambil referensi layer dari objek geoJsonLayers
+                                if (layer) { // Pastikan layer sudah dimuat
+                                    if (this.checked) {
+                                        if (!map.hasLayer(layer)) {
+                                            layer.addTo(map);
+                                        }
+                                    } else {
+                                        if (map.hasLayer(layer)) {
+                                            map.removeLayer(layer);
+                                        }
+                                    }
+                                } else {
+                                    console.warn(`Layer with ID ${layerId} not yet loaded or does not exist.`);
+                                }
+                            });
+                        });
+                    }
+
+                    const dateTextElement = document.querySelector('.date-text');
+                    const hourTextElement = document.querySelector('.hour-text');
+
+                    let showColon = true; // Status untuk berkedip
+
+                    // Fungsi untuk mengupdate waktu
+                    const updateDateTime = (date = this.customDate) => {
+                        const optionsDayMonth = { day: 'numeric', month: 'short' }; // 'short' untuk singkatan bulan (Jul)
+                        const optionsYear = { year: 'numeric' };
+
+                        // Ambil bagian tanggal (dd mmm) dan tahun (yyyy) secara terpisah
+                        const dayMonth = date.toLocaleDateString('id-ID', optionsDayMonth);
+                        const year = date.toLocaleDateString('id-ID', optionsYear);
+
+                        // Gabungkan dengan <br> dan gunakan innerHTML
+                        dateTextElement.innerHTML = `${dayMonth}<br>${year}`;
+
+                        // Format jam: '16:04'
+                        const hours = String(date.getHours()).padStart(2, '0');
+                        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+                        // Kontrol titik dua berkedip
+                        const colon = showColon ? ':' : ' '; // Tampilkan ':' atau ' ' (spasi)
+                        hourTextElement.textContent = `${hours}${colon}${minutes}`;
+
+                        showColon = !showColon; // Balik status untuk detik berikutnya
+                    }
+
+                    // --- Inisialisasi dan Pembaruan Otomatis ---
+
+                    // Panggil pertama kali untuk menampilkan waktu segera
+                    updateDateTime();
+
+                    // Perbarui setiap 500ms (setengah detik) untuk efek berkedip titik dua
+                    setInterval(updateDateTime, 500);
+
+                    // --- Fungsi untuk Mengatur Waktu Secara Manual (Opsional) ---
+                    // Anda bisa memanggil fungsi ini dari console browser atau dari event lain
+                    const setCustomDateTime = function(year, month, day, hours, minutes, seconds = 0) {
+                        this.customDate = new Date(year, month - 1, day, hours, minutes, seconds); // month-1 karena bulan di JS 0-indexed
+
+                        updateDateTime(this.customDate);
+                        window.simulasi = true; // Set simulasi ke true
+                        // Hentikan interval otomatis jika ingin waktu manual tetap
+                        clearInterval(updateDateTime); // Ini akan menghentikan pembaruan otomatis
+                        console.log(`Waktu diatur secara manual ke: ${this.customDate.toLocaleString('id-ID')}`);
+                    }
+
+                    // Contoh cara memanggil secara manual (bisa dihapus setelah pengujian):
+                    // setCustomDateTime(2026, 1, 15, 9, 30); // Contoh: 15 Januari 2026, 09:30
+
+                }, 0); // Timeout 0ms akan menunda eksekusi hingga event loop berikutnya
+
+                return container; // Mengembalikan elemen container yang akan ditambahkan ke peta
+            },
+
+            onRemove: function (map) {
+                // Tidak ada yang perlu dilakukan di sini untuk contoh sederhana ini
+            }
+        });
+
+        // Tambahkan kontrol kustom ke peta
+        new SidebarControl().addTo(map);
+
 
         // --- Genangan GeoJSON Layer logic ---
         const data_genangan = [
@@ -323,303 +690,7 @@
                 "fname": "pda_sukaharja.geojson",
             }
         ];
-        // Create checkboxes for each genangan area
-        data_genangan.forEach(area => {
-            const checkbox_g = document.createElement('div');
-            checkbox_g.className = "checkbox";
-            checkbox_g.innerHTML = `
-                <label style="font-size:10pt">
-                    <input type="checkbox" class="genangan-checkbox" data-fname="${area.fname}">
-                    Area genangan ${area.nama}
-                </label>
-            `;
-            genanganBox.appendChild(checkbox_g);
-            // Add event listener for each checkbox
-            checkbox_g.querySelector('.genangan-checkbox').addEventListener('change', function() {
-                const fname = this.getAttribute('data-fname');
-                if (this.checked) {
-                    // Load GeoJSON and add to map
-                    fetch(`/static/map/${fname}`)
-                        .then(res => res.json())
-                        .then(geojson => {
-                            const layer = L.geoJSON(geojson, {
-                                style: {
-                                    color: "#b11c1c",
-                                    weight: 2,
-                                    fillColor: "#b11c1c",
-                                    fillOpacity: 0.25,
-                                    opacity: 0.8
-                                }
-                            }).addTo(map);
-                            this.layer = layer; // Store reference to layer
-                            this.layer.on('click', function(e) {
-                                console.log('Layer clicked:', e.layer.feature);
-                                const properties = e.layer.feature.properties || {};
-                                const popupContent = `
-                                    <strong>${properties.Lokasi || 'Area Genangan'}</strong><br>
-                                    ${properties.Tanggal || 'Tidak ada deskripsi'}<br>
-                                    ${properties['Luas (ha)']} Ha.
-                                `;
-                                L.popup()
-                                    .setLatLng(e.latlng)
-                                    .setContent(popupContent)
-                                    .openOn(map);
-                            });
-                        });
-                    // Add click event on geojson layer to show popup
-                    if (this.layer) {
-                        this.layer.on('click', function(e) {
-                            console.log('Layer clicked:', e.layer.feature);
-                            const properties = e.layer.feature.properties || {};
-                            const popupContent = `
-                                <strong>${properties.nama || 'Area Genangan'}</strong><br>
-                                ${properties.description || 'Tidak ada deskripsi'}
-                            `;
-                            L.popup()
-                                .setLatLng(e.latlng)
-                                .setContent(popupContent)
-                                .openOn(map);
-                        });
-                    }
-                } else {
-                    // Remove layer from map if exists
-                    if (this.layer && map.hasLayer(this.layer)) {
-                        map.removeLayer(this.layer);
-                    }
-                }
-            });
-        });
-    // Modal HTML
-    const modal = document.createElement('div');
-    modal.id = "ews-help-modal";
-    modal.style.display = "none";
-    modal.style.position = "fixed";
-    modal.style.top = "0";
-    modal.style.left = "0";
-    modal.style.width = "100vw";
-    modal.style.height = "100vh";
-    modal.style.background = "rgba(0,0,0,0.3)";
-    modal.style.fontFamily = "sans-serif";
-    modal.style.zIndex = "2000";
-    modal.innerHTML = `
-        <div style="background:#fff;max-width:400px;margin:10vh auto;padding:32px 24px 18px 24px;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.18);position:relative;">
-            <div style="font-size:18px;font-weight:600;margin-bottom:12px;color:#1a5c9c;">Tentang EWS Hidrologi</div>
-            <div style="font-size:15px;color:#222;margin-bottom:24px;">
-                Sistem ini menampilkan peringatan dini hujan dan luapan sungai berbasis data real-time.<br>
-                <br>
-                Kategori peringatan hujan adalah jika dalam 1 jam terakhir terdapat curah hujan lebih dari 20mm, atau dalam 3 jam terakhir lebih dari 30mm.<br>
-                <br>
-                <b>Legenda:</b><br>
-                <span style="color:#b11c1c;">•</span> Daftar lokasi dengan intensitas hujan tinggi atau kenaikan muka air signifikan akan muncul di sini.<br>
-                <br>
-                Anda dapat menampilkan/menyembunyikan batas DAS Citanduy menggunakan checkbox di bawah.
-            </div>
-            <div style="text-align:right;">
-                <button id="ews-help-ok" style="padding:6px 18px;font-size:15px;border-radius:6px;border:1px solid #1a5c9c;background:#1a5c9c;color:#fff;cursor:pointer;">OK</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
 
-    // Show modal on question mark click
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('#ews-help-btn')) {
-            document.getElementById('ews-help-modal').style.display = 'block';
-        }
-        if (e.target.id === 'ews-help-ok') {
-            document.getElementById('ews-help-modal').style.display = 'none';
-        }
-        // Close modal if click outside dialog
-        if (e.target.id === 'ews-help-modal') {
-            document.getElementById('ews-help-modal').style.display = 'none';
-        }
-    });
-
-        // --- Add Citanduy GeoJSON Layer ---
-        let citanduyLayer = null;
-        fetch('/static/js/citanduy.json')
-            .then(res => res.json())
-            .then(geojson => {
-                citanduyLayer = L.geoJSON(geojson, {
-                    style: function(feature) {
-                        return {
-                            color: "#003366", // dark blue
-                            weight: 1,        // thin line
-                            fillOpacity: feature.properties?.["fill-opacity"] || 0,
-                            opacity: feature.properties?.["stroke-opacity"] || 1
-                        };
-                    },
-                    onEachFeature: function(feature, layer) {
-                        if (feature.properties && feature.properties.NAMA_DAS) {
-                            layer.bindTooltip(feature.properties.NAMA_DAS, {sticky: true});
-                        }
-                    }
-                }).addTo(map);
-            });
-
-        // Checkbox logic to show/hide citanduyLayer
-        const checkbox = document.getElementById('citanduyLayerCheckbox');
-        checkbox.addEventListener('change', function() {
-            if (citanduyLayer) {
-                if (checkbox.checked) {
-                    citanduyLayer.addTo(map);
-                } else {
-                    map.removeLayer(citanduyLayer);
-                }
-            }
-        });
-
-        // Fetch and update info box from APIs
-        async function fetchAndUpdateInfoBox() {
-            try {
-            const [rainRes, waterRes] = await Promise.all([
-                fetch('/api/rain'),
-                fetch('/api/wlevel')
-            ]);
-            const rainData = await rainRes.json();
-            const waterData = await waterRes.json();
-
-            // Prepare rain alert list
-            let rainAlerts = [];
-            if (Array.isArray(rainData)) {
-                rainAlerts = rainData
-                .filter(item => item && item.intensity && item.intensity >= 20) // example threshold
-                .map(item => `${item.lokasi || item.nama || 'Lokasi'} ${item.intensity}mm dalam ${item.durasi || '-'} menit`);
-            }
-
-            // Prepare water level alert list
-            let waterAlerts = [];
-            if (Array.isArray(waterData)) {
-                waterAlerts = waterData
-                .filter(item => item && item.delta && item.delta >= 50) // example threshold
-                .map(item => `${item.sungai || item.nama || 'Sungai'} naik ${item.delta}cm dalam ${item.durasi || '-'} menit`);
-            }
-
-            // Update info box
-            updateInfoBox({
-                updated: 'Updated ' + new Date().toLocaleTimeString(),
-                rain: rainAlerts,
-                water: waterAlerts
-            });
-
-            // Countdown for next update
-            let countdown = 5 * 60; // 5 minutes in seconds
-            if (window.ewsCountdownInterval) clearInterval(window.ewsCountdownInterval);
-            window.ewsCountdownInterval = setInterval(() => {
-                countdown--;
-                const updatedText = document.getElementById('ews-updated-text');
-                if (countdown > 0) {
-                    updatedText.textContent = `Will update in ${countdown} secs`;
-                }
-                if (countdown <= 0) {
-                    clearInterval(window.ewsCountdownInterval);
-                }
-            }, 1000);
-            } catch (e) {
-            updateInfoBox({
-                updated: 'Gagal memuat data',
-                rain: [],
-                water: []
-            });
-            }
-        }
-
-        // Update info box function
-        function updateInfoBox(data) {
-            // Update time
-            const updatedText = document.getElementById('ews-updated-text');
-            updatedText.textContent = data.updated || 'Updated just now';
-
-            // Rain alert
-            const rainAlert = document.getElementById('ews-rain-alert');
-            const rainList = document.getElementById('ews-rain-list');
-            if (data.rain && data.rain.length > 0) {
-            rainAlert.textContent = '';
-            rainList.innerHTML = '';
-            data.rain.forEach((item, idx) => {
-                const li = document.createElement('li');
-                li.textContent = item;
-                rainList.appendChild(li);
-            });
-            rainList.style.display = '';
-            } else {
-            rainAlert.textContent = 'Aman, tidak ada hujan lebat';
-            rainList.style.display = 'none';
-            }
-
-            // Water level alert
-            const waterAlert = document.getElementById('ews-water-alert');
-            const waterList = document.getElementById('ews-water-list');
-            if (data.water && data.water.length > 0) {
-            waterAlert.textContent = '';
-            waterList.innerHTML = '';
-            data.water.forEach((item, idx) => {
-                const li = document.createElement('li');
-                li.textContent = item;
-                waterList.appendChild(li);
-            });
-            waterList.style.display = '';
-            } else {
-            waterAlert.textContent = 'Aman, tidak ada luapan sungai';
-            waterList.style.display = 'none';
-            }
-        }
-
-        // Initial fetch
-        fetchAndUpdateInfoBox();
-
-        // Refresh button logic
-        document.getElementById('ews-refresh-btn').onclick = function() {
-            const updatedText = document.getElementById('ews-updated-text');
-            updatedText.textContent = 'Memuat data...';
-            fetchAndUpdateInfoBox();
-        };
-
-        // Auto fetch every 5 minutes
-        setInterval(fetchAndUpdateInfoBox, 5 * 60 * 1000);
-        let markers = [];
-        fetch('/ews?format=json')
-            .then(response => response.json())
-            .then(data => {
-                if (Array.isArray(data)) {
-                    const markerLatLngs = [];
-                    data.forEach(item => {
-                        if (typeof item.ll === 'string') {
-                            const [lat, lng] = item.ll.split(',').map(Number);
-                            item.lat = lat;
-                            item.lng = lng;
-                        }
-                        if (item.lat && item.lng) {
-                            const marker = L.marker([item.lat, item.lng])
-                                .addTo(map)
-                                .bindPopup(item.nama || '');
-                            markers.push(marker);
-                            markerLatLngs.push([item.lat, item.lng]);
-                        }
-                    });
-                    if (markerLatLngs.length > 0) {
-                        map.fitBounds(markerLatLngs, { padding: [20, 20] });
-                    }
-                    // Animate marker removal by fading out
-                    setTimeout(() => {
-                        markers.forEach(marker => {
-                            const markerElem = marker._icon;
-                            if (markerElem) {
-                                markerElem.style.transition = "opacity 1s";
-                                markerElem.style.opacity = "0";
-                                setTimeout(() => {
-                                    map.removeLayer(marker);
-                                }, 1000);
-                            } else {
-                                map.removeLayer(marker);
-                            }
-                        });
-                    }, 3000);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching JSON:', error);
-            });
     </script>
 </body>
 </html>
