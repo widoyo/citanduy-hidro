@@ -51,47 +51,15 @@ def wlevel():
         for p in pdas:
             try:
                 # Perhitungan trend Muka air thd 15 menit dan 60 menit sebelumnya
-                t_raw_3 = t_raw_12 = {}
                 t_raw = json.loads(rd[p.id].raw)
-                p.telemetri = t_raw[-1] if rd[p.id].raw else {}
-                if len(t_raw) >= 12:
-                    t_raw_3 = t_raw[-3]
-                    t_raw_12 = t_raw[-12]
-                    if rd[p.id].source in ('SB',):
-                        t_raw_3 = t_raw[-2]
-                        t_raw_12 = t_raw[-5]
-                wlevel_3 = t_raw_3.get('wlevel') if t_raw_3 else None
-                sampling_3 = t_raw_3.get('sampling') if t_raw_3 else None
-                delta_3 = p.telemetri.get('wlevel') - wlevel_3 if wlevel_3 else None
-                trend_3 = "naik" if delta_3 and delta_3 > 0 else "turun" if delta_3 and delta_3 < 0 else "stabil"
-                wlevel_12 = t_raw_12.get('wlevel') if t_raw_12 else None
-                sampling_12 = t_raw_12.get('sampling') if t_raw_12 else None
-                delta_12 = p.telemetri.get('wlevel') - wlevel_12 if wlevel_12 else None
-                trend_12 = "naik" if delta_12 and delta_12 > 0 else "turun" if delta_12 and delta_12 < 0 else "stabil"
-                wlevel_trends = {
-                    "t_15_min": {
-                        "wlevel": wlevel_3,
-                        "sampling": sampling_3,
-                        "trend": trend_3,
-                        "delta": delta_3
-                    },
-                    "t_60_min": {
-                        "wlevel": wlevel_12,
-                        "sampling": sampling_12,
-                        "trend": trend_12,
-                        "delta": delta_12
-                    }
-                }
+                p.telemetri = t_raw if rd[p.id].raw else []
                 # ubah wlevel dari Meter ke Centimeter
-                if p.telemetri != {} and rd[p.id].source in ('SB', 'SC') \
-                    and p.telemetri.get('wlevel'):
-                    p.telemetri['wlevel'] = p.telemetri.get('wlevel') * 100 if p.telemetri.get('wlevel') else None
-                    wlevel_trends['t_15_min']['wlevel'] = wlevel_trends['t_15_min']['wlevel'] * 100 if wlevel_trends['t_15_min']['wlevel'] else None
-                    wlevel_trends['t_60_min']['wlevel'] = wlevel_trends['t_60_min']['wlevel'] * 100 if wlevel_trends['t_60_min']['wlevel'] else None
-                    p.telemetri['trend'] = wlevel_trends
+                if p.telemetri != [] and rd[p.id].source in ('SB', 'SC') \
+                    and p.telemetri[0].get('wlevel'):
+                    p.telemetri = [{'sampling': r.get('sampling'), 'wlevel': r.get('wlevel') * 100} for r in p.telemetri if r.get('wlevel') is not None]
                 p.vendor = rd[p.id].vendor
             except KeyError:
-                p.telemetri = {}
+                p.telemetri = []
                 p.vendor = None
             try:
                 manual = []
@@ -126,12 +94,22 @@ def wlevel():
                     t_raw_12 = t_raw[-5]
             wlevel_3 = t_raw_3.get('wlevel') if t_raw_3 else None
             sampling_3 = t_raw_3.get('sampling') if t_raw_3 else None
-            delta_3 = p.telemetri.get('wlevel') - wlevel_3 if wlevel_3 else None
-            trend_3 = "naik" if delta_3 and delta_3 > 0 else "turun" if delta_3 and delta_3 < 0 else "stabil"
+            try:
+                delta_3 = p.telemetri.get('wlevel') - wlevel_3 if wlevel_3 else None
+            except TypeError:
+                delta_3 = None
+            trend_3 = None
+            if delta_3 is not None:
+                trend_3 = "naik" if delta_3 and delta_3 > 0 else "turun" if delta_3 and delta_3 < 0 else "stabil"
             wlevel_12 = t_raw_12.get('wlevel') if t_raw_12 else None
             sampling_12 = t_raw_12.get('sampling') if t_raw_12 else None
-            delta_12 = p.telemetri.get('wlevel') - wlevel_12 if wlevel_12 else None
-            trend_12 = "naik" if delta_12 and delta_12 > 0 else "turun" if delta_12 and delta_12 < 0 else "stabil"
+            try:
+                delta_12 = p.telemetri.get('wlevel') - wlevel_12 if wlevel_12 else None
+            except TypeError:
+                delta_12 = None
+            trend_12 = None
+            if delta_12 is not None:
+                trend_12 = "naik" if delta_12 and delta_12 > 0 else "turun" if delta_12 and delta_12 < 0 else "stabil"
             wlevel_trends = {
                 "t_15_min": {
                     "wlevel": wlevel_3,
@@ -152,9 +130,9 @@ def wlevel():
                 p.telemetri['wlevel'] = (p.telemetri.get('wlevel', 0) * 100) if p.telemetri.get('wlevel') else None
                 wlevel_trends['t_15_min']['wlevel'] = wlevel_trends['t_15_min']['wlevel'] * 100 if wlevel_trends['t_15_min']['wlevel'] else None
                 wlevel_trends['t_60_min']['wlevel'] = wlevel_trends['t_60_min']['wlevel'] * 100 if wlevel_trends['t_60_min']['wlevel'] else None    
-                p.telemetri['trend'] = wlevel_trends
-                if 'rain' in p.telemetri:
-                    del p.telemetri['rain']
+            p.telemetri['trend'] = wlevel_trends
+            if 'rain' in p.telemetri:
+                del p.telemetri['rain']
             p.vendor = r.vendor if r else None
             p.manual = manual
             

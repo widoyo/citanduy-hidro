@@ -8,7 +8,17 @@ from app.models import Pos
 
 @bp.route('/pos')
 def index():
-    return jsonify([{'id': p.id, 'nama': p.nama} for p in Pos.select().where(Pos.tipe.in_(('1', '2', '3')))])
+    return jsonify([
+        {'id': p.id, 
+         'nama': p.nama,
+         'tipe': p.tipe,
+         'll': p.ll,
+         'elevasi': p.elevasi,
+         'sungai': p.sungai,
+         'kabupaten': p.kabupaten,
+         'kecamatan': p.kecamatan,
+         'desa': p.desa
+         } for p in Pos.select()])
 
 @bp.route('/pos/<int:id>', methods=['GET'])
 def pos(id):
