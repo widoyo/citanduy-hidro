@@ -225,7 +225,7 @@
             {
                 id: 'faultyDevice',
                 path: '/ews?device=1',
-                label: 'Faulty Device',
+                label: `Faulty Device <span id="faulty-badge" style="background:#d00; color:#fff; border-radius:8px; font-size:10px; padding:2px 4px; vertical-align:middle;">0</span>`,
                 defaultVisible: false,
                 type: 'json-list', // Tipe data yang diharapkan
                 style: function(feature) {
@@ -450,6 +450,19 @@
                     // Opsional: Atur batas peta ke layer GeoJSON pertama yang dimuat, atau semua layer
                     if (layerDef.id === 'wscitanduy') { // Atau layer lain yang paling penting
                         map.fitBounds(layer.getBounds());
+                    }
+
+                    // Tambahkan badge faulty-badge jika ada
+                    if (layerDef.id === 'faultyDevice') {
+                        const el = document.getElementById('faulty-badge');
+                        if (el) {
+                            el.textContent = finalGeoJSON.features.length; // Update badge dengan jumlah fitur
+                            if (finalGeoJSON.features.length > 0) {
+                                el.style.display = 'inline'; // Tampilkan badge jika ada fitur 
+                            } else {
+                                el.style.display = 'none'; // Sembunyikan badge jika tidak ada fitur
+                            }
+                        }
                     }
                 } else {
                     console.warn(`Layer ${layerDef.id} tidak memiliki fitur yang valid dan tidak akan ditambahkan ke peta.`);
@@ -758,6 +771,9 @@
 
                     // Panggil pertama kali untuk menampilkan waktu segera
                     updateDateTime();
+
+                    // Panggil updateScreen saat halaman dimuat
+                    this.updateScreen();
 
                     // Perbarui setiap 500ms (setengah detik) untuk efek berkedip titik dua
                     setInterval(updateDateTime, 500);
