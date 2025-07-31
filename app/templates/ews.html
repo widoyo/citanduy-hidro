@@ -210,7 +210,7 @@
                 defaultVisible: true,
                 style: function(feature) {
                     return {
-                        color: "#006699",
+                        color: "#dd0000",
                         weight: 1,
                         fillOpacity: feature.properties?.["fill-opacity"] || 0,
                         opacity: feature.properties?.["stroke-opacity"] || 1
@@ -235,7 +235,7 @@
                         weight: 2,
                         opacity: 0.8,
                         fillOpacity: 0.5,
-                        radius: 4
+                        radius: 6
                     };
                 },
                 filter: function(feature) {
@@ -297,7 +297,7 @@
             {
                 id: 'rainSensor',
                 path: '/api/pos', // Path ke API tunggal
-                label: 'Rain Sensor',
+                label: 'Pos Curah Hujan',
                 type: 'json-list', // Tipe data yang diharapkan
                 defaultVisible: false,
                 filter: function(feature) { return feature && feature.properties && (feature.properties.tipe === '1' || feature.properties.tipe === '3'); }, // Filter untuk layer ini
@@ -308,7 +308,7 @@
                         weight: 2,
                         opacity: 0.8,
                         fillOpacity: 0.6,
-                        radius: 5
+                        radius: 6
                     };
                 },
                 pointToLayer: function (feature, latlng) {
@@ -323,7 +323,7 @@
             {
                 id: 'waterLevelSensor',
                 path: '/api/pos', // Path ke API tunggal
-                label: 'Water Level Sensor',
+                label: 'Pos Duga Air',
                 type: 'json-list',
                 defaultVisible: false,
                 filter: function(feature) {
@@ -336,7 +336,7 @@
                         weight: 2,
                         opacity: 0.8,
                         fillOpacity: 0.6,
-                        radius: 5
+                        radius: 6
                     };
                 },
                 pointToLayer: function (feature, latlng) {
@@ -472,9 +472,124 @@
             },
             customDate: new Date(), // Variabel untuk menyimpan tanggal khusus
             isSimulasi: false,
-            isSimul: () => {
+            isSimul: function() {
                 console.log('Simulasi status:', this.simulasi);
                 return this.simulasi === true;
+            },
+            updateScreen: function() {
+                // Update screen logic here
+                console.log('Updating screen...');
+                this.updateRain();
+                this.updateWlevel();
+            },
+            updateRain: function() {
+                // Update rain data logic here
+                console.log('Updating rain data...');
+                let el = document.getElementById('rain-badge');
+                if (el) {
+                    el.style.display = 'none'; // Hide the element first
+                }
+                // fetch /api/rain and update the map
+                fetch('/ews?rain=1')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Clear existing rain markers
+                        // Remove existing rain circle markers (by checking for circleMarker type and a custom property)
+                        map.eachLayer(layer => {
+                            if (layer instanceof L.CircleMarker && layer.options && layer.options.color === '#0074D9') {
+                                map.removeLayer(layer);
+                            }
+                        });
+                        if (data.length > 0) {
+                            el.textContent = data.length; // Update badge with the number of rain markers
+                            el.style.display = 'inline'; // Show the element if there are markers
+                        }
+                        
+                        // Add new rain markers to the map
+                        data.forEach(item => {
+                            const [lat, lon] = item.pos.latlon.split(',').map(Number);
+                            if (isNaN(lat) || isNaN(lon)) {
+                                // Skip this item if lat/lon are not valid numbers
+                                return;
+                            }
+                            const marker = L.circleMarker([lat, lon], {
+                                radius: 6,
+                                color: '#0074D9',
+                                fillColor: '#0074D9',
+                                fillOpacity: 0.8,
+                                weight: 2
+                            })
+                            .addTo(map);
+                            marker.bindPopup(`
+                            <div style="padding:4px; min-width:220px;">
+                                <h4 style="margin:0 0 8px 0; color:#FF851B;">Siaga Hujan Lebat</h4>
+                                <div style="font-weight:bold; margin-bottom:6px;">${item.pos.nama}</div>
+                                <div style="font-size:0.95em; color:#555;">
+                                    <span>Last Sampling:</span><br>
+                                    <span style="font-weight:bold;">${item.sampling}</span>
+                                </div>
+                            </div>
+                        `, {autoPan: true});
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching rain data:', error);
+                    });
+            },
+            updateWlevel: function() {
+                // Update water level data logic here
+                console.log('Updating water level data...');
+                let el = document.getElementById('wlevel-badge');
+                if (el) {
+                    el.style.display = 'none'; // Hide the element first
+                }
+                //console.log()
+                // fetch /api/wlevel and update the map
+                fetch('/ews?wlevel=1')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Clear existing water level markers
+                        // Remove existing water level circle markers (by checking for circleMarker type and a custom property)
+                        map.eachLayer(layer => {
+                            if (layer instanceof L.CircleMarker && layer.options && layer.options.color === '#FF851B') {
+                                map.removeLayer(layer);
+                            }
+                        });
+                        el.textContent = data.length;
+                        if (data.length > 0) {
+                            el.style.display = 'inline'; // Show the element if there are markers
+                        }
+
+                        // Add new water level markers to the map
+                        data.forEach(item => {
+                            const [lat, lon] = item.pos.latlon.split(',').map(Number);
+                            if (isNaN(lat) || isNaN(lon)) {
+                                // Skip this item if lat/lon are not valid numbers
+                                return;
+                            }
+                            const marker = L.circleMarker([lat, lon], {
+                                radius: 6,
+                                color: '#FF851B',
+                                fillColor: '#FF851B',
+                                fillOpacity: 0.8,
+                                weight: 2
+                            })
+                            .addTo(map);
+                            marker.bindPopup(`
+                            <div style="padding:4px; min-width:220px;">
+                                <h4 style="margin:0 0 8px 0; color:#FF851B;">Siaga Muka Air</h4>
+                                <div style="font-weight:bold; margin-bottom:6px;">${item.pos.nama}</div>
+                                <div style="font-size:0.95em; color:#555;">
+                                    <span>Last Sampling:</span><br>
+                                    <span style="font-weight:bold;">${item.sampling}</span>
+                                </div>
+                            </div>
+                        `, {autoPan: true});
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching water level data:', error);
+                    });
             },
             onAdd: function (map) {
                 // Buat elemen div yang akan menjadi container sidebar
@@ -511,26 +626,33 @@
                 container.innerHTML = `
                     <div class="logo-container">
                         <div><div class="logo-text">EWS</div>
-                            <div style="font-size:9pt;color:black;text-shadow: none !important;">Hidro Meteorologi</div>
+                            <div style="font-size:9pt;color:black;text-shadow: none !important;">Hidrometeorologi</div>
                         </div>
                         <div class="time-container"><span class="date-text">23 Juli<br>2025</span><span class="hour-text">16:04</span></div>
                     </div>
                         <div class="box">
-                        <h3 class="box-header">Curah Hujan <span class="toggle-icon">+</span></h3>
+                        <h3 class="box-header">
+                            Curah Hujan 
+                            <span>
+                                <span id="rain-badge" style="display: none; margin-right: 10px; background:#d00; color:#fff; border-radius:8px; font-size:10px; padding:2px 4px; vertical-align:middle;">12</span>
+                                <span class="toggle-icon">+</span>
+                            </span>
+                        </h3>
                         <div class="box-content">
-                            <p>Ini adalah isi dari Box Informasi 1. Anda bisa menempatkan teks, gambar, atau elemen UI lainnya di sini.</p>
-                            <p>Konten ini akan terlihat atau tersembunyi saat box di-collapse.</p>
+                            <p>Kosong</p>
                         </div>
                     </div>
 
                     <div class="box">
-                        <h3 class="box-header">Tinggi Muka Air <span class="toggle-icon">+</span></h3>
+                        <h3 class="box-header">
+                            Tinggi Muka Air
+                            <span>
+                                <span id="wlevel-badge" style="display: none; margin-right: 10px; background:#d00; color:#fff; border-radius:8px; font-size:10px; padding:2px 4px; vertical-align:middle;">0</span>
+                                <span class="toggle-icon">+</span>
+                            </span>
+                        </h3>
                         <div class="box-content">
-                            <p>Di sini Anda bisa menambahkan kontrol layer untuk Leaflet.</p>
-                            <ul>
-                                <li>Base Map A</li>
-                                <li>Overlay Layer X</li>
-                            </ul>
+                            <p>Kosong.</p>
                         </div>
                     </div>
 
@@ -542,10 +664,12 @@
                     </div>
 
                     <div class="box">
-                        <h3 class="box-header">Rain Player <span class="toggle-icon">+</span></h3>
+                        <h3 class="box-header">About... <span class="toggle-icon">+</span></h3>
                         <div class="box-content">
-                            <p>Simulasi Peringatan hujan</p>
-                            <button onclick="isSimul()">Tombol Aksi</button>
+                            <p>Peringatan Dini Hujan dan Tinggi Muka Air</p>
+                            <p>Hujan kategori lebat sejam lalu</p>
+                            <p>Tinggi muka air yang melebihi batas Siaga Kuning</p>
+                            <p>Anda juga dapat berlangganan Telegram </p>
                         </div>
                     </div>
                     `;
@@ -620,6 +744,14 @@
                         hourTextElement.textContent = `${hours}${colon}${minutes}`;
 
                         showColon = !showColon; // Balik status untuk detik berikutnya
+
+                        // this,customDate +=  500ms; // Tambahkan 500ms untuk update berikutnya
+                        this.customDate = new Date(date.getTime() + 500);
+                        
+                        // Jika menit dalam kelipatan 5, jalankan updateScreen
+                        if (date.getMinutes() % 5 === 0 && date.getSeconds() === 0) {
+                            this.updateScreen();
+                        }
                     }
 
                     // --- Inisialisasi dan Pembaruan Otomatis ---

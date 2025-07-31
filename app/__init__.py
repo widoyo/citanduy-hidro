@@ -27,29 +27,58 @@ from app.models import FetchLog, User, RDaily, UserQuery, ManualDaily, Pos, OPos
 from app.forms import CurahHujanForm, TmaForm
 from app.utils import request_handler
 
+def get_warning_wlevel(now: datetime.datetime = datetime.datetime.now()) -> list:
+    '''Mengambil daftar pos dengan level air tinggi
+    Syarat output:
+    - harus terdefinisikan siaga sh, sk, sm
+    - harus ada wlevel di raw telemetri pada hari ini (now)
+    - harus ada latlon yang valid
+    '''
+    rd = RDaily.select().where(RDaily.sampling==now.date())
+    warning_list = []
+    for r in rd:
+        if not r.pos or not r.pos.sh or not r.pos.ll:
+            continue
+        pos = r.pos
+        raw = json.loads(r.raw)
+        if 'wlevel' not in raw[0]:
+            continue
+        if float(raw[-1]['wlevel']) > 100.0:  # Threshold for warning, e.g., 100 cm
+            pass
+        warning_list.append(
+            {
+                'pos': 
+                    {'nama': pos.nama,
+                     'id': pos.id,
+                     'latlon': pos.ll,
+                     'elevasi': pos.elevasi,
+                     'source': r.source,
+                     'sh': pos.sh,
+                     'sk': pos.sk,
+                     'sm': pos.sm
+                     },
+                'sampling': now, 
+                'wlevel': float(raw[-1]['wlevel'])
+            })
+    return warning_list
 
-def get_hard_rainfall(now: datetime.datetime = datetime.datetime.now()) -> list:
+def get_heavy_rainfall(now: datetime.datetime = datetime.datetime.now()) -> list:
     rd = RDaily.select().where(RDaily.sampling==now.date())
     rain_list = []
     for r in rd:
+        if not r.pos or not r.pos.ll or not r.pos.tipe in ('1', '3'):
+            continue
         raw = json.loads(r.raw)
         if 'rain' not in raw[0]:
             continue
-        pos = r.nama
-        pos_id = None
-        pos_ll = ''
-        pos_source = r.source
-        if r.pos != None:
-            pos = r.pos.nama
-            pos_id = r.pos.id
-            pos_ll = r.pos.ll
-        if 'PDA' in pos:
-            continue
+        pos = r.pos
         minute_start = datetime.datetime.fromisoformat(raw[-1]['sampling'])
         durasi = datetime.timedelta()
         hujan = 0
         if r.source in ('SA', 'SB'):
             for ra in reversed(raw):
+                if 'rain' not in ra:
+                    continue
                 sampling = datetime.datetime.fromisoformat(ra['sampling'])
                 if sampling < now - datetime.timedelta(minutes=60):
                     continue
@@ -71,16 +100,20 @@ def get_hard_rainfall(now: datetime.datetime = datetime.datetime.now()) -> list:
                 l = ra['rain']
                 #click.echo('{} {}'.format(sampling.strftime('%H:%M'), ra['rain']))
         if hujan > 10.0:
-            rain_list.append(
-                {
-                    'pos': pos, 
-                    'pos_id': pos_id,
-                    'pos_ll': pos_ll,
-                    'pos_source': pos_source,
-                    'start_sampling': minute_start, 
-                    'rain': hujan, 
-                    'duration': durasi.total_seconds()
-                })
+            pass
+        rain_list.append(
+            {
+                'pos': 
+                    {'nama': pos.nama, 
+                    'id': pos.id,
+                    'latlon': pos.ll,
+                    'source': r.source,
+                    'elevasi': pos.elevasi,
+                    },
+                'sampling': raw[0]['sampling'], 
+                'rain': hujan, 
+                'duration': durasi.total_seconds()
+            })
     return rain_list
 
 def get_delayed_device() -> list:
@@ -100,7 +133,7 @@ def get_delayed_device() -> list:
     
     return device_list
 
-def get_sampling(s: str = None) -> list:
+def get_sampling(s: str="") -> list:
     try:
         sampling = datetime.datetime.strptime(s, '%Y-%m-%d')
         _sampling = sampling - datetime.timedelta(days=1)
@@ -190,8 +223,14 @@ def create_app():
                     'll': p.ll
                 })
             return jsonify(data)
+        if request.args.get('warning'):
+            warning_list = get_warning_wlevel()
+            return jsonify(warning_list)
+        if request.args.get('wlevel'):
+            warning_list = get_warning_wlevel()
+            return jsonify(warning_list)
         if request.args.get('rain'):
-            rain_list = get_hard_rainfall()
+            rain_list = get_heavy_rainfall()
             return jsonify(rain_list)
         if request.args.get('device'):
             device_list = get_delayed_device()
