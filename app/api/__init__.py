@@ -145,7 +145,12 @@ def wlevel():
             'latlon': p.ll, 
             'id': p.id, 
             'sungai': p.sungai, 
-            'elevasi': p.elevasi},
+            'elevasi': p.elevasi,
+            'sh': p.sh,
+            'sk': p.sk,
+            'sm': p.sm,
+            'kabupaten': p.kabupaten
+            },
                    'telemetri': p.telemetri,
                    'vendor': p.vendor,
                    'manual': p.manual} for p in pdas]
