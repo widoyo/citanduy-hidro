@@ -84,6 +84,9 @@ def wlevel():
             # Perhitungan trend Muka air thd 15 menit dan 60 menit sebelumnya
             t_raw_3 = t_raw_12 = {}
             t_raw = json.loads(r.raw) if r and r.raw else []
+            
+            if t_raw:
+                print(r.raw)
             p.telemetri = t_raw[-1] if r else {}
             
             if len(t_raw) >= 12:
@@ -131,6 +134,8 @@ def wlevel():
                 wlevel_trends['t_15_min']['wlevel'] = wlevel_trends['t_15_min']['wlevel'] * 100 if wlevel_trends['t_15_min']['wlevel'] else None
                 wlevel_trends['t_60_min']['wlevel'] = wlevel_trends['t_60_min']['wlevel'] * 100 if wlevel_trends['t_60_min']['wlevel'] else None    
             p.telemetri['trend'] = wlevel_trends
+            if t_raw:
+                p.telemetri['raw'] = [{'sampling': t.get('sampling'), 'wlevel': t.get('wlevel')} for t in t_raw]
             if 'rain' in p.telemetri:
                 del p.telemetri['rain']
             p.vendor = r.vendor if r else None
@@ -149,7 +154,9 @@ def wlevel():
             'sh': p.sh,
             'sk': p.sk,
             'sm': p.sm,
-            'kabupaten': p.kabupaten
+            'kabupaten': p.kabupaten,
+            'kecamatan': p.kecamatan,
+            'desa': p.desa,
             },
                    'telemetri': p.telemetri,
                    'vendor': p.vendor,
