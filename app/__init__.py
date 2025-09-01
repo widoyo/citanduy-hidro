@@ -13,6 +13,7 @@ from peewee import fn
 import dateparser
 from bs4 import BeautifulSoup
 from gtts import gTTS
+import pandas as pd
 
 import requests
 import datetime
@@ -23,7 +24,7 @@ load_dotenv()
 db_wrapper = FlaskDB()
 csrf = CSRFProtect()
 
-from app.models import FetchLog, User, RDaily, UserQuery, ManualDaily, Pos, OPos
+from app.models import FetchLog, User, RDaily, UserQuery, ManualDaily, Pos, OPos, NUM_DAYS
 from app.forms import CurahHujanForm, TmaForm
 from app.utils import request_handler
 
@@ -99,21 +100,20 @@ def get_heavy_rainfall(now: datetime.datetime = datetime.datetime.now()) -> list
                 hujan += rain_now
                 l = ra['rain']
                 #click.echo('{} {}'.format(sampling.strftime('%H:%M'), ra['rain']))
-        if hujan > 10.0:
-            pass
-        rain_list.append(
-            {
-                'pos': 
-                    {'nama': pos.nama, 
-                    'id': pos.id,
-                    'latlon': pos.ll,
-                    'source': r.source,
-                    'elevasi': pos.elevasi,
-                    },
-                'sampling': raw[0]['sampling'], 
-                'rain': hujan, 
-                'duration': durasi.total_seconds()
-            })
+        if hujan > 5.0:
+            rain_list.append(
+                {
+                    'pos': 
+                        {'nama': pos.nama, 
+                        'id': pos.id,
+                        'latlon': pos.ll,
+                        'source': r.source,
+                        'elevasi': pos.elevasi,
+                        },
+                    'sampling': raw[0]['sampling'], 
+                    'rain': hujan, 
+                    'duration': durasi.total_seconds()
+                })
     return rain_list
 
 def get_delayed_device() -> list:
@@ -301,7 +301,10 @@ def create_app():
                 csv_data += 'Diunduh: {}\n'.format(datetime.datetime.now().strftime('%d %b %Y jam %H:%M:%S'))
                 jam = ','.join([str(i) for i in range(0, 24)]) + '\n'
                 if tipe == '1':
-                    jam = ','.join([str(d) for d in list(rd[0]._rain().get('hourly').keys())])
+                    try:
+                        jam = ','.join([str(d) for d in list(rd[0]._rain().get('hourly').keys())])
+                    except:
+                        pass
                 csv_data += 'Pos, Kabupaten,' + jam + '\n'
 
                 for r in rd:
@@ -315,47 +318,174 @@ def create_app():
                 response = Response(csv_data, content_type="text/csv")
                 response.headers["Content-Disposition"] = "attachment; filename={}".format(fname)
                 return response
-            
-            try:
-                data = request.form
+            elif request.form.get('periode') == 'sebulan':
+                # download data Telemetri dan manual per pos atau semua pos
+                pos_id = request.form.get('pos_id')
+                sampling_str = request.form.get('sampling', datetime.date.today().strftime('%Y-%m'))
                 
-                pos = Pos.get(int(data.get('pos_id')))
-            except:
-                return abort(404)
-            csv_data = pos.nama + '\n'
-            csv_data += 'Tanggal Download: ' + datetime.date.today().strftime('%d-%m-%Y') + '\n'
-            if pos.tipe in ('1', '3'):
-                csv_data += 'Tanggal, Curah hujan\n'
-                mds = ManualDaily.select(ManualDaily.sampling, 
-                                         ManualDaily.ch).where(
-                                             ManualDaily.pos_id==pos.id).order_by(
-                                                 ManualDaily.sampling)
-                for m in mds:
-                    csv_data += '{}, {}\n'.format(m.sampling, m.ch)
-            elif pos.tipe == '2':
-                csv_data += 'Tanggal, TMA7, TMA12, TMA17, TMARata-rata\n'
-                mds = ManualDaily.select(ManualDaily.sampling, 
-                                         ManualDaily.tma).where(
-                                             ManualDaily.pos_id==pos.id).order_by(
-                                                 ManualDaily.sampling)
-                for m in mds:
-                    tmas = json.loads(m.tma)
-                    tma = {'07': None, '12': None, '17': None}
-                    for j in ('07', '12', '17'):
-                        try:
-                            tma[j] = tmas[j]
-                        except KeyError:
-                            pass
-                    filled_tma = [t for t in tma.values() if t]
-                    tmarerata = sum(filled_tma)/ len(filled_tma)
-                    csv_data += '{}, {}, {}, {}, {:.1f}\n'.format(m.sampling, 
-                                                              tma['07'], 
-                                                              tma['12'],
-                                                              tma['17'],
-                                                              tmarerata)
+                # Parsing tanggal dan validasi input
+                sampling_date = dateparser.parse(sampling_str)
+                if not sampling_date:
+                    return abort(404, "Invalid sampling date format.")
 
-            response = Response(csv_data, content_type="text/csv")
-            return response
+                is_pch = pos_id and pos_id.startswith('pch_')
+                
+                pos_ids = []
+                if pos_id == 'pch_all':
+                    pos_ids = [p.id for p in Pos.select().where(Pos.tipe.in_(['1', '3'])).order_by(Pos.nama)]
+                elif pos_id == 'pda_all':
+                    pos_ids = [p.id for p in Pos.select().where(Pos.tipe=='2').order_by(Pos.nama)]
+                elif pos_id and pos_id.startswith(('pch_', 'pda_')):
+                    try:
+                        pos_ids = [int(pos_id.split('_')[1])]
+                    except (ValueError, IndexError):
+                        return abort(404, "Invalid pos_id format.")
+                else:
+                    return abort(404, "Invalid pos_id.")
+                
+                # Filter data berdasarkan bulan/tahun
+                sampling_month_year = sampling_date.strftime('%Y-%m')
+                
+                # Fetch data from Peewee
+                rd_query = RDaily.select().where(
+                    fn.TO_CHAR(RDaily.sampling, 'YYYY-MM') == sampling_month_year, 
+                    RDaily.pos_id.in_(pos_ids)).order_by(RDaily.pos_id, RDaily.sampling)
+                
+                man_query = ManualDaily.select().where(
+                    fn.TO_CHAR(ManualDaily.sampling, 'YYYY-MM') == sampling_month_year, 
+                    ManualDaily.pos_id.in_(pos_ids)).order_by(ManualDaily.pos_id, ManualDaily.sampling)
+                
+                df_tele = pd.DataFrame()
+                df_man = pd.DataFrame()
+                
+                # Konversi Peewee query ke DataFrame
+                if is_pch:
+                    telemetri = [(r.pos.nama, r.pos.kabupaten, r.sampling, r._rain()['rain24']) for r in rd_query]
+                    manual = [(m.pos.nama, m.pos.kabupaten, m.sampling, m.ch) for m in man_query]
+                    
+                    df_tele = pd.DataFrame(telemetri, columns=['nama', 'kabupaten', 'sampling', 'cht'])
+                    df_man = pd.DataFrame(manual, columns=['nama', 'kabupaten', 'sampling', 'chm'])
+                    
+                    df_tele['sampling'] = pd.to_datetime(df_tele['sampling'])
+                    df_man['sampling'] = pd.to_datetime(df_man['sampling'])
+
+                else: # is_pda
+                    telemetri = [(r.pos.nama, r.pos.kabupaten, r.sampling, r._tma()[7].get('wlevel'), r._tma()[12].get('wlevel'), r._tma()[17].get('wlevel')) for r in rd_query]
+                    manual = [(m.pos.nama, m.pos.kabupaten, m.sampling, m._tma.get('07'), m._tma.get('12'), m._tma.get('17')) for m in man_query]
+                    
+                    df_tele = pd.DataFrame(telemetri, columns=['nama', 'kabupaten', 'sampling', 'tma7', 'tma12', 'tma17'])
+                    df_man = pd.DataFrame(manual, columns=['nama', 'kabupaten', 'sampling', 'm07', 'm12', 'm17'])
+                    
+                    df_tele['sampling'] = pd.to_datetime(df_tele['sampling'])
+                    df_man['sampling'] = pd.to_datetime(df_man['sampling'])
+
+                # Gabungkan kedua DataFrame
+                df_out = pd.merge(df_tele, df_man, on=['nama', 'sampling'], how='outer', suffixes=('_tele', '_man'))
+                
+                # Buat kolom 'key' baru dan tentukan kolom nilai
+                if 'kabupaten_tele' in df_out.columns:
+                    df_out['kabupaten'] = df_out['kabupaten_tele'].fillna(df_out['kabupaten_man'])
+                else:
+                    df_out['kabupaten'] = df_out['kabupaten_man'].fillna(df_out['kabupaten_tele'])
+
+                df_out['pos'] = df_out['nama']
+                df_out['kabupaten'] = df_out['kabupaten'].fillna('-')
+                
+                # Tentukan kolom yang akan di-pivot
+                if is_pch:
+                    file_header = 'Data Curah Hujan Bulan {} Telemetri & Manual\n'.format(sampling_date.strftime('%b %Y'))
+                    columns_to_pivot = ['cht', 'chm']
+                else:
+                    file_header = 'Data Muka Air Bulan {} Telemetri & Manual\n'.format(sampling_date.strftime('%b %Y'))
+                    columns_to_pivot = ['tma7', 'tma12', 'tma17', 'm07', 'm12', 'm17']
+
+                # Lakukan pivot table
+                df_pivoted = df_out.pivot_table(
+                    index=['pos', 'kabupaten'], columns='sampling', values=columns_to_pivot, aggfunc='first')
+                
+                # Handle kasus di mana tidak ada data sama sekali
+                if df_pivoted.empty:
+                    return jsonify({"message": "No data found for the selected period."}), 200
+
+                # Reindex dengan rentang tanggal penuh untuk bulan tersebut
+                start_date = sampling_date.replace(day=1)
+                end_date = sampling_date.replace(day=1, month=sampling_date.month+1) - datetime.timedelta(days=1) if sampling_date.month != 12 else sampling_date.replace(day=31)
+                all_dates_in_month = pd.date_range(start=start_date, end=end_date, freq='D')
+
+                full_multi_index = pd.MultiIndex.from_product([columns_to_pivot, all_dates_in_month], names=['variable', 'date'])
+                df_reindexed = df_pivoted.reindex(columns=full_multi_index)
+
+                # 5. Get the correct, alternating order of column names
+                #    We will iterate through each date and create two entries for it.
+                ordered_cols = []
+                for date in all_dates_in_month:
+                    day_str = date.strftime('%d')
+                    if is_pch:
+                        ordered_cols.append(f"cht_{day_str}")
+                        ordered_cols.append(f"chm_{day_str}")
+                    else:
+                        ordered_cols.append(f"t_7_{day_str}")
+                        ordered_cols.append(f"m_7_{day_str}")
+                        ordered_cols.append(f"t_12_{day_str}")
+                        ordered_cols.append(f"m_12_{day_str}")
+                        ordered_cols.append(f"t_17_{day_str}")
+                        ordered_cols.append(f"m_17_{day_str}")
+
+                # Meratakan multi-index kolom dan format nama
+                df_reindexed.columns = [f"{col[0]}_{col[1].strftime('%d')}" for col in df_reindexed.columns]
+                df_final = df_reindexed.reindex(columns=ordered_cols)
+                
+                df_final = df_final.reset_index()
+                
+                # Mengubah DataFrame menjadi CSV dan mengirimkannya
+                csv_output = df_final.to_csv(index=False)
+                csv_output = file_header + csv_output  # Menambahkan newline di awal file jika diperlukan
+                response = Response(csv_output, content_type="text/csv")
+                fname = 'DataTeleMan_{}.csv'.format(sampling_month_year)
+                response.headers["Content-Disposition"] = f"attachment; filename={fname}"
+                return response
+            # Download data manual per pos
+            else:
+                try:
+                    data = request.form
+                    
+                    pos = Pos.get(int(data.get('pos_id')))
+                except:
+                    return abort(404)
+                csv_data = pos.nama + '\n'
+                csv_data += 'Tanggal Download: ' + datetime.date.today().strftime('%d-%m-%Y') + '\n'
+                if pos.tipe in ('1', '3'):
+                    csv_data += 'Tanggal, Curah hujan\n'
+                    mds = ManualDaily.select(ManualDaily.sampling, 
+                                            ManualDaily.ch).where(
+                                                ManualDaily.pos_id==pos.id).order_by(
+                                                    ManualDaily.sampling)
+                    for m in mds:
+                        csv_data += '{}, {}\n'.format(m.sampling, m.ch)
+                elif pos.tipe == '2':
+                    csv_data += 'Tanggal, TMA7, TMA12, TMA17, TMARata-rata\n'
+                    mds = ManualDaily.select(ManualDaily.sampling, 
+                                            ManualDaily.tma).where(
+                                                ManualDaily.pos_id==pos.id).order_by(
+                                                    ManualDaily.sampling)
+                    for m in mds:
+                        tmas = json.loads(m.tma)
+                        tma = {'07': None, '12': None, '17': None}
+                        for j in ('07', '12', '17'):
+                            try:
+                                tma[j] = tmas[j]
+                            except KeyError:
+                                pass
+                        filled_tma = [t for t in tma.values() if t]
+                        tmarerata = sum(filled_tma)/ len(filled_tma)
+                        csv_data += '{}, {}, {}, {}, {:.1f}\n'.format(m.sampling, 
+                                                                tma['07'], 
+                                                                tma['12'],
+                                                                tma['17'],
+                                                                tmarerata)
+
+                response = Response(csv_data, content_type="text/csv")
+                return response
  
         poses = Pos.select().order_by(Pos.nama)
         pdas = [p for p in poses if p.tipe == '2']
@@ -492,6 +622,7 @@ def register_bluprint(app):
     from app.kinerja import bp as bp_kinerja
     from app.api import bp as bp_api
     from app.note import bp as bp_note
+    from app.publikasi import bp as bp_publikasi
     
     app.register_blueprint(bp_pch)
     app.register_blueprint(bp_pda)
@@ -507,3 +638,4 @@ def register_bluprint(app):
     app.register_blueprint(bp_kinerja)
     app.register_blueprint(bp_api)
     app.register_blueprint(bp_note)
+    app.register_blueprint(bp_publikasi)
