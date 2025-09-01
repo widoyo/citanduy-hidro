@@ -54,7 +54,9 @@ class KodeWilayah(BaseModel):
     parent = pw.ForeignKeyField('self', null=True)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
+    used = pw.BooleanField(default=False) # digunakan atau tidak
     
+
 class Notes(BaseModel):
     '''Komentar/Catatan terhadap'''
     username = pw.CharField(max_length=20)
@@ -549,7 +551,8 @@ class RDaily(BaseModel):
                 hourly[k] = {'count': v.get('num'), 'rain': v.get('rain')}
                 rain24 += v.get('rain')
                 count24 += v.get('num')
-        ret = {'count24': count24, 'rain24': rain24, 'hourly': hourly, 'raw': self.raw}
+        hasil = round(rain24, 1) if (rain24 != 0) else 0
+        ret = {'count24': count24, 'rain24': hasil, 'hourly': hourly, 'raw': self.raw}
         return ret
         
     class Meta:
@@ -662,3 +665,26 @@ class HasilUjiKualitasAir(BaseModel):
     lembaga = pw.CharField(max_length=50, null=True) # nama lab
     username = pw.CharField(max_length=20, null=True) # username yang upload
     cdate = pw.DateTimeField(default=datetime.datetime.now)
+
+
+class Forecast(BaseModel):
+    pass
+
+class Publikasi(BaseModel):
+    '''Publikasi data
+    Info Hujan
+    Info Debit
+    Info Kekeringan
+    '''
+    title = pw.CharField(max_length=100, index=True)
+    content = pw.TextField() # HTML content
+    filename = pw.CharField(max_length=100, null=True) # nama file publikasi
+    tags = pw.CharField(max_length=100, null=True) # tag 'kekeringan', 'hujan', 'debit'
+    sampling = pw.DateField(null=True) # tanggal publikasi
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    thumbnail_base64 = pw.TextField(null=True) # thumbnail image in base64
+    
+    class Meta:
+        indexes = (
+            (('title', 'sampling'), True),
+        )
