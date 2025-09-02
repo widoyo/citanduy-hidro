@@ -360,6 +360,7 @@ def create_app():
                 
                 # Konversi Peewee query ke DataFrame
                 if is_pch:
+                    fname = 'Hujan_{}.csv'.format(sampling_month_year)
                     telemetri = [(r.pos.nama, r.pos.kabupaten, r.sampling, r._rain()['rain24']) for r in rd_query]
                     manual = [(m.pos.nama, m.pos.kabupaten, m.sampling, m.ch) for m in man_query]
                     
@@ -370,18 +371,20 @@ def create_app():
                     df_man['sampling'] = pd.to_datetime(df_man['sampling'])
 
                 else: # is_pda
+                    fname = 'TMA_{}.csv'.format(sampling_month_year)
                     telemetri = [(r.pos.nama, r.pos.kabupaten, r.sampling, r._tma()[7].get('wlevel'), r._tma()[12].get('wlevel'), r._tma()[17].get('wlevel')) for r in rd_query]
                     manual = [(m.pos.nama, m.pos.kabupaten, m.sampling, m._tma.get('07'), m._tma.get('12'), m._tma.get('17')) for m in man_query]
-                    
-                    df_tele = pd.DataFrame(telemetri, columns=['nama', 'kabupaten', 'sampling', 'tma7', 'tma12', 'tma17'])
-                    df_man = pd.DataFrame(manual, columns=['nama', 'kabupaten', 'sampling', 'm07', 'm12', 'm17'])
+                    for t in telemetri:
+                        if t[0] == 'PDA Reboan':
+                            print(t)
+                    df_tele = pd.DataFrame(telemetri, columns=['nama', 'kabupaten', 'sampling', 'T07', 'T12', 'T17'])
+                    df_man = pd.DataFrame(manual, columns=['nama', 'kabupaten', 'sampling', 'M07', 'M12', 'M17'])
                     
                     df_tele['sampling'] = pd.to_datetime(df_tele['sampling'])
                     df_man['sampling'] = pd.to_datetime(df_man['sampling'])
 
                 # Gabungkan kedua DataFrame
                 df_out = pd.merge(df_tele, df_man, on=['nama', 'sampling'], how='outer', suffixes=('_tele', '_man'))
-                
                 # Buat kolom 'key' baru dan tentukan kolom nilai
                 if 'kabupaten_tele' in df_out.columns:
                     df_out['kabupaten'] = df_out['kabupaten_tele'].fillna(df_out['kabupaten_man'])
@@ -397,7 +400,7 @@ def create_app():
                     columns_to_pivot = ['cht', 'chm']
                 else:
                     file_header = 'Data Muka Air Bulan {} Telemetri & Manual\n'.format(sampling_date.strftime('%b %Y'))
-                    columns_to_pivot = ['tma7', 'tma12', 'tma17', 'm07', 'm12', 'm17']
+                    columns_to_pivot = ['T07', 'T12', 'T17', 'M07', 'M12', 'M17']
 
                 # Lakukan pivot table
                 df_pivoted = df_out.pivot_table(
@@ -414,7 +417,7 @@ def create_app():
 
                 full_multi_index = pd.MultiIndex.from_product([columns_to_pivot, all_dates_in_month], names=['variable', 'date'])
                 df_reindexed = df_pivoted.reindex(columns=full_multi_index)
-
+                
                 # 5. Get the correct, alternating order of column names
                 #    We will iterate through each date and create two entries for it.
                 ordered_cols = []
@@ -424,12 +427,12 @@ def create_app():
                         ordered_cols.append(f"cht_{day_str}")
                         ordered_cols.append(f"chm_{day_str}")
                     else:
-                        ordered_cols.append(f"t_7_{day_str}")
-                        ordered_cols.append(f"m_7_{day_str}")
-                        ordered_cols.append(f"t_12_{day_str}")
-                        ordered_cols.append(f"m_12_{day_str}")
-                        ordered_cols.append(f"t_17_{day_str}")
-                        ordered_cols.append(f"m_17_{day_str}")
+                        ordered_cols.append(f"T07_{day_str}")
+                        ordered_cols.append(f"M07_{day_str}")
+                        ordered_cols.append(f"T12_{day_str}")
+                        ordered_cols.append(f"M12_{day_str}")
+                        ordered_cols.append(f"T17_{day_str}")
+                        ordered_cols.append(f"M17_{day_str}")
 
                 # Meratakan multi-index kolom dan format nama
                 df_reindexed.columns = [f"{col[0]}_{col[1].strftime('%d')}" for col in df_reindexed.columns]
@@ -441,7 +444,6 @@ def create_app():
                 csv_output = df_final.to_csv(index=False)
                 csv_output = file_header + csv_output  # Menambahkan newline di awal file jika diperlukan
                 response = Response(csv_output, content_type="text/csv")
-                fname = 'DataTeleMan_{}.csv'.format(sampling_month_year)
                 response.headers["Content-Disposition"] = f"attachment; filename={fname}"
                 return response
             # Download data manual per pos
