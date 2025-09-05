@@ -47,27 +47,49 @@
                 <input type="hidden" value={{ csrf_token() }} name="csrf_token">
                     <a href="#group-telman" data-bs-toggle="collapse" aria-expanded="true" aria-controls="group1" role="button">Contoh output</a></p>
                 <div id="group-telman" class="collapse">
-                <p>TMA<br>
-                <code>        |           | 1-Jan ||| 2-Jan |||</code><br>
-                <code>        |           | 7 | 12| 17| 7 | 12| 17|</code><br>
-                <code>Nama Pos| Kabupaten |T|M|T|M|T|M|T|M|T|M|T|M|</code><br>
-
-                <code>Nama Pos | Kabupaten | </code><br/>
-                Curah Hujan<br>
-                <code>        |           | 1-Jan || 2-Jan ||</code><br>
-                <code>Nama Pos| Kabupaten | Tele | Man | Tele | Man |</code><br>
-                <code>Pos 1.  | Kabupaten | 1.6  | 1.5 | | |</code><br>
-                <code>Nama Pos | Kabupaten | 1-Jan || 2-Jan ||</code>
-            </p>
+                    <img src="/static/img/cth_download_rekap_hujan.png" class="img-fluid" alt="Contoh Output Download Rekap Hujan">
                 </div>
                 <div class="mb-3">
-                    <label for="regionSelect" class="form-label">Pilih PCH / PDA Semua atau per Pos</label>
+                    <label for="regionSelect" class="form-label">Pilih PCH / PDA Semua</label>
                     <select class="form-select" id="regionSelect" name="pos_id">
                     <optgroup label="A. Hujan">
                         <option value="pch_all">Semua PCH</option>
                     </optgroup>
                     <optgroup label="B. Tinggi Muka Air">
                         <option value="pda_all">Semua PDA</option>
+                    </optgroup>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="sampling" class="form-label">Bulan</label>
+                    <input type="month" style="width: 160px !important" name="sampling" value="{{ ctx.today.strftime('%Y-%m') }}" class="form-control" id="sampling">
+                </div>
+                <div>
+                    <input type="submit" name="submit" class="btn btn-outline-primary" id="submit" value="Download">
+                </div>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <h4><i class="bi bi-cloud-download me-2"></i> Data Telemetri Sebulan /jam</h4>
+            <form action="/download" method="POST" class="mt-3">
+                <input type="hidden" name="periode" value="sebulan">
+                <input type="hidden" value={{ csrf_token() }} name="csrf_token">
+                    <a href="#group-tel-per-pos" data-bs-toggle="collapse" aria-expanded="true" aria-controls="group1" role="button">Contoh output</a></p>
+                <div id="group-tel-per-pos" class="collapse">
+                    <img src="/static/img/cth_download_rekap_hujan.png" class="img-fluid" alt="Contoh Output Download Rekap Hujan">
+                </div>
+                <div class="mb-3">
+                    <label for="regionSelect" class="form-label">Pilih Pos</label>
+                    <select class="form-select" id="regionSelect" name="pos_id">
+                    <optgroup label="A. Hujan">
+                        {%- for p in ctx.pchs %}
+                        <option value="pch_{{ p.id }}">{{ p.nama }} - {{ p.kabupaten }}</option>
+                        {%- endfor %}
+                    </optgroup>
+                    <optgroup label="B. Tinggi Muka Air">
+                        {%- for p in ctx.pdas %}
+                        <option value="pda_{{ p.id }}">{{ p.nama }} - {{ p.kabupaten }}</option>
+                        {%- endfor %}
                     </optgroup>
                     </select>
                 </div>

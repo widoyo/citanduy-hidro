@@ -322,13 +322,17 @@ def create_app():
                 # download data Telemetri dan manual per pos atau semua pos
                 pos_id = request.form.get('pos_id')
                 sampling_str = request.form.get('sampling', datetime.date.today().strftime('%Y-%m'))
-                
+                print('pos_id', pos_id, 'sampling', sampling_str)
                 # Parsing tanggal dan validasi input
                 sampling_date = dateparser.parse(sampling_str)
-                if not sampling_date:
-                    return abort(404, "Invalid sampling date format.")
+                print('sampling_date', sampling_date)
+#                if not sampling_date:
+#                    return abort(404, "Invalid sampling date format.")
 
                 is_pch = pos_id and pos_id.startswith('pch_')
+                
+                # Filter data berdasarkan bulan/tahun
+                sampling_month_year = sampling_date.strftime('%Y-%m')
                 
                 pos_ids = []
                 if pos_id == 'pch_all':
@@ -337,14 +341,104 @@ def create_app():
                     pos_ids = [p.id for p in Pos.select().where(Pos.tipe=='2').order_by(Pos.nama)]
                 elif pos_id and pos_id.startswith(('pch_', 'pda_')):
                     try:
+                        print('pos_id', pos_id)
                         pos_ids = [int(pos_id.split('_')[1])]
-                    except (ValueError, IndexError):
-                        return abort(404, "Invalid pos_id format.")
+                        # query data satu pos sebulan hasilkan data per jam, telemetri saja
+                        pos = Pos.get(Pos.id==pos_ids[0])
+                        fname = '{}_{}.csv'.format(pos.nama.replace(' ', '_'), sampling_date.strftime('%Y-%m'))
+                        tipe = pos.tipe == '2' and 'Tinggi Muka Air' or 'Curah Hujan'
+                        header = F'''{tipe} Jam-Jaman
+
+Nama Pos:,{pos.nama}, Elevasi:,{pos.elevasi}
+No Stasiun:,{pos.register}, Tipe Alat:,Telemetri
+Bujur Timus:,{pos.ll.split(',')[1]},Pemilik:,BBWS Citanduy
+Lintang Selatan:,{pos.ll.split(',')[0]},Th. Pendirian:,-
+
+Data {tipe} Bulan {sampling_date.strftime('%b %Y')} Telemetri
+
+'''
+
+                        # Fetch data from Peewee
+                        rd_query = RDaily.select().where(
+                            fn.TO_CHAR(RDaily.sampling, 'YYYY-MM') == sampling_month_year, 
+                            RDaily.pos_id.in_(pos_ids)).order_by(RDaily.sampling)
+
+                        man_query = ManualDaily.select().where(
+                            fn.TO_CHAR(ManualDaily.sampling, 'YYYY-MM') == sampling_month_year, 
+                            ManualDaily.pos_id.in_(pos_ids)).order_by(ManualDaily.sampling)
+
+                        df_tele = pd.DataFrame()
+                        
+                        if is_pch:
+                            telemetri = []
+                            for t in rd_query:
+                                rain_data = t._rain().get('hourly')
+                                row = [t.sampling.strftime('%d'), t._rain().get('rain24')]
+                                for hour, val in rain_data.items():
+                                    row.append(round(val.get('rain'), 1))
+                                telemetri.append(row)
+                            
+                            df_tele = pd.DataFrame(telemetri, columns=['tanggal', 'telemetri', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '0', '1', '2', '3', '4', '5', '6'])
+                            
+                            manual = [(m.sampling.strftime('%d'), m.ch) for m in man_query]
+                            df_manual = pd.DataFrame(manual, columns=['tanggal', 'manual'])
+                            df_merged = pd.merge(df_tele, df_manual, on='tanggal', how='outer')
+                            df_merged = df_merged[['tanggal', 'telemetri', 'manual', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '0', '1', '2', '3', '4', '5', '6']]
+                            extra_lines = F"Jumlah, {df_tele['telemetri'].sum()}, {df_manual['manual'].sum()}\n"
+                            extra_lines += F"Rata-rata, {round(df_tele['telemetri'].mean(), 1)}, {round(df_manual['manual'].mean())}\n"
+                            extra_lines += F"Maksimum, {df_tele['telemetri'].max()}, {df_manual['manual'].max()}\n"
+                        else: # is_pda
+                            telemetri = []
+                            
+                            for r in rd_query:
+                                row = [r.sampling.strftime('%d')]
+                                tma_now = 0
+                                num_data = 0
+                                for k, v in r._24jam().items():
+                                    wlevel = v.get('wlevel', None)
+                                    if wlevel:
+                                        tma_now += wlevel
+                                        num_data += 1 
+                                    row.append(round(v.get('wlevel') * 0.01, 2))
+                                rerata = round((tma_now / num_data if num_data > 0 else 0), 2)
+                                row.append(round(rerata, 1))
+                                telemetri.append(row)
+
+                            df_tele = pd.DataFrame(telemetri, columns=['tanggal', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', 'harian'])
+                            
+                            maksimum = df_tele[['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23']].max()
+                            minimum = df_tele[['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23']].min()
+                            mean = df_tele[['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23']].mean()
+                            maks = maksimum.to_frame().T
+                            mins = minimum.to_frame().T
+                            means = mean.to_frame().T
+                            means = means.round(1)
+                            mins.insert(0, 'tanggal', 'Minimum')
+                            means.insert(0, 'tanggal', 'Rata-rata')
+                            maks.insert(0, 'tanggal', 'Maksimum')
+                            #maks.insert(len(maks.columns), 'harian', maksimum.max())
+                            maks['harian'] = round(maksimum.mean(), 1)
+                            mins['harian'] = minimum.min()
+                            means['harian'] = round(mean.mean(), 1)
+                            df_merged = pd.concat([df_tele, maks, means, mins], ignore_index=True)
+                            #df_merged = pd.DataFrame()
+                        
+                        # Mengubah DataFrame menjadi CSV dan mengirimkannya
+                        csv_output = df_merged.to_csv(index=False)
+                        csv_output = header + csv_output  # Menambahkan newline di awal file jika diperlukan
+                        
+                        response = Response(csv_output, content_type="text/csv")
+                        response.headers["Content-Disposition"] = f"attachment; filename={fname}"
+                        return response
+                        # ENDOF satu pos sebulan per jam
+
+                    except (ValueError, IndexError) as e:
+                        print(e)
+                        raise ValueError("Invalid pos_id format.")
+                        
+                        #return abort(404, "Invalid pos_id format.")
                 else:
                     return abort(404, "Invalid pos_id.")
-                
-                # Filter data berdasarkan bulan/tahun
-                sampling_month_year = sampling_date.strftime('%Y-%m')
                 
                 # Fetch data from Peewee
                 rd_query = RDaily.select().where(
@@ -367,21 +461,16 @@ def create_app():
                     df_tele = pd.DataFrame(telemetri, columns=['nama', 'kabupaten', 'sampling', 'cht'])
                     df_man = pd.DataFrame(manual, columns=['nama', 'kabupaten', 'sampling', 'chm'])
                     
-                    df_tele['sampling'] = pd.to_datetime(df_tele['sampling'])
-                    df_man['sampling'] = pd.to_datetime(df_man['sampling'])
-
                 else: # is_pda
                     fname = 'TMA_{}.csv'.format(sampling_month_year)
                     telemetri = [(r.pos.nama, r.pos.kabupaten, r.sampling, r._tma()[7].get('wlevel'), r._tma()[12].get('wlevel'), r._tma()[17].get('wlevel')) for r in rd_query]
                     manual = [(m.pos.nama, m.pos.kabupaten, m.sampling, m._tma.get('07'), m._tma.get('12'), m._tma.get('17')) for m in man_query]
-                    for t in telemetri:
-                        if t[0] == 'PDA Reboan':
-                            print(t)
+
                     df_tele = pd.DataFrame(telemetri, columns=['nama', 'kabupaten', 'sampling', 'T07', 'T12', 'T17'])
                     df_man = pd.DataFrame(manual, columns=['nama', 'kabupaten', 'sampling', 'M07', 'M12', 'M17'])
                     
-                    df_tele['sampling'] = pd.to_datetime(df_tele['sampling'])
-                    df_man['sampling'] = pd.to_datetime(df_man['sampling'])
+                df_tele['sampling'] = pd.to_datetime(df_tele['sampling'])
+                df_man['sampling'] = pd.to_datetime(df_man['sampling'])
 
                 # Gabungkan kedua DataFrame
                 df_out = pd.merge(df_tele, df_man, on=['nama', 'sampling'], how='outer', suffixes=('_tele', '_man'))
