@@ -1,7 +1,9 @@
 from flask_wtf import FlaskForm
 
-from wtforms import StringField, SelectField, HiddenField, FloatField
+from wtforms import StringField, SelectField, HiddenField, FloatField, DateField
 from wtforms.validators import DataRequired
+from flask_wtf.file import FileField, FileAllowed, FileRequired
+
 
 
 class UserForm(FlaskForm):
@@ -52,3 +54,10 @@ class HasilUjiKAForm(FlaskForm):
     fname = StringField('fname')
     lembaga = StringField('lembaga')
     
+
+class PublikasiForm(FlaskForm):
+    title = StringField('title', validators=[DataRequired()])
+    sampling = DateField('sampling', validators=[DataRequired()])
+    content = StringField('content', validators=[DataRequired()])
+    tags = StringField('tags', validators=[DataRequired()])
+    filename = FileField('filename', validators=[FileRequired(), FileAllowed(['pdf'], 'PDF only!')])

@@ -3,18 +3,29 @@
 {% block content %}
 <div class="row">
     <div class="col">
-        <h1 class="fw-lighter">{{ ctx.pos.nama|replace('PCH ', '') }} 
-          <small class="fs-6 fw-normal badge rounded-pill text-bg-info text-light">PCH</small>
-          <small class="ms-3 fs-5 text-secondary">{{ ctx.pos.kabupaten }}</small>
-        </h1>
+        <div class="dropdown d-inline">
+            <a class="fw-lighter dropdown-toggle text-decoration-none" href="#" id="posDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ ctx.pos.nama|replace('PCH ', '') }}
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="posDropdown">
+                {% for pos in ctx.all_pos %}
+                <li>
+                    <a class="dropdown-item" href="/pch/{{ pos.id }}/{{ ctx.sampling.strftime('%Y/%m') }}">
+                        {{ pos.nama|replace('PCH ', '') }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            <small class="fs-6 fw-normal badge rounded-pill text-bg-info text-light">PCH</small>
+            <small class="ms-3 fs-5 text-secondary">{{ ctx.pos.kabupaten }}</small>
+        </div>
     </div>
     <div class="col text-end">
         <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
             <a  href="/pch/{{ ctx.pos.id }}" role="button" class="btn btn-outline-primary">Sehari</a>
             <a disabled href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y/%m') }}" role="button" class="btn btn-outline-secondary">Sebulan</a>
             <a href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y') }}" role="button" class="btn btn-outline-primary">Setahun</a>
-          </div>
-    
+        </div>
     </div>
 </div>
 <div class="row">

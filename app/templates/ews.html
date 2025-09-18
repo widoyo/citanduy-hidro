@@ -39,12 +39,13 @@
             background-color: rgba(240, 240, 240, 0.7);
             border: 1px solid #ddd;
             border-radius: 5px;
-            overflow: hidden;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
         }
 
         .box-header {
-            padding: 10px 15px;
+            padding: 10px;
             background-color: rgba(230, 230, 230, 0.95);
             cursor: pointer;
             font-weight: bold;
@@ -52,6 +53,7 @@
             justify-content: space-between;
             align-items: center;
             margin: 0;
+            flex-shrink: 0; /* Prevent header from shrinking */
         }
 
         .box-header:hover {
@@ -65,14 +67,17 @@
 
         .box-content {
             max-height: 0;
-            overflow: hidden;
+            overflow-y: hidden;
             transition: max-height 0.4s ease-out, padding 0.4s ease-out;
             padding: 0 15px;
+            flex: 1;
+            min-height: 0;
         }
 
         .box:not(.collapsed) .box-content {
-            max-height: 500px; /* Sesuaikan jika konten sangat panjang */
+            max-height: 500px;
             padding: 10px 15px;
+            overflow-y: auto;
         }
 
         .box.collapsed .toggle-icon {
@@ -82,7 +87,7 @@
         .box:not(.collapsed) .toggle-icon {
             transform: rotate(45deg);
         }
-
+        
         /* Override Leaflet's default padding for controls if needed */
         .leaflet-right .leaflet-control {
              margin-right: 10px; /* Sesuaikan padding agar lebih pas dengan 20px dari tepi */
@@ -206,7 +211,7 @@
             {
                 id: 'wscitanduy',
                 path: '/static/js/citanduy.json',
-                label: 'WS Citanduy',
+                label: 'DAS di WS Citanduy',
                 defaultVisible: true,
                 style: function(feature) {
                     return {
@@ -477,6 +482,70 @@
         layerDefinitions.forEach(loadGeoJsonLayer);
         window.simulasi = false;
 
+        function createSensorMarker(latlng, sensorId, badgeStatus, options = {}) {
+            // Default options
+            const defaults = {
+                size: 16,               // Size of the square in pixels
+                color: '#2c3e50',       // Square border color
+                fillColor: '#3498db',    // Square fill color
+                fillOpacity: 0.8,
+                textColor: '#ffffff',    // Center number color
+                badgeSize: 0,           // Badge circle size
+                badgeStatus: 'normal',   // 'normal', 'warning', or 'alert'
+                blink: false             // Enable blinking animation
+            };
+            
+            const config = { ...defaults, ...options, badgeStatus };
+            
+            // Badge color mapping
+            const badgeColors = {
+                normal: '#4CAF50',  // Green
+                warning: '#FFC107', // Yellow
+                alert: '#F44336'    // Red
+            };
+            
+            const badgeColor = badgeColors[config.badgeStatus] || '#000000';
+            
+            // Create blinking class if needed
+            const blinkClass = config.blink ? 'blinking-badge' : '';
+            
+            return L.marker(latlng, {
+                icon: L.divIcon({
+                    className: 'sensor-marker',
+                    html: `
+                        <div style="
+                            position: relative;
+                            width: ${config.size}px;
+                            height: ${config.size}px;
+                            background: ${config.fillColor};
+                            border: 2px solid ${config.color};
+                            border-radius: 3px;
+                            opacity: ${config.fillOpacity};
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: ${config.textColor};
+                            font-weight: bold;
+                            font-size: ${Math.round(config.size * 0.6)}px;
+                        ">
+                            ${sensorId}
+                            <div class="${blinkClass}" style="
+                                position: absolute;
+                                top: -${config.badgeSize/3}px;
+                                right: -${config.badgeSize/3}px;
+                                width: ${config.badgeSize}px;
+                                height: ${config.badgeSize}px;
+                                background: ${badgeColor};
+                                border-radius: 50%;
+                                border: 1px solid white;
+                            "></div>
+                        </div>
+                    `,
+                    iconSize: [config.size, config.size],
+                    iconAnchor: [config.size/2, config.size/2]
+                })
+            });
+        }
 
         // --- Bagian Baru: Membuat Custom Leaflet Control ---
         var SidebarControl = L.Control.extend({
@@ -500,8 +569,11 @@
                 console.log('Updating rain data...');
                 let el = document.getElementById('rain-badge');
                 if (el) {
-                    el.style.display = 'none'; // Hide the element first
+                    el.style.backgroundColor = '#009900'; // Set background color to green
                 }
+
+                let el_pch_list = document.getElementById('pch-heavy-list');
+                
                 // fetch /api/rain and update the map
                 fetch('/ews?rain=1')
                     .then(response => response.json())
@@ -516,15 +588,27 @@
                         if (data.length > 0) {
                             el.textContent = data.length; // Update badge with the number of rain markers
                             el.style.display = 'inline'; // Show the element if there are markers
+                            el.style.backgroundColor = '#cc0000';
+                        } else {
+                            el.style.backgroundColor = '#009900';
+                            el_pch_list.textContent = 'Kosong';
                         }
-                        
+    
+                        let ol = document.createElement('ol');
+                        ol.style.paddingInlineStart = '20px';
+                        ol.style.marginTop = '0px';
                         // Add new rain markers to the map
                         data.forEach(item => {
+                            let li = document.createElement('li');
+                            li.textContent = item.pos.nama;
+                            ol.appendChild(li);
                             const [lat, lon] = item.pos.latlon.split(',').map(Number);
                             if (isNaN(lat) || isNaN(lon)) {
                                 // Skip this item if lat/lon are not valid numbers
                                 return;
                             }
+                            const marker = createSensorMarker([lat, lon], item.pos.id).addTo(map);
+                            /*
                             const marker = L.circleMarker([lat, lon], {
                                 radius: 6,
                                 color: '#0074D9',
@@ -533,10 +617,14 @@
                                 weight: 2
                             })
                             .addTo(map);
+                            */
                             marker.bindPopup(`
                             <div style="padding:4px; min-width:220px;">
-                                <h4 style="margin:0 0 8px 0; color:#FF851B;">Siaga Hujan Lebat</h4>
-                                <div style="font-weight:bold; margin-bottom:6px;">${item.pos.nama}</div>
+                                <h4 style="margin:0 0 8px 0; color:#FF851B;">Siaga Hujan</h4>
+                                <div style="font-weight:bold; margin-bottom:6px;">${item.pos.nama} <span style="margin: 4px 0 0;font-weight:500;color:#888">+${item.pos.elevasi} <span style="font-size: 11px;font-weight:500;letter-spacing:0.1rem;color:#888">MDPL</span></div>
+                                <div style="font-size:11px; letter-spacing: 0.1em;color:#888;">CURAH HUJAN
+                                    <div style="font-size: 5em;color:#444">${item.rain} <span style="font-size:11px;color:#888">mm</span>selama ${item.total_seconds}</div>
+                                </div>
                                 <div style="font-size:0.95em; color:#555;">
                                     <span>Last Sampling:</span><br>
                                     <span style="font-weight:bold;">${item.sampling}</span>
@@ -544,6 +632,8 @@
                             </div>
                         `, {autoPan: true});
                         });
+                        el_pch_list.innerHTML = '';
+                        el_pch_list.appendChild(ol);
                     })
                     .catch(error => {
                         console.error('Error fetching rain data:', error);
@@ -554,9 +644,10 @@
                 console.log('Updating water level data...');
                 let el = document.getElementById('wlevel-badge');
                 if (el) {
-                    el.style.display = 'none'; // Hide the element first
+                    el.style.backgroundColor = '#009900'; // Set background color to green
                 }
-                //console.log()
+                let pda_list = document.getElementById('pda-overflow-list');
+                
                 // fetch /api/wlevel and update the map
                 fetch('/ews?wlevel=1')
                     .then(response => response.json())
@@ -571,6 +662,7 @@
                         el.textContent = data.length;
                         if (data.length > 0) {
                             el.style.display = 'inline'; // Show the element if there are markers
+                            el.style.backgroundColor = '#cc0000';
                         }
 
                         // Add new water level markers to the map
@@ -647,12 +739,14 @@
                         <h3 class="box-header">
                             Curah Hujan 
                             <span>
-                                <span id="rain-badge" style="display: none; margin-right: 10px; background:#d00; color:#fff; border-radius:8px; font-size:10px; padding:2px 4px; vertical-align:middle;">12</span>
+                                <span id="rain-badge" style="margin-right: 10px; background:#090; color:#fff; border-radius:8px; font-size:10px; padding:2px 4px; vertical-align:middle;">0</span>
                                 <span class="toggle-icon">+</span>
                             </span>
                         </h3>
-                        <div class="box-content">
-                            <p>Kosong</p>
+                        <div class="box-content" style="overflow-y: auto">
+                            <div id="pch-heavy-list">
+                                <p>Kosong</p>
+                            </div>
                         </div>
                     </div>
 
@@ -660,19 +754,34 @@
                         <h3 class="box-header">
                             Tinggi Muka Air
                             <span>
-                                <span id="wlevel-badge" style="display: none; margin-right: 10px; background:#d00; color:#fff; border-radius:8px; font-size:10px; padding:2px 4px; vertical-align:middle;">0</span>
+                                <span id="wlevel-badge" style="margin-right: 10px; background:#090; color:#fff; border-radius:8px; font-size:10px; padding:2px 4px; vertical-align:middle;">0</span>
                                 <span class="toggle-icon">+</span>
                             </span>
                         </h3>
-                        <div class="box-content">
-                            <p>Kosong.</p>
+                        <div class="box-content" style="overflow-y: auto;">
+                            <div id="pda-overflow-list">
+                                <p>Kosong</p>
+                            </div>
                         </div>
                     </div>
 
                     <div class="box">
                         <h3 class="box-header">Properti <span class="toggle-icon">+</span></h3>
-                        <div class="box-content layer-toggles">
+                        <div class="box-content layer-toggles" style="overflow-y: auto;">
                         ${layerBoxContent}
+                        </div>
+                    </div>
+
+                    <div class="box">
+                        <h3 class="box-header">Legenda <span class="toggle-icon">+</span></h3>
+                        <div class="box-content layer-toggles">
+                            <ul style="padding-inline-start: 20px;margin-top: 0px;">
+                                <li>Pos Curah Hujan</li>
+                                <li>Pos Duga Air</li>
+                                <li>Pos Klimatologi</li>
+                                <li>Batas Das / Wilayah Sungai</li>
+                                <li>Batas Wilayah Adminsitratif</li>
+                            </ul>
                         </div>
                     </div>
 

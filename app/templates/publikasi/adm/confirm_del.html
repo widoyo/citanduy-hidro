@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Publikasi{% endblock %}
+{%- block content %}
+<h2 class="border-start border-5 border-danger ps-2 fw-lighter">Konfirmasi Hapus Publikasi</h2>
+<p>Apakah Anda yakin ingin menghapus publikasi berikut?</p>
+<b>Judul:</b> {{ ctx.pub.title }}<br>
+<b>Tanggal terbit:</b> {{ ctx.pub.sampling }}<br>
+<form class="mt-3" method="POST">
+    <input type="hidden" value={{ csrf_token() }} name="csrf_token">
+    <button type="submit" class="btn btn-danger">Hapus</button>
+    <a href="{{ url_for('publikasi.get_all_pub') }}" class="btn btn-secondary">Batal</a>
+</form>
+{%- endblock %}

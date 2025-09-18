@@ -2,9 +2,10 @@
 {% block title %}Publikasi{% endblock %}
 {%- block content %}
 <h2 class="border-start border-5 border-danger ps-2 fw-lighter">Publikasi</h2>
+<p>Informasi hasil analisa Tim Hidrologi</p>
 <div class="text-end mb-3">
     <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%b %Y')}} <i class="bi bi-chevron-left"></i></a> 
-    <span class="fs-3">{{ ctx.sampling.strftime('%Y')}}</span> 
+    <span class="fs-3">{%- if ctx.sampling.month == 7 %}Jul - Des{%- else %}Jan - Jun{%- endif %} {{ ctx.sampling.strftime('%Y')}} </span> 
     {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}"><i class="bi bi-chevron-right"></i> {{ ctx.sampling_.strftime('%b %Y')}}</a>
     {% else %}<button class="btn btn-outline-secondary ms-5 disabled" aria-disabled="true">-</button>{% endif %}</span>
 </div>
@@ -12,76 +13,30 @@
 <div class="container">
 
     <div class="row">
-        
+        {%- for pub in ctx.publikasi %}
         <div class="col-sm-6 col-md-3 mb-4">
             <div class="card h-100">
-                <img src="https://via.placeholder.com/400x200" class="card-img-top" alt="Gambar Kartu 1">
                 <div class="card-body">
-                    <h5 class="card-title">Judul Kartu 1</h5>
-                    <p class="card-text">Isi kartu pertama.</p>
+                    <img src="{{ pub.thumbnail_base64}}" class="img-fluid" alt="PNG">
+                    <h5 class="card-title">{{ pub.title }}</h5>
+                    <p class="card-text">{{ pub.content }}</p>
+                </div>
+                <div class="card-footer small d-flex justify-content-between">
+                    <span>{{ pub.sampling }}</span>
+                    <span class="text-right">
+                        {%- if pub.filename %}
+                        <a href="/static/pub/{{ pub.filename }}">Download</a>
+                        {%- else %}
+                        Download
+                        {%- endif %}
+                    </span>
                 </div>
             </div>
         </div>
+        {%- else %}
+        <p>Tidak ada Publikasi pada rentang waktu terpilih.</p>
+        {%- endfor %}
 
-        <div class="col-sm-6 col-md-3 mb-4">
-            <div class="card h-100">
-                <img src="https://via.placeholder.com/400x200" class="card-img-top" alt="Gambar Kartu 2">
-                <div class="card-body">
-                    <h5 class="card-title">Judul Kartu 2</h5>
-                    <p class="card-text">Isi kartu kedua.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-6 col-md-3 mb-4">
-            <div class="card h-100">
-                <img src="https://via.placeholder.com/400x200" class="card-img-top" alt="Gambar Kartu 3">
-                <div class="card-body">
-                    <h5 class="card-title">Judul Kartu 3</h5>
-                    <p class="card-text">Isi kartu ketiga.</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-sm-6 col-md-3 mb-4">
-            <div class="card h-100">
-                <img src="https://via.placeholder.com/400x200" class="card-img-top" alt="Gambar Kartu 4">
-                <div class="card-body">
-                    <h5 class="card-title">Judul Kartu 4</h5>
-                    <p class="card-text">Isi kartu keempat.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-6 col-md-3 mb-4">
-            <div class="card h-100">
-                <img src="https://via.placeholder.com/400x200" class="card-img-top" alt="Gambar Kartu 5">
-                <div class="card-body">
-                    <h5 class="card-title">Judul Kartu 5</h5>
-                    <p class="card-text">Isi kartu kelima.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-6 col-md-3 mb-4">
-            <div class="card h-100">
-                <img src="https://via.placeholder.com/400x200" class="card-img-top" alt="Gambar Kartu 6">
-                <div class="card-body">
-                    <h5 class="card-title">Judul Kartu 6</h5>
-                    <p class="card-text">Isi kartu keenam.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-6 col-md-3 mb-4">
-            <div class="card h-100">
-                <img src="https://via.placeholder.com/400x200" class="card-img-top" alt="Gambar Kartu 7">
-                <div class="card-body">
-                    <h5 class="card-title">Judul Kartu 7</h5>
-                    <p class="card-text">Isi kartu ketujuh.</p>
-                </div>
-            </div>
-        </div>
-
-        </div></div>
+    </div>
+</div>
 {%- endblock %}
