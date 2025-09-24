@@ -8,3 +8,4 @@ intent_entity_model
 *.log
 data_ch
 app/static/ka/*
+app/static/pub
