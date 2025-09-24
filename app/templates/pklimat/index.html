@@ -18,20 +18,20 @@
         <th>Kelembaban</th>
         <th>Kec Angin</th>
         <th>Arah Angin</th>
-        <th>Lama Penyinaran</th>
+        <th>Waktu Data</th>
     </tr>
 </thead>
 <tbody>
 {% for p in ctx.pklimats %}
     <tr>
         <td>{{ p.nama }}</td>
+        <td>{{ p.klimat.rain }}</td>
+        <td>{{ p.klimat.temperature }}</td>
         <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>{{ p.klimat.humidity }}</td>
+        <td>{{ p.klimat.wind_speed }}</td>
+        <td>{{ p.klimat.wind_dir }}</td>
+        <td>{{ p.klimat.sampling }}</td>
     </tr>
 {% else %}
     <tr>
