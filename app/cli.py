@@ -5,6 +5,7 @@ import click
 import datetime
 import json
 
+
 def register(app):
     @app.cli.command('send-terlambat-pda7')
     def send_terlambat_pda():
@@ -20,8 +21,11 @@ def register(app):
         msg += 'Jam: ' + datetime.datetime.now().strftime('%H:%M\n')
         msg += '{:.1f}'.format((len(late) / pdas.count()) * 100) + '% (' + str(len(late)) + '/'+ str(pdas.count())+') data belum diterima.\n\n'
         msg += '\n'.join(['{}: {}'.format(p.nama, ','.join([pt.nama for pt in p.petugas_set]) or '-') for p in late])
-        url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CTY_OFFICE_ID + '&text=' + msg
-        resp = requests.get(url)
+        if BOT_TOKEN and CTY_OFFICE_ID and msg:
+            url = f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CTY_OFFICE_ID}&text={msg}'
+            resp = requests.get(url)
+        else:
+            print("BOT_TOKEN, CTY_OFFICE_ID, or msg is None. Cannot send message.")
 
     @app.cli.command('send-terlambat-pch')
     def send_terlambat_pch():
@@ -40,6 +44,56 @@ def register(app):
         url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CTY_OFFICE_ID + '&text=' + msg
         resp = requests.get(url)
         
+    @app.cli.command('fetch-sda-aws')
+    def fetch_sdatelemetry_aws():
+        '''Membaca data pada server SDATELEMETRY AWS'''
+        lokasi_id = ['awskertamukti', 'AWSR01']
+        # hardcoded pos_id
+        pos_id_map = {'awskertamukti': 93, 'AWSR01': 70}
+        sampling = datetime.datetime.now()
+        start = sampling - datetime.timedelta(days=1)
+        end = sampling
+        for nama in lokasi_id:
+            base_url = "https://sdatelemetry.com/API_ap_telemetry/loc_datatelemetry_awsnew.php?"
+            params = f"nama_lokasi={nama}&dt={start}&dtf={end}"
+            url = base_url + params
+            x = requests.get(url)
+            body = x.text
+            start_index = body.find('{"data_telemetryjakarta":')
+            json_string = body[start_index:]
+            try:
+                data = json.loads(json_string)
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON from response: {e}")
+                print(f"Response body: {body}")
+                continue
+            field_source = "Rain|Bar|WSpeed|WDir|ATemp|AHum|Rad|Batt|Sinyal"
+            field_dest = "rain|barometer|wind_speed|wind_dir|temperature|humidity|radiation|battery|signal"
+            lines = data.get('data_telemetryjakarta', [])
+            new_raw = []
+            for line in lines:
+                sampling = line.get('ReceivedDate', '') + 'T' + line.get('ReceivedTime', '')
+                row = {"sampling": sampling}
+                for field in field_source.split('|'):
+                    if field in line:
+                        try:
+                            value = float(line[field])
+                        except ValueError:
+                            value = line[field]
+                        field = field_dest.split('|')[field_source.split('|').index(field)]
+                        row.update({field: value})
+                print(row)
+                new_raw.append(row)
+            rd, created = RDaily.get_or_create(source='SA',
+                                               nama=nama, 
+                                               sampling=end.date(), 
+                                               defaults={'raw': json.dumps(new_raw),
+                                                         'pos_id': pos_id_map.get(nama)})
+            if not created:
+                rd.raw = json.dumps(new_raw)
+                rd.save()
+
+
     @app.cli.command('fetch-sda')
     def fetch_sdatelemetry():
         '''Membaca data pada server SDATELEMETRY'''
