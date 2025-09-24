@@ -326,7 +326,7 @@ class FetchLog(BaseModel):
                     
     
     def sa_to_daily(self):
-        kick_off = 'kaso_sidareja_gunungcupu_pitulasi_kadipaten_subang_surusunda_ciputrahaji_pchpataruman_danasari_bendmanganti_janggala_karangbawang'.split('_')
+        kick_off = 'kaso_sidareja_gunungcupu_pitulasi_kadipaten_subang_surusunda_ciputrahaji_pchpataruman_danasari_bendmanganti_janggala_karangbawang_awskertamukti_AWSR01'.split('_')
         data = json.loads(self.body)
         rows = data['telemetryjakarta']
         poses = dict([(p.nama, p.latest_sampling) for p in OPos.select() if p.source == 'SA'])
@@ -693,7 +693,7 @@ class Ticket(BaseModel):
     '''Support Ticket'''
     username = pw.CharField(max_length=20)
     subject = pw.CharField(max_length=100)
-    msg = pw.TextField()
+    message = pw.TextField()
     pic = pw.CharField(max_length=20, null=True) # person in charge
     status = pw.CharField(max_length=1, default='O') # O: Open, 1: on Progress, C: Closed
     close_at = pw.DateTimeField(null=True)

@@ -1,5 +1,5 @@
 import requests
-from app.models import RDaily, Pos, ManualDaily, FetchLog, LuwesPos
+from app.models import RDaily, Pos, ManualDaily, FetchLog, LuwesPos, OPos
 from app.config import SOURCE_A, SOURCE_B, SOURCE_C, BOT_TOKEN, CTY_OFFICE_ID
 import click
 import datetime
@@ -82,8 +82,18 @@ def register(app):
                             value = line[field]
                         field = field_dest.split('|')[field_source.split('|').index(field)]
                         row.update({field: value})
-                print(row)
+                #print(row)
                 new_raw.append(row)
+                
+            # Update latest_sampling di OPos
+            try:
+                op = OPos.get(OPos.nama==nama)
+                op.latest_sampling = datetime.datetime.fromisoformat(new_raw[-1].get('sampling'))
+                op.save()
+            except OPos.DoesNotExist:
+                tipe = '3'
+                op = OPos.create(nama=nama, source='SA', tipe=tipe, latest_sampling=datetime.datetime.fromisoformat(new_raw[-1].get('sampling')))
+                
             rd, created = RDaily.get_or_create(source='SA',
                                                nama=nama, 
                                                sampling=end.date(), 
