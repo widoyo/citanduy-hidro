@@ -10,7 +10,7 @@ from app.forms import NoteForm
 from app import get_sampling
 bp = Blueprint('pch', __name__, url_prefix='/pch')
 
-PCH_HIDE = (81,)
+PCH_HIDE = (81,59,55)
 
 wilayah_adm = 'ciamis_tasikmalaya_kota tasikmalaya_kuningan_kota banjar_pangandaran_cilacap_banyumas'.split('_')
 
