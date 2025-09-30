@@ -127,7 +127,10 @@ class Incoming(BaseModel):
         if self.user_agent != 'Komtronik-Gateway 1.0':
             return
         chann_no = {'1': 'rain', '2': 'battery', '3': 'wlevel'}
-        chann_name = {'Rain Fall': 'rain', 'Battery': 'battery', 'Water Level': 'wlevel'}
+        chann_name = {'Rain Fall': 'rain', 'Battery': 'battery', 'Water Level': 'wlevel',
+                      'Temperatur': 'temperature', 'Kelembaban': 'humidity', 'Wind Speed': 'wind_speed',
+                      'Wind Direction': 'wind_dir', 'Solar Radiation': 'radiation', 
+                      'Barometer Pressure': 'pressure'}
 
         all_rec = {}
         lines = json.loads(self.body)
