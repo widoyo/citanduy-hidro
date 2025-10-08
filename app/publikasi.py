@@ -178,6 +178,7 @@ def add_pub():
             thumbnail_base64=thumbnail_base64,
             filename=filename
         )
+        f.seek(0)
         f.save(f'./app/static/pub/{filename}')
         return redirect(url_for('publikasi.get_all_pub'))
     else:
