@@ -83,7 +83,7 @@ transform: rotate(-135deg);
 /* Color of 3 lines */
 
 .navbar-toggler.collapsed .toggler-icon {
-background: linear-gradient( 263deg, rgb(42, 7, 238) 0%, rgb(238, 204, 7) 100% );
+/*background: linear-gradient( 263deg, rgb(42, 7, 238) 0%, rgb(238, 204, 7) 100% );*/
 }
 
 .dot {

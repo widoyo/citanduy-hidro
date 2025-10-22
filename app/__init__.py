@@ -18,6 +18,7 @@ import pandas as pd
 import requests
 import datetime
 import json
+from typing import Optional
 
 load_dotenv()
 
@@ -27,14 +28,15 @@ csrf = CSRFProtect()
 from app.models import FetchLog, User, RDaily, UserQuery, ManualDaily, Pos, OPos, NUM_DAYS
 from app.forms import CurahHujanForm, TmaForm
 from app.utils import request_handler
-
-def get_warning_wlevel(now: datetime.datetime = datetime.datetime.now()) -> list:
+def get_warning_wlevel(now: Optional[datetime.datetime] = None) -> list:
     '''Mengambil daftar pos dengan level air tinggi
     Syarat output:
     - harus terdefinisikan siaga sh, sk, sm
     - harus ada wlevel di raw telemetri pada hari ini (now)
     - harus ada latlon yang valid
     '''
+    if not now:
+        now = datetime.datetime.now()
     rd = RDaily.select().where(RDaily.sampling==now.date())
     warning_list = []
     for r in rd:
@@ -44,8 +46,19 @@ def get_warning_wlevel(now: datetime.datetime = datetime.datetime.now()) -> list
         raw = json.loads(r.raw)
         if 'wlevel' not in raw[0]:
             continue
-        if float(raw[-1]['wlevel']) > 100.0:  # Threshold for warning, e.g., 100 cm
-            pass
+        #if float(raw[-1]['wlevel']) > 100.0:  # Threshold for warning, e.g., 100 cm
+        #    pass
+        if r.source == 'SC':
+            wlevels = [(r['sampling'], float(r['wlevel'] * 100)) for r in raw]
+        else:
+            wlevels = [(r['sampling'], float(r['wlevel'])) for r in raw]
+        status = 'normal'
+        if wlevels[-1][1] >= pos.sm:
+            status = 'siaga merah'
+        elif wlevels[-1][1] >= pos.sk:
+            status = 'siaga kuning'
+        elif wlevels[-1][1] >= pos.sh:
+            status = 'siaga hijau'
         warning_list.append(
             {
                 'pos': 
@@ -58,8 +71,9 @@ def get_warning_wlevel(now: datetime.datetime = datetime.datetime.now()) -> list
                      'sk': pos.sk,
                      'sm': pos.sm
                      },
-                'sampling': now, 
-                'wlevel': float(raw[-1]['wlevel'])
+                'sampling': wlevels[-1][0], 
+                'wlevel': wlevels,
+                'status': status
             })
     return warning_list
 
@@ -690,8 +704,13 @@ Data {tipe} Bulan {sampling_date.strftime('%b %Y')} Telemetri
             hujans = [r for r in RDaily.select().where(
                 RDaily.sampling==today.strftime('%Y-%m-%d'), RDaily.pos!=None)]
             hujans = [r for r in hujans if r.pos.tipe in ('1', '3')]
+            cimuntur = Pos.select().where(Pos.sungai.contains('cimuntur')).order_by(Pos.elevasi.desc())
+            citanduy = Pos.select().where(Pos.sungai.contains('citanduy')).order_by(Pos.elevasi.desc())
             ctx = {
-                'hujans': hujans
+                'hujans': hujans,
+                'today': today,
+                'cimuntur': cimuntur,
+                'citanduy': citanduy,
             }
             return render_template('index.html', ctx=ctx, canonical_url=url_for('homepage', _external=True))
                 
@@ -714,6 +733,7 @@ def register_bluprint(app):
     from app.api import bp as bp_api
     from app.note import bp as bp_note
     from app.publikasi import bp as bp_publikasi
+    from app.ticket import bp as bp_ticket
     
     app.register_blueprint(bp_pch)
     app.register_blueprint(bp_pda)
@@ -730,3 +750,4 @@ def register_bluprint(app):
     app.register_blueprint(bp_api)
     app.register_blueprint(bp_note)
     app.register_blueprint(bp_publikasi)
+    app.register_blueprint(bp_ticket)
