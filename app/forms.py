@@ -61,3 +61,11 @@ class PublikasiForm(FlaskForm):
     content = StringField('content', validators=[DataRequired()])
     tags = StringField('tags', validators=[DataRequired()])
     filename = FileField('filename', validators=[FileRequired(), FileAllowed(['pdf'], 'PDF only!')])
+    
+class TicketForm(FlaskForm):
+    username = HiddenField('username', validators=[DataRequired()])
+    subject = StringField('subject', validators=[DataRequired()])
+    message = StringField('message', validators=[DataRequired()])
+    pic = StringField('pic', validators=[DataRequired()])
+    status = HiddenField('status', default='0')
+    tags = StringField('tags')

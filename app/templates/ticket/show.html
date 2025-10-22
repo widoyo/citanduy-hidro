@@ -1,0 +1,38 @@
+{%- extends 'base.html' %}
+{%- block title %}Ticket{% endblock %}
+
+{%- block content %}
+<span class="text-secondary small">Judul Ticket</span>
+<h1>{{ ctx.ticket.subject }}</h1>
+<table class="table table-bordered">
+    <tr>
+        <th>ID</th>
+        <td>{{ ctx.ticket.id }}</td>
+    </tr>
+    <tr>
+        <th>Username</th>
+        <td>{{ ctx.ticket.username }}</td>
+    </tr>
+    <tr>
+        <th>Subject</th>
+        <td></td>
+    </tr>
+    <tr>
+        <th>Message</th>
+        <td>{{ ctx.ticket.message }}</td>
+    </tr>
+    <tr>
+        <th>Status</th>
+        <td>{{ ctx.ticket.status }}</td>
+    </tr>
+    <tr>
+        <th>Created At</th>
+        <td>{{ ctx.ticket.cdate.strftime('%Y-%m-%d %H:%M') }}</td>
+    </tr>
+    <tr>
+        <th>Person In Charge</th>
+        <td>{{ ctx.ticket.pic }}</td>
+    </tr>
+</table>
+<a href="{{ url_for('ticket.index') }}" class="btn btn-secondary">Back to Tickets</a>
+{%- endblock %}

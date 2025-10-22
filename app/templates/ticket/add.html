@@ -1,0 +1,26 @@
+{%- extends 'base.html' %}
+{%- block title %}Tambah Trouble Ticket{% endblock %}
+
+{%- block content %}
+<h1>Tambah Trouble Ticket</h1>
+<form method="post" action="{{ url_for('ticket.create') }}">
+    {{ ctx.form.hidden_tag() }}
+    <div class="mb-3">
+        {{ ctx.form.subject.label(class="form-label") }}
+        {{ ctx.form.subject(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ ctx.form.message.label(class="form-label") }}
+        {{ ctx.form.message(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ ctx.form.pic.label(class="form-label") }}
+        {{ ctx.form.pic(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ ctx.form.tags.label(class="form-label") }}
+        {{ ctx.form.tags(class="form-control") }}
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{%- endblock %}

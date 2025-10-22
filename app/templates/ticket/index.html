@@ -1,0 +1,92 @@
+{%- extends 'base.html' %}
+{%- block title %}Tickets{% endblock %}
+
+{%- block content %}
+{%- set TicketStatus = {'0': 'Open', '1': 'On Progress', 'C': 'Completed'} %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h2 class="border-start border-5 border-primary ps-2 fw-lighter">Daftar Trouble Ticket (<b>{{ ctx.tickets|length }}</b>)</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="text-end mb-3">
+                <a href="{{ url_for('ticket.create') }}" class="btn btn-success">Create New Ticket</a>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        {%- for ticket in ctx.tickets %}
+        <div class="col-6">
+            <div class="card mb-3{%- if ticket.username == current_user.username %} border border-primary{%- endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ ticket.subject }}</h5>
+                    <span class="timeago" datetime="{{ ticket.cdate }}"></span>
+                    <p class="card-text">{{ ticket.message }}</p>
+                    <p class="card-text"><small class="text-muted">Status: {{ TicketStatus[ticket.status] }} | Created At: {{ ticket.cdate.strftime('%Y-%m-%d %H:%M') }}</small> {{ ticket.username }} | <a href="{{ url_for('ticket.show', tic_id=ticket.id) }}" class="stretched-link">Show</a></p>
+                </div></a>
+            </div>
+        </div>
+        {%- endfor %}
+    </div>
+</div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {%- for ticket in ctx.tickets %}
+        <tr>
+            <td>{{ ticket.id }}</td>
+            <td>{{ ticket.subject }} {{ ticket.message }}</td>
+            <td>{{ ticket.status }}</td>
+            <td>{{ ticket.cdate.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>
+                <a href="{{ url_for('ticket.show', tic_id=ticket.id) }}" class="btn btn-primary btn-sm">View</a>
+                <form action="{{ url_for('ticket.delete', tic_id=ticket.id) }}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this ticket?');">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {%- else %}
+        <tr>
+            <td colspan="5">No tickets found.</td>
+        </tr>
+        {%- endfor %}
+    </tbody>
+</table>
+<a href="{{ url_for('ticket.create') }}" class="btn btn-success">Create New Ticket</a>
+{%- endblock %}
+
+{%- block js_foot %}
+<script>
+document.querySelectorAll('.timeago').forEach(e => { 
+    /*
+    > 1 tahun
+    > 1 bulan
+    > 1 minggu
+    > 1 jam
+    */
+    const ls = e.getAttributeNode('datetime').value;
+    const now = new Date();
+    console.log('Selisih: ', now - new Date(ls), ls);
+    if (now - new Date(ls) > 3600000) {
+      e.classList.add('text-danger');
+    } 
+    if (new Date(ls) > now) {
+      e.innerHTML = dayjs(ls).fromNow();
+      
+      console.log(ls);
+    } else {
+      e.innerHTML = dayjs().from(dayjs(ls));
+    }
+});
+</script>
+{%- endblock %}

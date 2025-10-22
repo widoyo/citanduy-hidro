@@ -1,21 +1,102 @@
 {% extends 'base.html' %}
-{% block title %}Catatan BBWS Citanduy{% endblock %}
+{% block title %}Catatan{% endblock %}
+{% block extra_head %}
+<script src="//unpkg.com/alpinejs" defer></script>
+{% endblock %}
 {% block content %}
-<h2 class="border-start border-5 border-primary ps-2 fw-lighter">Catatan</h1>
+<h2 class="border-start border-5 border-primary ps-2 fw-lighter">LogBook</h1>
     <p class="text-secondary">Error?, keliru?, sekedar tahu? <b>Catat di sini</b></p>
 <div class="row">
-    <div class="col-sm-10">
+    <div class="col-sm-6">
+        <form action="/note/add" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="username" value="{{ current_user.username }}">
+            <input type="hidden" name="obj_id" value="0">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="obj_name" id="lain" checked>
+                <label class="form-check-label" for="lain">
+                  Hal Lain, sebutkan <input type="text" name="other" id="other" class="form-control" style="width: 200px !important">
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="obj_name" value="sihka_app" id="sihka_app">
+                <label class="form-check-label" for="sihka_app">
+                  Aplikasi Web Sihka
+                </label>
+              </div>
+            <div class="my-3">
+                <label for="msg" class="form-label">Unek-unek, Usulan, Koreksi</label>
+                <textarea class="form-control" id="msg" name="msg" rows="3" required></textarea>
+            </div>
+            <button type="submit" id="msgSubmit" class="btn btn-primary" disabled>Submit</button>
+        </form>
+    </div>
+    <div class="col-sm-6"></div>
+</div>
+<div class="row">
+    <div class="col-sm-6">
         {% for msg in ctx.msgs %}
         <li class="list-group-item py-3 lh-sm">
-            <a href="{{ msg.obj_url() }}" class="text-secondary">{{ msg.__str__() }}</a>
-            {{ msg.msg }}
-            <p class="text-secondary float-right ms-2">{{ msg.username }} {{ msg.cdate.strftime('%d %b %Y %H:%M') }}</p>
+            <div class="row">
+                <div class="col-sm-3"><a href="{{ msg.obj_url() }}" class="text-secondary me-2">{{ msg.__str__() }}</a></div>
+                <div class="col-sm-9">
+                    {{ msg.msg }}
+                    <p class="text-secondary float-right ms-2 mt-2" style="font-size: 10pt;"><i class="bi bi-person"></i> {{ msg.username }} <i class="bi bi-clock ms-2"></i> {{ msg.cdate.strftime('%d %b %Y %H:%M') }}</p>        
+                </div>
+            </div>
+            
         </li>
         {% else %}
         <div>Kosong</div>
     </div>
 </div>
 {% endfor %}
-    <div class="col-sm-2"></div>
+    <div class="col-sm-6"></div>
 </div>
+{% endblock %}
+{% block js_foot %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const otherRadio = document.getElementById('lain');
+    const otherInput = document.getElementById('other');
+    const sihkaAppRadio = document.getElementById('sihka_app');
+
+    otherRadio.addEventListener('change', function () {
+        if (this.checked) {
+            otherInput.focus();
+        }
+    });
+
+    sihkaAppRadio.addEventListener('change', function () {
+        if (this.checked) {
+            otherInput.blur();
+        }
+    });
+
+    const msgTextarea = document.getElementById('msg');
+    const submitButton = document.getElementById('msgSubmit');
+
+    function validateForm() {
+        if (otherRadio.checked && otherInput.value.trim() === '') {
+            submitButton.disabled = true;
+            otherInput.setCustomValidity('Input cannot be blank');
+        } else {
+            otherInput.setCustomValidity('');
+        }
+    }
+
+    otherInput.addEventListener('input', validateForm);
+    otherRadio.addEventListener('change', validateForm);
+    sihkaAppRadio.addEventListener('change', validateForm);
+
+    msgTextarea.addEventListener('input', function () {
+        console.log('Input event triggered: ' + msgTextarea.value.length);
+        if (msgTextarea.value.length >= 5) {
+            submitButton.disabled = false;
+        } else {
+            submitButton.disabled = true;
+        }
+    });
+});
+</script>
 {% endblock %}
