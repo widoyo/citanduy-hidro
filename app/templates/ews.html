@@ -190,13 +190,14 @@
             {
                 id: 'administrasi',
                 label: 'Wilayah Administrasi',
-                defaultVisible: false,
+                defaultVisible: true,
                 style: function(feature) {
                     return {
-                        color: "#888800",
+                        color: "#444444",
                         weight: 1,
                         fillOpacity: 0,
-                        opacity: 1
+                        dashArray: '2, 4',
+                        opacity: 0.8
                     };
                 },
                 onEachFeature: function(feature, layer) {
@@ -623,7 +624,7 @@
                                 <h4 style="margin:0 0 8px 0; color:#FF851B;">Siaga Hujan</h4>
                                 <div style="font-weight:bold; margin-bottom:6px;">${item.pos.nama} <span style="margin: 4px 0 0;font-weight:500;color:#888">+${item.pos.elevasi} <span style="font-size: 11px;font-weight:500;letter-spacing:0.1rem;color:#888">MDPL</span></div>
                                 <div style="font-size:11px; letter-spacing: 0.1em;color:#888;">CURAH HUJAN
-                                    <div style="font-size: 5em;color:#444">${item.rain} <span style="font-size:11px;color:#888">mm</span>selama ${item.total_seconds}</div>
+                                    <div style="font-size: 5em;color:#444">${item.rain.toFixed(1)} <span style="font-size:11px;color:#888">mm</span>selama ${item.total_seconds}</div>
                                 </div>
                                 <div style="font-size:0.95em; color:#555;">
                                     <span>Last Sampling:</span><br>
@@ -775,12 +776,27 @@
                     <div class="box">
                         <h3 class="box-header">Legenda <span class="toggle-icon">+</span></h3>
                         <div class="box-content layer-toggles">
-                            <ul style="padding-inline-start: 20px;margin-top: 0px;">
-                                <li>Pos Curah Hujan</li>
-                                <li>Pos Duga Air</li>
-                                <li>Pos Klimatologi</li>
-                                <li>Batas Das / Wilayah Sungai</li>
-                                <li>Batas Wilayah Adminsitratif</li>
+                            <ul style="padding-inline-start: 0px; margin-top: 0px; list-style: none;">
+                                <li style="display: flex; align-items: center; margin-bottom: 8px;">
+                                    <span style="display: inline-block; width: 16px; height: 16px; background-color: #3b82f6; margin-right: 8px; border: 1px solid #2563eb;"></span>
+                                    Pos Curah Hujan
+                                </li>
+                                <li style="display: flex; align-items: center; margin-bottom: 8px;">
+                                    <span style="display: inline-block; width: 16px; height: 16px; background-color: #10b981; margin-right: 8px; border: 1px solid #059669;"></span>
+                                    Pos Duga Air
+                                </li>
+                                <li style="display: flex; align-items: center; margin-bottom: 8px;">
+                                    <span style="display: inline-block; width: 16px; height: 16px; background-color: #8b5cf6; margin-right: 8px; border: 1px solid #7c3aed;"></span>
+                                    Pos Klimatologi
+                                </li>
+                                <li style="display: flex; align-items: center; margin-bottom: 8px;">
+                                    <span style="display: inline-block; width: 24px; height: 3px; background-color: #ef4444; margin-right: 8px;"></span>
+                                    Batas Das / Wilayah Sungai
+                                </li>
+                                <li style="display: flex; align-items: center; margin-bottom: 8px;">
+                                    <span style="display: inline-block; width: 24px; height: 3px; background-color: #eab308; margin-right: 8px;"></span>
+                                    Batas Wilayah Adminsitratif
+                                </li>
                             </ul>
                         </div>
                     </div>
