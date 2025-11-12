@@ -138,18 +138,14 @@ def register(app):
         imei_data = {}
         for l in LuwesPos.select():
             data = {'a': 'stat', 'imei': l.imei}
-            source_c_status = "-"
-            source_c2_status = "-"
-            timestamp_source_c = "-"
-            timestamp_source_c2 = "-"
+            source_c_data = "-"
+            source_c2_data = "-"
             try:
                 x = requests.post(SOURCE_C, data=data)
                 if x.status_code == 200 and 'error' not in x.text.lower():
-                    source_c_status = "✓"
+                    source_c_data = x.text
                     fl = FetchLog.create(url=x.url, response=x.status_code, body=x.text, source='SC')
                     fl.sc_to_daily()
-                    raw = json.loads(x.text)
-                    timestamp_source_c = raw.get('submitted_at', '-')
             except Exception as e:
                 print("Error fetching from SOURCE_C", e)
                 print(data)
@@ -158,20 +154,19 @@ def register(app):
             try:
                 x = requests.post(SOURCE_C2, data=data)
                 if x.status_code == 200 and 'error' not in x.text.lower():
-                    source_c2_status = "✓"
+                    source_c2_data = x.text
                     fl = FetchLog.create(url=x.url, response=x.status_code, body=x.text, source='SC')
                     fl.sc_to_daily()
-                    raw = json.loads(x.text)
-                    timestamp_source_c2 = raw.get('submitted_at', '-')
             except Exception as e:
                 print("Error fetching from SOURCE_C2", e)
                 print(data)
                 pass
             
-            imei_data[l.imei] = f"{l.imei} | {l.nama} | {source_c_status} | {timestamp_source_c} | {source_c2_status} | {timestamp_source_c2}"
+            imei_data[l.imei] = f"{l.imei} | {l.nama} | {source_c_data} | {source_c2_data}"
         
         with open('migration.txt', 'w', encoding='utf-8') as f:
-            f.write("Imei | Nama | Data4 | Jam Data4 | Data3 | Jam Data3\n")
+            f.write(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write("Imei | Nama | Data4 | Data3\n")
             f.write("====================\n")
         
             for imei_line in imei_data.values():

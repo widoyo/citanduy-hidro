@@ -139,7 +139,7 @@ def migrasi_luwes():
     lines = []
     with open('migration.txt', 'r', encoding='utf-8') as f:
         lines = f.readlines()
-    
+    reading_time = lines[0].strip()
     # Skip header lines and process data
     data_lines = []
     for line in lines[2:]:  # Skip header and separator
@@ -151,7 +151,7 @@ def migrasi_luwes():
                 parts = [part.replace('✓', '&#10004;') for part in parts]
                 data_lines.append(parts)
     
-    return render_template('pos/migrasiluwes.html', data_lines=data_lines)
+    return render_template('pos/migrasiluwes.html', data_lines=data_lines, reading_time=reading_time)
 
 
 @bp.route('/manual/kinerja')

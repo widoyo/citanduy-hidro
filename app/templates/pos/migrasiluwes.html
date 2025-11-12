@@ -1,15 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>Migration Status</h2>
+<p>Pembacaan: {{ reading_time }}</p>
     <table class="table table-striped table-hover table-bordered">
         <thead>
             <tr>
                 <th>Imei</th>
                 <th>Nama</th>
                 <th>Data4</th>
-                <th>Jam Data4</th>
                 <th>Data3</th>
-                <th>Jam Data3</th>
             </tr>
         </thead>
         <tbody>
@@ -17,10 +16,8 @@
             <tr>
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>
-                <td class="checkmark">{{ row[2] | safe if row[2] == '&#10004;' else row[2] }}</td>
-                <td>{{ row[3] }}</td>
-                <td class="checkmark">{{ row[4] | safe if row[4] == '&#10004;' else row[4] }}</td>
-                <td>{{ row[5] }}</td>
+                <td><code>{{ row[2] }}</code></td>
+                <td><code>{{ row[3] }}</code></td>
             </tr>
             {% endfor %}
         </tbody>
