@@ -9,12 +9,14 @@ SECRET_KEY = environ.get('SECRET')
 SOURCE_A = environ.get('SDATELEMETRY_URL')
 SOURCE_B = environ.get('TELEMET_URL')
 SOURCE_C = environ.get('LUWES_URL')
+SOURCE_C2 = environ.get('LUWES2_URL')
 SDATELEMETRY_POS_EXCLUDES = environ.get('SDATELEMETRY_POS_EXCLUDES')
 
 GTAG = environ.get('GOOGLE_TAG', 'G-XXXXXXXXXX')
 BOT_TOKEN = environ.get('BOT_TOKEN')
 CTY_OFFICE_ID = environ.get('CTY_KANTOR_ID')
 KUALITAS_AIR_FOLDER = 'app/static/ka'
+DEEPSEEK_API = environ.get('DEEPSEEK_API')
 
 DATABASE = {
     'engine': 'playhouse.pool.PooledPostgresqlDatabase',
