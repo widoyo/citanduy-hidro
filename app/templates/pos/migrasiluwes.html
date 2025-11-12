@@ -7,7 +7,9 @@
                 <th>Imei</th>
                 <th>Nama</th>
                 <th>Data4</th>
+                <th>Jam Data4</th>
                 <th>Data3</th>
+                <th>Jam Data3</th>
             </tr>
         </thead>
         <tbody>
@@ -16,7 +18,9 @@
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>
                 <td class="checkmark">{{ row[2] | safe if row[2] == '&#10004;' else row[2] }}</td>
-                <td class="checkmark">{{ row[3] | safe if row[3] == '&#10004;' else row[3] }}</td>
+                <td>{{ row[3] }}</td>
+                <td class="checkmark">{{ row[4] | safe if row[4] == '&#10004;' else row[4] }}</td>
+                <td>{{ row[5] }}</td>
             </tr>
             {% endfor %}
         </tbody>
