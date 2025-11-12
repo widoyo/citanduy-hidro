@@ -12,12 +12,19 @@
             font-size: 24px !important;
             padding: 15px !important;
         }
+        .dash { 
+            color: red !important; 
+            font-weight: bold !important; 
+            text-align: center !important; 
+            font-size: 20px !important;
+            padding: 15px !important;
+        }
         .json-data { 
             max-width: 400px; 
             white-space: pre-wrap; 
             word-break: break-all;
             font-family: monospace;
-            font-size: 12px;
+            font-size: 12px !important;
         }
         .hidden { display: none; }
         .toggle-btn { 
@@ -30,13 +37,20 @@
             cursor: pointer;
         }
         .toggle-btn:hover { background: #0056b3; }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 {% endblock %}
 
 {% block content %}
 <h2>Migration Status</h2>
-<p>Pembacaan: {{ reading_time }}</p>
-<button class="toggle-btn" onclick="toggleDataColumns()">Show Data Details</button>
+<div class="button-container">
+    <p>Pembacaan: {{ reading_time }}</p>
+    <button class="toggle-btn" onclick="toggleDataColumns()">Show Data Details</button>
+</div>
     <table class="table table-striped table-hover table-bordered" id="migrationTable">
         <thead>
             <tr>
@@ -61,7 +75,7 @@
 
 {% block js_foot %}
    <script>
-        let showDetails = true; // Changed to false to start with hidden details
+        let showDetails = true; // Start with hidden details
 
         function toggleDataColumns() {
             const table = document.getElementById('migrationTable');
@@ -80,14 +94,17 @@
                     // Show original content
                     data4Cell.innerHTML = data4Cell.getAttribute('data-original') || data4Cell.innerHTML;
                     data3Cell.innerHTML = data3Cell.getAttribute('data-original') || data3Cell.innerHTML;
-                    data4Cell.classList.remove('checkmark');
-                    data3Cell.classList.remove('checkmark');
+                    data4Cell.classList.remove('checkmark', 'dash');
+                    data3Cell.classList.remove('checkmark', 'dash');
+                    // Add back json-data class and styling
+                    data4Cell.classList.add('json-data');
+                    data3Cell.classList.add('json-data');
                     // Remove Bootstrap table cell styling override
                     data4Cell.style.cssText = '';
                     data3Cell.style.cssText = '';
                     button.textContent = 'Hide Data Details';
                 } else {
-                    // Store original content and show checkmarks
+                    // Store original content and show checkmarks/dashes
                     if (!data4Cell.hasAttribute('data-original')) {
                         data4Cell.setAttribute('data-original', data4Cell.innerHTML);
                     }
@@ -95,21 +112,26 @@
                         data3Cell.setAttribute('data-original', data3Cell.innerHTML);
                     }
                     
-                    // Show checkmark for Data4 if it has data (not "-")
-                    data4Cell.innerHTML = data4Cell.getAttribute('data-original') !== '-' ? '✓' : '-';
-                    data3Cell.innerHTML = data3Cell.getAttribute('data-original') !== '-' ? '✓' : '-';
+                    // Determine if we should show checkmark or dash
+                    const hasData4 = data4Cell.getAttribute('data-original') !== '-';
+                    const hasData3 = data3Cell.getAttribute('data-original') !== '-';
                     
-                    data4Cell.classList.add('checkmark');
-                    data3Cell.classList.add('checkmark');
+                    data4Cell.innerHTML = hasData4 ? '✓' : '-';
+                    data3Cell.innerHTML = hasData3 ? '✓' : '-';
+                    
+                    // Apply appropriate class and remove json-data class
+                    data4Cell.className = hasData4 ? 'checkmark' : 'dash';
+                    data3Cell.className = hasData3 ? 'checkmark' : 'dash';
+                    
                     // Force override Bootstrap styles
-                    data4Cell.style.cssText = 'text-align: center !important; font-size: 24px !important; padding: 15px !important;';
-                    data3Cell.style.cssText = 'text-align: center !important; font-size: 24px !important; padding: 15px !important;';
+                    data4Cell.style.cssText = 'text-align: center !important; font-size: ' + (hasData4 ? '24px' : '20px') + ' !important; padding: 15px !important;';
+                    data3Cell.style.cssText = 'text-align: center !important; font-size: ' + (hasData3 ? '24px' : '20px') + ' !important; padding: 15px !important;';
                     button.textContent = 'Show Data Details';
                 }
             });
         }
 
-        // Initialize the table with details hidden (checkmarks shown)
+        // Initialize the table with details hidden (checkmarks/dashes shown)
         document.addEventListener('DOMContentLoaded', function() {
             toggleDataColumns(); // This will set the initial state to hidden details
         });
