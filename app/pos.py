@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request
 from flask import abort, redirect, flash, current_app
 from flask_login import current_user, login_required
+from werkzeug.utils import secure_filename
 import os
 import json
 import datetime
@@ -19,6 +20,21 @@ def pos_da():
         'poses': Pos.select().where(Pos.tipe=='2').order_by(Pos.nama)
     }
     return render_template('pos/duga_air.html', ctx=ctx)
+
+@bp.route('/ka/delete/<int:id>', methods=['POST'])
+@login_required
+def delete_data_ka(id):
+    try:
+        hu = HasilUjiKualitasAir.get(HasilUjiKualitasAir.id==id)
+    except DoesNotExist:
+        return abort(404)
+    try:
+        if hu.doc_path and os.path.exists('app/' + hu.doc_path): os.remove(hu.doc_path)
+        hu.delete_instance()
+        flash('Data hasil uji kualitas air berhasil dihapus.', 'success')
+    except Exception as e:
+        flash('Gagal menghapus data hasil uji kualitas air: {}'.format(str(e)), 'danger')
+    return redirect('/pos/ka')
 
 @bp.route('/ka/add', methods=['GET', 'POST'])
 @login_required
@@ -43,20 +59,23 @@ def add_data_ka():
         if file.filename == '':
             flash('File Hasil Uji Lab belum diisi')
             return redirect(request.url)
+        fname = secure_filename(file.filename or '')
         doc_path = f"{current_app.config['KUALITAS_AIR_FOLDER']}/{sampling.strftime('_%Y/_%m')}"
         if not os.path.isdir(doc_path):
             os.makedirs(doc_path)
-        doc_path += f"/{file.filename}"
+        doc_path += f"/{fname}"
         file.save(doc_path)
-        flash(f'File {file.filename} uploaded successfully!')
+        flash(f'File {fname} uploaded successfully!')
         ret = {'pos': form.pos.data, 
                'sampling': form.sampling.data, 
                'll': form.ll.data, 
-               'doc_path': doc_path, 
+               'doc_path': doc_path.replace('app/', ''), 
                'lembaga': form.lembaga.data,
-               'username': current_user.username
+               'username': current_user.username,
+               'status_hasil_uji': form.status_hasil_uji.data
                }
         hu = HasilUjiKualitasAir.create(**ret)
+        return redirect('/pos/ka')
     else:
         form.pos.data = pos_id
         form.sampling.data = request.args.get('s')
@@ -113,6 +132,27 @@ def pos_luwes():
         'poses': LuwesPos.select().order_by(LuwesPos.tipe, LuwesPos.nama)
     }
     return render_template('pos/luwes.html', ctx=ctx)
+
+@bp.route('/luwes/migrasi')
+@login_required
+def migrasi_luwes():
+    lines = []
+    with open('migration.txt', 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    
+    # Skip header lines and process data
+    data_lines = []
+    for line in lines[2:]:  # Skip header and separator
+        line = line.strip()
+        if line and '|' in line:
+            parts = [part.strip() for part in line.split('|')]
+            if len(parts) >= 3:
+                # Convert checkmarks to HTML entities for better compatibility
+                parts = [part.replace('✓', '&#10004;') for part in parts]
+                data_lines.append(parts)
+    
+    return render_template('pos/migrasiluwes.html', data_lines=data_lines)
+
 
 @bp.route('/manual/kinerja')
 @login_required

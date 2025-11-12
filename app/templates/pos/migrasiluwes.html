@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Migration Status</h2>
+    <table class="table table-striped table-hover table-bordered">
+        <thead>
+            <tr>
+                <th>Imei</th>
+                <th>Nama</th>
+                <th>Data4</th>
+                <th>Data3</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data_lines %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td class="checkmark">{{ row[2] | safe if row[2] == '&#10004;' else row[2] }}</td>
+                <td class="checkmark">{{ row[3] | safe if row[3] == '&#10004;' else row[3] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endblock %}
