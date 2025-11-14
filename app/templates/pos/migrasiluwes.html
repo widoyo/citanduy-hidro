@@ -42,18 +42,27 @@
             justify-content: space-between;
             align-items: center;
         }
+        .name-newer { background-color: #d4edda !important; color: #155724 !important; } /* Green */
+        .name-older { background-color: #f8d7da !important; color: #721c24 !important; } /* Red */
+        .legend-newer { background-color: #d4edda; color: #155724; padding: 2px 6px; border-radius: 3px; }
+        .legend-older { background-color: #f8d7da; color: #721c24; padding: 2px 6px; border-radius: 3px; }
     </style>
 {% endblock %}
 
 {% block content %}
 <h2>Migration Status</h2>
-<div class="button-container">
     <p>Pembacaan: {{ reading_time }}</p>
+<div class="button-container">
+    <p class="text-secondary">
+        <span class="legend-newer"><b><span id="count-newer">0</span></b>  HIJAU</span>: Data3 lebih baru dari Data4 <br />
+        <span class="legend-older"><b><span id="count-older">0</span></b>  MERAH</span>: Data3 lebih lama dari Data4 
+    </p>
     <button class="toggle-btn" onclick="toggleDataColumns()">Show Data Details</button>
 </div>
     <table class="table table-striped table-hover table-bordered" id="migrationTable">
         <thead>
             <tr>
+                <th>No</th>
                 <th>Imei</th>
                 <th>Nama</th>
                 <th>Data4</th>
@@ -63,8 +72,13 @@
         <tbody>
             {% for row in data_lines %}
             <tr>
+                <td>{{ loop.index }}</td>
                 <td>{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
+                <td class="name-cell" 
+                    data-data4='{{ row[2] }}' 
+                    data-data3='{{ row[3] }}'>
+                    {{ row[1] }}
+                </td>
                 <td class="json-data">{{ row[2] }}</td>
                 <td class="json-data">{{ row[3] }}</td>
             </tr>
@@ -77,6 +91,38 @@
    <script>
         let showDetails = true; // Start with hidden details
 
+        function compareSubmittedDates() {
+            const nameCells = document.querySelectorAll('.name-cell');
+            let countNewer = 0;
+            let countOlder = 0;
+            
+            nameCells.forEach(cell => {
+                const data4 = cell.getAttribute('data-data4');
+                const data3 = cell.getAttribute('data-data3');
+                
+                if (data3 && data3 !== '-') {
+                    try {
+                        const data4Json = JSON.parse(data4);
+                        const data3Json = JSON.parse(data3);
+                        
+                        if (data3Json.submitted_at > data4Json.submitted_at) {
+                            cell.classList.add('name-newer');
+                            countNewer++;
+                        } else {
+                            cell.classList.add('name-older');
+                            countOlder++;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
+                    }
+                }
+            });
+            
+            // Update the count displays
+            document.getElementById('count-newer').textContent = countNewer;
+            document.getElementById('count-older').textContent = countOlder;
+        }
+
         function toggleDataColumns() {
             const table = document.getElementById('migrationTable');
             const button = document.querySelector('.toggle-btn');
@@ -87,8 +133,8 @@
             rows.forEach(row => {
                 const cells = row.querySelectorAll('td');
                 // Data4 is cells[2], Data3 is cells[3]
-                const data4Cell = cells[2];
-                const data3Cell = cells[3];
+                const data4Cell = cells[3];
+                const data3Cell = cells[4];
                 
                 if (showDetails) {
                     // Show original content
@@ -131,9 +177,10 @@
             });
         }
 
-        // Initialize the table with details hidden (checkmarks/dashes shown)
+        // Initialize the table
         document.addEventListener('DOMContentLoaded', function() {
-            toggleDataColumns(); // This will set the initial state to hidden details
+            compareSubmittedDates(); // Color the name cells based on date comparison
+            toggleDataColumns(); // Set the initial state to hidden details
         });
     </script>
 {% endblock %}
