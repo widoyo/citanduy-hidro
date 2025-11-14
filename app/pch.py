@@ -149,22 +149,21 @@ def _populate_rainfall_data(pos, sampling_date, days, nama):
         print(f"Error fetching manual data: {e}")
 
     # Fetch automatic rainfall data if position has a name
-    if nama:
-        try:
-            auto_data = RDaily.select().where(
-                RDaily.pos == pos,
-                RDaily.sampling.year == sampling_date.year,
-                RDaily.sampling.month == sampling_date.month
-            )
-            
-            for auto in auto_data:
-                if auto.sampling.day in days:
-                    rain_data = auto._rain()
-                    days[auto.sampling.day]['count'] = rain_data.get('count24', 0)
-                    days[auto.sampling.day]['rain'] = rain_data.get('rain24', 0)
-        except Exception as e:
-            # Log error but don't break the page
-            print(f"Error fetching automatic data: {e}")
+    try:
+        auto_data = RDaily.select().where(
+            RDaily.pos == pos,
+            RDaily.sampling.year == sampling_date.year,
+            RDaily.sampling.month == sampling_date.month
+        )
+        
+        for auto in auto_data:
+            if auto.sampling.day in days:
+                rain_data = auto._rain()
+                days[auto.sampling.day]['count'] = rain_data.get('count24', 0)
+                days[auto.sampling.day]['rain'] = rain_data.get('rain24', 0)
+    except Exception as e:
+        # Log error but don't break the page
+        print(f"Error fetching automatic data: {e}")
 
 
 @bp.route('/<id>')

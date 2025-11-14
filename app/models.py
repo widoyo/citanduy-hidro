@@ -544,16 +544,16 @@ class RDaily(BaseModel):
                 sampling_ = sampling_.replace(hour=k)
                 if sampling_ > now:
                     continue
-                hujan_jam_ini = v.get('rain') - hujan_jam_sebelum if v.get('num') > 0 else 0
+                hujan_jam_ini = v.get('rain', 0) - hujan_jam_sebelum if v.get('num', 0) > 0 else 0
                 hourly[k] = {'count': v.get('num'), 'rain': hujan_jam_ini}
                 hujan_jam_sebelum = v.get('rain')
                 rain24 += hujan_jam_ini
-                count24 += v.get('num')
+                count24 += v.get('num', 0)
         else:
             for k, v in data:
                 hourly[k] = {'count': v.get('num'), 'rain': v.get('rain')}
-                rain24 += v.get('rain')
-                count24 += v.get('num')
+                rain24 += v.get('rain', 0)
+                count24 += v.get('num', 0)
         hasil = round(rain24, 1) if (rain24 != 0) else 0
         ret = {'count24': count24, 'rain24': hasil, 'hourly': hourly, 'raw': self.raw}
         return ret
@@ -668,7 +668,17 @@ class HasilUjiKualitasAir(BaseModel):
     lembaga = pw.CharField(max_length=50, null=True) # nama lab
     username = pw.CharField(max_length=20, null=True) # username yang upload
     cdate = pw.DateTimeField(default=datetime.datetime.now)
+    status_hasil_uji = pw.CharField(max_length=20, null=True) # 'memenuhi', 'cemar ringan', 'cemar sedang', 'cemar berat'
 
+    @property
+    def show_icon(self):
+        icon_map = {
+            'memenuhi': '✅',
+            'cemar ringan': '⚠️',
+            'cemar sedang': '❗',
+            'cemar berat': '🚫'
+        }
+        return icon_map.get(self.status_hasil_uji.lower(), '')
 
 class Forecast(BaseModel):
     pass
@@ -702,3 +712,36 @@ class Ticket(BaseModel):
     close_at = pw.DateTimeField(null=True)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
+    
+    def get_all_notes(self):
+        return Notes.select().where(Notes.obj_name=='ticket', Notes.obj_id==self.id).order_by(Notes.cdate)
+    
+    def get_latest_note(self):
+        return Notes.select().where(Notes.obj_name=='ticket', Notes.obj_id==self.id).order_by(Notes.cdate.desc()).first()
+    
+    def from_dict(self, data):
+        for field in ['username', 'subject', 'message', 'pic', 'status', 'close_at']:
+            if field in data:
+                setattr(self, field, data[field])
+        if self.status == 'C' and not self.close_at:
+            self.close_at = datetime.datetime.now()
+        self.mdate = datetime.datetime.now()
+        self.save()
+        
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'username': self.username,
+            'subject': self.subject,
+            'message': self.message,
+            'pic': self.pic,
+            'status': self.status,
+            'close_at': self.close_at.isoformat() if self.close_at else None,
+            'cdate': self.cdate.isoformat(),
+            'mdate': self.mdate.isoformat() if self.mdate else None,
+            '_links': {
+                'self': url_for('api.get_ticket', id=self.id),
+                'notes': url_for('api.get_ticket_notes', id=self.id)
+            }
+        }
+        return data
