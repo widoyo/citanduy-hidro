@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
 {% block title %}Data Hujan Sebulan {{ ctx.pos.nama|replace('PCH ', '') }}{% endblock %}
+
+{% block head %}
+{{ super() }}
+<!-- Ensure responsive viewport in base.html -->
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col">
+<div class="row mb-3">
+    <div class="col-md-6">
         <div class="dropdown d-inline">
             <a class="fw-lighter dropdown-toggle text-decoration-none" href="#" id="posDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 {{ ctx.pos.nama|replace('PCH ', '') }}
@@ -20,74 +26,90 @@
             <small class="ms-3 fs-5 text-secondary">{{ ctx.pos.kabupaten }}</small>
         </div>
     </div>
-    <div class="col text-end">
-        <div class="btn-group end-0" role="group" aria-label="Basic outlined example">
-            <a  href="/pch/{{ ctx.pos.id }}" role="button" class="btn btn-outline-primary">Sehari</a>
+    <div class="col-md-6 text-md-end mt-2 mt-md-0">
+        <div class="btn-group" role="group" aria-label="Basic outlined example">
+            <a href="/pch/{{ ctx.pos.id }}" role="button" class="btn btn-outline-primary">Sehari</a>
             <a disabled href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y/%m') }}" role="button" class="btn btn-outline-secondary">Sebulan</a>
             <a href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling.strftime('%Y') }}" role="button" class="btn btn-outline-primary">Setahun</a>
         </div>
     </div>
 </div>
-<div class="row">
+
+<div class="row mb-4">
     <div class="col">
-        <div class="text-end mb-3">
-            <a href="/pch/{{ ctx.pos.id }}/{{ ctx._sampling.strftime('%Y/%m')}}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%b')}}</a> <span class="fs-3">{{ ctx.sampling.strftime('%b %Y')}}</span> 
-            {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling_.strftime('%Y/%m')}}">{{ ctx.sampling_.strftime('%b')}}</a>
-            {% else %}<button class="btn btn-outline-secondary ms-5">-</button>{% endif %}</span>
+        <div class="text-center text-md-end mb-3">
+            <a href="/pch/{{ ctx.pos.id }}/{{ ctx._sampling.strftime('%Y/%m')}}" class="btn btn-outline-primary me-3">{{ ctx._sampling.strftime('%b')}}</a> 
+            <span class="fs-3 d-inline-block my-2 my-md-0">{{ ctx.sampling.strftime('%b %Y')}}</span> 
+            {% if ctx.sampling_ %}
+            <a class="btn btn-outline-primary ms-3" href="/pch/{{ ctx.pos.id }}/{{ ctx.sampling_.strftime('%Y/%m')}}">{{ ctx.sampling_.strftime('%b')}}</a>
+            {% else %}
+            <button class="btn btn-outline-secondary ms-3">-</button>
+            {% endif %}
         </div>
-    
     </div>
 </div>
+
 <div class="row">
-<div class="col-sm-9">
-        <canvas id="myChart"></canvas>
+    <!-- Chart Section - Full width on mobile, 8 columns on larger screens -->
+    <div class="col-12 col-lg-8 mb-4">
+        <div class="chart-container" style="position: relative; height:40vh; min-height:400px; width:100%">
+            <canvas id="myChart"></canvas>
+        </div>
     </div>
-    <div class="col-sm-3">
-      <table class="table table-bordered table-hover table-striped">
-        <tr>
-          <td>&nbsp;</td>
-          <td><i class="bi bi-person-raised-hand text-success"></i> Man</td>
-          <td><i class="bi bi-cpu"></i> Tele</td>
-        </tr>
-        <tr>
-          <td><small style="font-size:smaller" class="text-secondary">Jumlah Hujan (mm)</small></td>
-          <td id="msumrain" class="text-end" style="background-color:#D7FBC1;"></td>
-          <td id="sumrain" class="text-end" style="background-color:#F1F1F1;"></td>
-        </tr>
-        <tr>
-          <td><small style="font-size:smaller" class="text-secondary">Hujan Maks (mm)</small></td>
-          <td id="mmaxrain" class="text-end" style="background-color:#D7FBC1;"></td>
-          <td id="maxrain" class="text-end" style="background-color:#F1F1F1;"></td>
-        </tr>
-        <tr>
-          <td><small style="font-size:smaller" class="text-secondary">HTH (hari)</small></td>
-          <td id="mhth" class="text-end" style="background-color:#D7FBC1;"></td>
-          <td id="hth" class="text-end" style="background-color:#F1F1F1;"></td>
-        </tr>
-      </table>
-<h6>Curah Hujan {{ ctx.sampling.strftime('%b %Y')}}</h6>
-<table class="table table-bordered table-hover table-striped">
-    <thead>
-        <tr>
-            <th style="font-size:smaller">Tgl</th>
-            <th style="font-size:smaller">CH Man</th>
-            <th style="font-size:smaller">CH Tele</th>
-            <th style="font-size:smaller"># Data</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for d, v in ctx.days.items() %}
-        <tr>
-            <td class=""><a href="/pch/{{ ctx.pos.id}}?s={{ ctx.sampling.strftime('%Y-%m-') }}{{ d }}" class="text-decoration-none">{{ d }} {{ ctx.sampling.strftime("%b")}}</a></td>
-            <td class="text-end mrain" style="background-color:#D7FBC1;">{{ v.mrain}}</i></td>
-            <td class="text-end rain" style="background-color:#F1F1F1;">{{ v.rain|round(1, 'ceil') }}</td>
-            <td class="text-end">{{ v.count }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    
+    <!-- Sidebar Section - Full width on mobile, 4 columns on larger screens -->
+    <div class="col-12 col-lg-4">
+        <div class="sticky-top" style="top: 20px;">
+            <table class="table table-bordered table-hover table-striped mb-4">
+                <tr>
+                    <td>&nbsp;</td>
+                    <td><i class="bi bi-person-raised-hand text-success"></i> Man</td>
+                    <td><i class="bi bi-cpu"></i> Tele</td>
+                </tr>
+                <tr>
+                    <td><small style="font-size:smaller" class="text-secondary">Jumlah Hujan (mm)</small></td>
+                    <td id="msumrain" class="text-end" style="background-color:#D7FBC1;"></td>
+                    <td id="sumrain" class="text-end" style="background-color:#F1F1F1;"></td>
+                </tr>
+                <tr>
+                    <td><small style="font-size:smaller" class="text-secondary">Hujan Maks (mm)</small></td>
+                    <td id="mmaxrain" class="text-end" style="background-color:#D7FBC1;"></td>
+                    <td id="maxrain" class="text-end" style="background-color:#F1F1F1;"></td>
+                </tr>
+                <tr>
+                    <td><small style="font-size:smaller" class="text-secondary">HTH (hari)</small></td>
+                    <td id="mhth" class="text-end" style="background-color:#D7FBC1;"></td>
+                    <td id="hth" class="text-end" style="background-color:#F1F1F1;"></td>
+                </tr>
+            </table>
+
+            <h6 class="mb-3">Curah Hujan {{ ctx.sampling.strftime('%b %Y')}}</h6>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th style="font-size:smaller">Tgl</th>
+                            <th style="font-size:smaller">CH Man</th>
+                            <th style="font-size:smaller">CH Tele</th>
+                            <th style="font-size:smaller"># Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d, v in ctx.days.items() %}
+                        <tr>
+                            <td class=""><a href="/pch/{{ ctx.pos.id}}?s={{ ctx.sampling.strftime('%Y-%m-') }}{{ d }}" class="text-decoration-none">{{ d }} {{ ctx.sampling.strftime("%b")}}</a></td>
+                            <td class="text-end mrain" style="background-color:#D7FBC1;">{{ v.mrain}}</td>
+                            <td class="text-end rain" style="background-color:#F1F1F1;">{{ v.rain|round(1, 'ceil') }}</td>
+                            <td class="text-end">{{ v.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
@@ -120,13 +142,22 @@
       }]
     },
     options: {
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             title: {
                 display: true,
                 text: 'Hujan per Hari',
                 font: {
-                    size: '32pt',
+                    size: window.innerWidth < 768 ? '20pt' : '32pt',
                     weight: 'lighter'
+                }
+            },
+            legend: {
+                labels: {
+                    font: {
+                        size: window.innerWidth < 768 ? 10 : 12
+                    }
                 }
             }
         },
@@ -137,7 +168,12 @@
             text: 'Tanggal',
             align: 'end',
             font: {
-              size: '14pt'
+              size: window.innerWidth < 768 ? '10pt' : '14pt'
+            }
+          },
+          ticks: {
+            font: {
+                size: window.innerWidth < 768 ? 8 : 10
             }
           }
         },
@@ -147,10 +183,15 @@
             text: 'mm',
             align: 'end',
             font: {
-                size: '18pt',
+                size: window.innerWidth < 768 ? '12pt' : '18pt',
             }
           },
-          max: 200
+          max: 200,
+          ticks: {
+            font: {
+                size: window.innerWidth < 768 ? 8 : 10
+            }
+          }
         },
         ycount: {
             grid: {
@@ -161,7 +202,15 @@
             title: {
                 text: 'banyak data',
                 display: true,
-                align: 'end'
+                align: 'end',
+                font: {
+                    size: window.innerWidth < 768 ? '10pt' : '12pt'
+                }
+            },
+            ticks: {
+                font: {
+                    size: window.innerWidth < 768 ? 8 : 10
+                }
             }
         },
         ymanual: {
@@ -199,7 +248,10 @@
     el = document.getElementById('hth');
     el.textContent = hth;
   }
-</script>
- 
 
+  // Handle window resize for better responsiveness
+  window.addEventListener('resize', function() {
+    // Chart.js automatically handles resize due to responsive: true
+  });
+</script>
 {% endblock %}

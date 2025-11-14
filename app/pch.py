@@ -65,52 +65,106 @@ def show_year(id, tahun):
 @login_required
 def show_month(id, tahun, bulan):
     try:
+        # Validate input parameters
+        if not (1 <= bulan <= 12):
+            abort(404, "Invalid month")
+        
+        # Get position
         pos = Pos.get(id)
     except DoesNotExist:
-        abort(404)
-    samp = "{}-{}-1".format(tahun, bulan)
+        abort(404, "Position not found")
+    except Exception as e:
+        abort(500, f"Database error: {str(e)}")
+
+    # Create sampling date
     try:
-        pm = PosMap.get(PosMap.pos==pos)
-        nama = pm.nama
+        sampling_date = datetime.date(tahun, bulan, 1)
+    except ValueError as e:
+        abort(404, f"Invalid date: {str(e)}")
+
+    # Get position name
+    try:
+        pos_map = PosMap.get(PosMap.pos == pos)
+        nama = pos_map.nama
     except DoesNotExist:
         nama = None
-    (_sampling, sampling, sampling_) = get_sampling(samp)
-    _sampling = sampling - datetime.timedelta(days=2)
-    if sampling.strftime('%Y%m') >= datetime.date.today().strftime('%Y%m'):
-        sampling_ = None
-    else:
-        sampling_ = (sampling + datetime.timedelta(days=32)).replace(day=1)
-    today = datetime.date.today()
-    if sampling_ and sampling_.date() < today:
-        days = dict([(i+1, {'count': 0, 'rain': 0, 'mrain': 0}) for i in range((sampling_.date() - sampling.date()).days)])
-    else:
-        days = dict([(i+1, {'count': 0, 'rain': 0, 'mrain': 0}) for i in range(today.day)])
+
+    # Calculate date ranges
+    prev_sampling = sampling_date - datetime.timedelta(days=2)
     
-    t_month = []
-    if nama:
-        t_month = RDaily.select().where(RDaily.pos==pos, 
-                                     RDaily.sampling.year == sampling.year, 
-                                     RDaily.sampling.month == sampling.month)
-    m_month = ManualDaily.select().where(ManualDaily.pos==pos,
-                                         ManualDaily.sampling.year==sampling.year,
-                                         ManualDaily.sampling.month==sampling.month)
-    for m in m_month:
-        if m.sampling.day in days:
-            days[m.sampling.day]['mrain'] = m.ch
-            
-    for r in t_month:
-        if r.sampling.day in days:
-            days[r.sampling.day]['count'] = r._rain().get('count24')
-            days[r.sampling.day]['rain'] = r._rain().get('rain24')
-        
+    # Determine next sampling date
+    today = datetime.date.today()
+    if sampling_date.strftime('%Y%m') >= today.strftime('%Y%m'):
+        next_sampling = None
+    else:
+        next_sampling = (sampling_date + datetime.timedelta(days=32)).replace(day=1)
+
+    # Initialize days dictionary
+    days = _initialize_days_dict(sampling_date, next_sampling, today)
+
+    # Fetch and process data
+    _populate_rainfall_data(pos, sampling_date, days, nama)
+
     ctx = {
-        '_sampling': _sampling,
-        'sampling': sampling,
-        'sampling_': sampling_,
+        '_sampling': prev_sampling,
+        'sampling': sampling_date,
+        'sampling_': next_sampling,
         'pos': pos,
+        'nama': nama,
         'days': days
     }
+    
     return render_template('pch/month.html', ctx=ctx)
+
+
+def _initialize_days_dict(sampling_date, next_sampling, today):
+    """Initialize the days dictionary with proper date range."""
+    if next_sampling and next_sampling < today:
+        num_days = (next_sampling - sampling_date).days
+    else:
+        num_days = today.day
+    
+    return {
+        day: {'count': 0, 'rain': 0, 'mrain': 0}
+        for day in range(1, num_days + 1)
+    }
+
+
+def _populate_rainfall_data(pos, sampling_date, days, nama):
+    """Populate rainfall data from both automatic and manual sources."""
+    
+    # Fetch manual rainfall data
+    try:
+        manual_data = ManualDaily.select().where(
+            ManualDaily.pos == pos,
+            ManualDaily.sampling.year == sampling_date.year,
+            ManualDaily.sampling.month == sampling_date.month
+        )
+        
+        for manual in manual_data:
+            if manual.sampling.day in days:
+                days[manual.sampling.day]['mrain'] = manual.ch
+    except Exception as e:
+        # Log error but don't break the page
+        print(f"Error fetching manual data: {e}")
+
+    # Fetch automatic rainfall data if position has a name
+    if nama:
+        try:
+            auto_data = RDaily.select().where(
+                RDaily.pos == pos,
+                RDaily.sampling.year == sampling_date.year,
+                RDaily.sampling.month == sampling_date.month
+            )
+            
+            for auto in auto_data:
+                if auto.sampling.day in days:
+                    rain_data = auto._rain()
+                    days[auto.sampling.day]['count'] = rain_data.get('count24', 0)
+                    days[auto.sampling.day]['rain'] = rain_data.get('rain24', 0)
+        except Exception as e:
+            # Log error but don't break the page
+            print(f"Error fetching automatic data: {e}")
 
 
 @bp.route('/<id>')
