@@ -186,6 +186,21 @@ class Incoming(BaseModel):
                 rd.raw = json.dumps(existing_data)
                 rd.save()
 
+            if pos_id == 21:  # KHUSUS PCH Manganti, salin ke PDA Manganti
+                nama = 'PDA Manganti'
+                opos, created = OPos.get_or_create(
+                    nama=nama, source='SB',
+                    defaults={'tipe': '2', 
+                              'latest_sampling': datetime.datetime.now()})
+                mrd, created = RDaily.get_or_create(source='SB',
+                                            nama=nama,
+                                            sampling=this_sampling,
+                                            defaults={'pos_id': 4, # 4 = PDA Manganti
+                                                      'raw': json.dumps(new_raw)})
+                if not created:
+                    mrd.raw = rd.raw
+                    mrd.save()
+
 class FetchLog(BaseModel):
     url = pw.CharField(max_length=250, index=True)
     response = pw.TextField(null=True)
