@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
+{% block extra_head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
 {% block content %}
 <h2 class="ps-2 fw-lighter">Data Kualitas Air (<b>{{ ctx.poses|length}}</b>)</h2>
-
 <div class="row">
     <div class="col">
         <div class="text-end mb-3">
@@ -10,7 +12,26 @@
             {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}"><i class="bi bi-chevron-right"></i> {{ ctx.sampling_.strftime('%b %Y')}}</a>
             {% else %}<button class="btn btn-outline-secondary ms-5 disabled" aria-disabled="true">-</button>{% endif %}</span>
         </div>
-        <small class="text-secondary"></small>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul>
+            {% for message in messages %}
+              <li class="text-danger">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+
+        <p class="text-secondary">
+            {% if ctx.hasil_uji %}
+                Terdapat <strong>{{ ctx.hasil_uji|length }}</strong> hasil uji kualitas air.
+                {% for h in ctx.hasil_uji %}
+                    {{ h }}
+                {% endfor %}
+            {% else %}
+                Tidak ada hasil uji kualitas air untuk periode ini.
+            {% endif %}
+        </p>
         <div class="table-responsive">
             <table class="table table-striped table-hover table-bordered">
                 <thead>
@@ -37,19 +58,24 @@
                         <td><span class="ms-1">{{ p.nama }}</span> <span class="float-end text-secondary">{{ p.id }}</span></td>
                         <td style="color: {{ orde_color }}">{{ p.sungai }}</td>
                         {% for i in range(6) %}
-                        {% set k = '{}_{}'.format(p.id, i+1) %}
+                        {% set k = '{}_{}'.format(p.id, i + ctx.sampling.month) %}
                         {% set hu = ctx.hasil_uji.get(k) %}
                         <td class="text-center">
                         {% if hu %}
                         <div class="dropdown">
-                            <a class="icon-link" data-bs-toggle="dropdown" aria-expanded="true"><i class="bi bi-file-earmark-richtext"></i></a>
+                            <a class="icon-link" data-bs-toggle="dropdown" aria-expanded="false" role="button">
+                                <i class="bi bi-file-earmark-richtext"></i>
+                                <i class="bi bi-caret-down-fill ms-1"></i>
+                            </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a href="#" class="dropdown-item"><i class="bi bi-download me-2" title="{{ hu.sampling }}"></i> Download</a>
+                                    <a href="/static/ka/{{ hu.sampling.strftime("_%Y/_%m/") + hu.doc_path }}" class="dropdown-item"><i class="bi bi-download me-2" title="{{ hu.sampling }}"></i> Download</a>
                                 </li>
                                 <li class="dropdown-divider"></li>
                                 <li>
-                                    <a href="#" onclick="confirmDel({{ hu.id }}, '{{ hu.pos.nama }}')" class="dropdown-item"><i class="bi bi-trash me-2 text-danger" title="{{ hu.sampling }}"></i> Hapus?</a>
+                                    <a href="#" onclick="confirmDel({{ hu.id }}, '{{ hu.pos.nama }}')" class="dropdown-item">
+                                        <i class="bi bi-trash me-2 text-danger" title="{{ hu.sampling }}"></i> Hapus?
+                                    </a>
                                 </li>
                             </ul>
                             
@@ -71,6 +97,26 @@
 <script>
     const confirmDel = (id, title) => {
         if (confirm(`Pilih Ok untuk menghapus Hasil Uji "${title}"`)) {
+            fetch(`/pos/ka/delete/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({ id })
+            })
+            .then(resp => {
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                return resp.json().catch(() => ({}));
+            })
+            .then(data => {
+                // on success, refresh the page (or remove the row from DOM)
+                location.reload();
+            })
+            .catch(err => {
+                alert('Gagal menghapus: ' + err.message);
+            });
             console.log('hapus', id);
         } else {
             console.log('batal');

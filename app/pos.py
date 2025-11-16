@@ -29,7 +29,8 @@ def delete_data_ka(id):
     except DoesNotExist:
         return abort(404)
     try:
-        if hu.doc_path and os.path.exists('app/' + hu.doc_path): os.remove(hu.doc_path)
+        path = 'static/ka/' + hu.sampling.strftime('_%Y/_%m/') + hu.doc_path
+        if hu.doc_path and os.path.exists('app/' + path): os.remove('app/' + path)
         hu.delete_instance()
         flash('Data hasil uji kualitas air berhasil dihapus.', 'success')
     except Exception as e:
@@ -64,12 +65,12 @@ def add_data_ka():
         if not os.path.isdir(doc_path):
             os.makedirs(doc_path)
         doc_path += f"/{fname}"
-        file.save(doc_path)
+        file.save('app/' + doc_path)
         flash(f'File {fname} uploaded successfully!')
         ret = {'pos': form.pos.data, 
                'sampling': form.sampling.data, 
                'll': form.ll.data, 
-               'doc_path': doc_path.replace('app/', ''), 
+               'doc_path': fname, 
                'lembaga': form.lembaga.data,
                'username': current_user.username,
                'status_hasil_uji': form.status_hasil_uji.data

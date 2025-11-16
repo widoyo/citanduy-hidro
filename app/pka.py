@@ -50,7 +50,7 @@ def index():
         'sampling_': sampling_,
         'poses': poska,
         'sungai': out,
-        'hasil_uji': hasil_uji
+        'hasil_uji': huka
     }
     return render_template('pka/index.html', ctx=ctx)
 

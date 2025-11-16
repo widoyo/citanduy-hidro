@@ -1,49 +1,58 @@
 {% extends 'base.html' %}
 {% block title %}Data Kualias Air{% endblock %}
 {% block content %}
-<h2 class="border-start border-5 border-danger ps-2 fw-lighter">Kualitas Air (<b>{{ ctx.poses|length}}</b>)</h2>
+{%  set end_of_periode = ctx.sampling.replace(month=ctx.sampling.month + 5) %}
+<h2 class="border-start border-5 border-danger ps-2 fw-lighter">Kualitas Air</h2>
 
 <div class="row">
     <div class="col">
-        <div class="text-end mb-3">
-            <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5">{{ ctx._sampling.strftime('%b %Y')}} <i class="bi bi-chevron-left"></i></a> 
-            <span class="fs-3">{{ ctx.sampling.strftime('%Y')}}</span> 
-            {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5" href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}"><i class="bi bi-chevron-right"></i> {{ ctx.sampling_.strftime('%b %Y')}}</a>
-            {% else %}<button class="btn btn-outline-secondary ms-5 disabled" aria-disabled="true">-</button>{% endif %}</span>
+        <div class="text-center mb-3">
+            <div class="row">
+                <div class="col">
+                    <a href="?s={{ ctx._sampling.strftime('%Y-%m-%d')}}" class="btn btn-outline-primary me-5"><i
+                            class="bi bi-chevron-left"></i></a>
+                </div>
+                <div class="col">
+                    <span><span class="fs-3">{{ ctx.sampling.strftime('%b')}} - {{ end_of_periode.strftime('%b %Y')
+                            }}</span>
+                        <br /><span class="text-secondary">{% if ctx.hasil_uji %} <strong>{{
+                                    ctx.hasil_uji|length }}</strong> hasil uji{% else %}
+                                <span class="text-danger">Tidak ada hasil uji</span>{% endif %}</span>
+                    </span>
+                </div>
+                <div class="col">
+                    {% if ctx.sampling_ %}<a class="btn btn-outline-primary ms-5"
+                        href="?s={{ ctx.sampling_.strftime('%Y-%m-%d')}}"><i class="bi bi-chevron-right"></i></a>
+                    {% else %}<button class="btn btn-outline-secondary ms-5 disabled" aria-disabled="true"><i
+                            class="bi bi-chevron-right"></i></button>{% endif
+                    %}</span>
+                </div>
+            </div>
         </div>
-        <small class="text-secondary">{% if ctx.hasil_uji %}<span class="text-success">Terdapat: <strong>{{ ctx.hasil_uji|length }}</strong> hasil uji{% else %}
-        <span class="text-danger">Tidak ada hasil uji</span>{% endif %}</small>
-        <div class="table-responsive">
+        {% if ctx.hasil_uji %}
+        <div class="table-responsive mt-5">
             <table class="table table-striped table-hover table-bordered">
                 <thead>
                     <tr>
                         <th>Lokasi</th>
                         <th>Sungai</th>
-                        {% for i in range(6) %}{% set bulan = ctx.sampling.replace(month=ctx.sampling.month + i) %}
+                        {%
+                        for i in range(6) %}{% set bulan = ctx.sampling.replace(month=ctx.sampling.month + i)
+                        %}
                         <th>{{ bulan.strftime('%b') }}</th>
                         {% endfor %}
-                        
+
                     </tr>
                 </thead>
                 <tbody class="table-group-divider">
-                {% for s, poses in ctx.sungai.items() %}
-                {% if poses[0].orde == 1 %}
-                {% set orde_color = "rgb(31, 86, 181)" %}
-                {% elif poses[0].orde == 2 %}
-                {% set orde_color = "rgb(62, 131, 250)" %}
-                {% elif poses[0].orde == 3 %}
-                {% set orde_color = "rgb(157, 229, 252)" %}
-                {% endif %}
-                    {% for p in poses %}
+                    {% for h in ctx.hasil_uji %}
                     <tr>
-                        <td><span class="ms-1">{{ p.nama }}</span></td>
-                        <td style="color: {{ orde_color }}">{{ p.sungai }}</td>
+                        <td><span class="ms-1">{{ h.pos.nama }}</span></td>
+                        <td style="color: {{ orde_color }}">{{ h.pos.sungai }}</td>
                         {% for i in range(6) %}
-                        {% set k = '{}_{}'.format(p.id, i+1) %}
-                        {% set hu = ctx.hasil_uji.get(k) %}
                         <td class="text-center">
-                            {% if hu %}
-                            <a href="{{ hu.doc_path }}"><i class="bi bi-file-earmark-richtext"></i></a>
+                            {% if h.sampling.month == ctx.sampling.month + i %}
+                            {{ h.show_icon }} <a href="/static/ka/{{ h.sampling.strftime("_%Y/_%m/") + h.doc_path }}"><i class="bi bi-file-earmark-richtext"></i></a>
                             {% else %}
                             -
                             {% endif %}
@@ -51,11 +60,17 @@
                         {% endfor %}
                     </tr>
                     {% endfor %}
-                {% endfor %}
                 </tbody>
             </table>
-            </div>
+            <p class="text-secondary mt-3 ms-2"><strong>Legenda</strong> ✅ : <i>Memenuhi Baku Mutu</i>, ⚠️ : <i>Cemar Ringan</i>, ❗ : <i>Cemar Sedang</i>, 🚫 : <i>Cemar Berat</i></p>
+        </div>
     </div>
+    {% else %}
+    <div class="px-4 py-5 my-5 text-center">
+        <img class="d-block mx-auto mb-4" src="/static/img/cty-logo-gray.png" alt="CTY Citanduy" width="180">
+        <p class="fs-5 text-secondary mt-5">Tidak ditemukan hasil uji Kualitas Air pada periode ini</p>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

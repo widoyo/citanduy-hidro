@@ -3,8 +3,8 @@
 <div class="row">
     <div class="col">
         <h2 class="fw-lighter">Tambah Hasil Uji Kualitas Air</h2>
-        <p>Pos <strong>{{ ctx.pos.nama }}</strong></p>
-        <p>Bulan <strong>{{ ctx.sampling.strftime('%b %Y') }}</strong></p>
+        <p>Pos <strong class="fs-1">{{ ctx.pos.nama }}</strong> lonlat: {{ ctx.pos.ll }}</p>
+        <p>Bulan <strong class="fs-1">{{ ctx.sampling.strftime('%b %Y') }}</strong></p>
                 
     </div>
 </div>
@@ -23,21 +23,25 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="pos_id" value="{{ ctx.pos.id }}">
             {{ ctx.form.pos }}
-            <div class="mb-3">
+            <div class="mb-4">
                 <label for="sampling" class="form-label text-secondary">Tanggal Uji</label>
                 <input type="text" class="form-control" id="sampling" name="sampling" value="{{ ctx.sampling.strftime('%Y-%m-%d') }}">
             </div>
-            <div class="mb-3">
-                <label for="fname" class="form-label text-secondary">File Hasil Uji Lab</label>
+            <div class="mb-4">
+                <label for="fname" class="form-label text-secondary">File Hasil Uji Lab, gabungan hasil uji Lab dan Publikasi Balai</label>
                 <input type="file" class="form-control" id="fname" name="fname">
             </div>
-            <div class="mb-3">
+            <div class="mb-4">
                 <label for="doc_date" class="form-label text-secondary">Lembaga Lab</label>
                 <input type="text" class="form-control" id="lembaga" name="lembaga" placeholder="UPTD Lab LH Jawa Barat">
             </div>
-            <div class="mb-3">
+            <div class="mb-4">
                 <label for="doc_date" class="form-label text-secondary">Lokasi Pengambilan Sample Air (lonlat)</label>
                 {{ ctx.form.ll(class_="form-control")|safe }}
+            </div>
+            <div class="mb-5">
+                <label for="doc_date" class="form-label text-secondary">Status Hasil Uji</label>
+                {{ ctx.form.status_hasil_uji(class_="form-control")|safe }}
             </div>
             
             <input type="submit" class="btn btn-primary">
