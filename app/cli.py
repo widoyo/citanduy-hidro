@@ -135,26 +135,11 @@ def register(app):
     @app.cli.command('fetch-luwes')
     def fetch_luwes():
         '''Membaca data dari luwes'''
-        imei_data = {}
         for l in LuwesPos.select():
             data = {'a': 'stat', 'imei': l.imei}
-            source_c_data = "-"
-            source_c2_data = "-"
-            try:
-                x = requests.post(SOURCE_C, data=data)
-                if x.status_code == 200 and 'error' not in x.text.lower():
-                    source_c_data = x.text
-                    fl = FetchLog.create(url=x.url, response=x.status_code, body=x.text, source='SC')
-                    fl.sc_to_daily()
-            except Exception as e:
-                print("Error fetching from SOURCE_C", e)
-                print(data)
-                pass
-            
             try:
                 x = requests.post(SOURCE_C2, data=data)
                 if x.status_code == 200 and 'error' not in x.text.lower():
-                    source_c2_data = x.text
                     fl = FetchLog.create(url=x.url, response=x.status_code, body=x.text, source='SC')
                     fl.sc_to_daily()
             except Exception as e:
@@ -162,15 +147,6 @@ def register(app):
                 print(data)
                 pass
             
-            imei_data[l.imei] = f"{l.imei} | {l.nama} | {source_c_data} | {source_c2_data}"
-        
-        with open('migration.txt', 'w', encoding='utf-8') as f:
-            f.write(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write("Imei | Nama | Data4 | Data3\n")
-            f.write("====================\n")
-        
-            for imei_line in imei_data.values():
-                f.write(imei_line + '\n')
     
     
 ######################## DEVELOPMENT ONLY #########################
