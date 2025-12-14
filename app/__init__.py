@@ -469,7 +469,10 @@ Data {tipe} Bulan {sampling_date.strftime('%b %Y')} Telemetri
                 # Konversi Peewee query ke DataFrame
                 if is_pch:
                     fname = 'Hujan_{}.csv'.format(sampling_month_year)
-                    telemetri = [(r.pos.nama, r.pos.kabupaten, r.sampling, r._rain()['rain24']) for r in rd_query]
+                    try:
+                        telemetri = [(r.pos.nama, r.pos.kabupaten, r.sampling, r._rain()['rain24']) for r in rd_query]
+                    except TypeError:
+                        telemetri = []
                     manual = [(m.pos.nama, m.pos.kabupaten, m.sampling, m.ch) for m in man_query]
                     
                     df_tele = pd.DataFrame(telemetri, columns=['nama', 'kabupaten', 'sampling', 'cht'])
@@ -482,6 +485,9 @@ Data {tipe} Bulan {sampling_date.strftime('%b %Y')} Telemetri
 
                     df_tele = pd.DataFrame(telemetri, columns=['nama', 'kabupaten', 'sampling', 'T07', 'T12', 'T17'])
                     df_man = pd.DataFrame(manual, columns=['nama', 'kabupaten', 'sampling', 'M07', 'M12', 'M17'])
+                    
+                    kolom_target = ['T07', 'T12', 'T17']
+                    df_tele[kolom_target] = df_tele[kolom_target].apply(pd.to_numeric, errors='coerce').astype('Int64')
                     
                 df_tele['sampling'] = pd.to_datetime(df_tele['sampling'])
                 df_man['sampling'] = pd.to_datetime(df_man['sampling'])
