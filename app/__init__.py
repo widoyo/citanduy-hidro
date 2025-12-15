@@ -469,10 +469,12 @@ Data {tipe} Bulan {sampling_date.strftime('%b %Y')} Telemetri
                 # Konversi Peewee query ke DataFrame
                 if is_pch:
                     fname = 'Hujan_{}.csv'.format(sampling_month_year)
-                    try:
-                        telemetri = [(r.pos.nama, r.pos.kabupaten, r.sampling, r._rain()['rain24']) for r in rd_query]
-                    except TypeError:
-                        telemetri = []
+                    telemetri = []
+                    for r in rd_query:
+                        try:
+                            telemetri.append((r.pos.nama, r.pos.kabupaten, r.sampling, r._rain()['rain24']))
+                        except TypeError:
+                            pass
                     manual = [(m.pos.nama, m.pos.kabupaten, m.sampling, m.ch) for m in man_query]
                     
                     df_tele = pd.DataFrame(telemetri, columns=['nama', 'kabupaten', 'sampling', 'cht'])
