@@ -686,9 +686,16 @@ Data {tipe} Bulan {sampling_date.strftime('%b %Y')} Telemetri
             
             formhujan.sampling.data = sampling
             formtma.sampling.data = sampling
-            data_manual = dict([(md.sampling.day, {'ch': md.ch, 'tma': md._tma}) for md in ManualDaily.select().where(ManualDaily.sampling.year==sampling.year,
-                                                    ManualDaily.sampling.month==sampling.month,
-                                                    ManualDaily.pos==pos)])
+            mDaily = ManualDaily.select().where(ManualDaily.sampling.year==sampling.year,
+                                                ManualDaily.sampling.month==sampling.month,
+                                                ManualDaily.pos==pos)
+            if pos.tipe in ('1', '3'):
+                toDelete = [m for m in mDaily if m.ch is None]
+                for td in toDelete:
+                    mDaily.remove(td)
+                    td.delete_instance()
+            
+            data_manual = dict([(md.sampling.day, {'ch': md.ch, 'tma': md._tma}) for md in mDaily])
             for i, d in list_data.items():
                 if i in data_manual:
                     list_data[i].update(data_manual.get(i))
