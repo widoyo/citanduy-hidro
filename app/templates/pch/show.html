@@ -78,7 +78,7 @@
           {% if ctx.this_day %}
             {% for k, r in ctx.this_day._rain().get('hourly').items() %}
             <tr>
-                <td class="">jam {{ k }}</td>
+                <td class="">{{ k[0:13].replace('T', ' ') }}</td>
                 <td class="text-end rain" style="background-color:#F1F1F1;"><span class="ch">{{ r.rain|round(1, 'ceil') }}</span></td>
                 <td class="text-end">{{ r.count }}</td>
             </tr>
@@ -172,7 +172,7 @@ if ( document.addEventListener ) {
   new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: [{%if ctx.this_day %}{% for k, r in ctx.this_day._rain().get('hourly').items() %}{% if k == 7 %}'{{ ctx.sampling.strftime("%Y-%m-%d") }} {{k}}'{% elif k== 0 and ctx.sampling_ %}'{{ ctx.sampling_.strftime("%Y-%m-%d") }} {{k}}'{% else %}{{k}} {% endif %},{% endfor %}{% endif %}],
+      labels: [{%if ctx.this_day %}{% for k, r in ctx.this_day._rain().get('hourly').items() %}{% if k[11:13] == 7 %}'{{ ctx.sampling.strftime("%Y-%m-%d") }} {{k[11:13]}}'{% elif k== 0 and ctx.sampling_ %}'{{ ctx.sampling_.strftime("%Y-%m-%d") }} {{k[11:13]}}'{% else %}{{k[11:13]}} {% endif %},{% endfor %}{% endif %}],
       datasets: [{
         label: 'CH Telemetri',
         backgroundColor: 'rgb(0,191,255)',

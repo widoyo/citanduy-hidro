@@ -126,7 +126,7 @@
     // ===== IDW CANVAS LAYER =====
     L.GridLayer.IDW = L.GridLayer.extend({
       options: {
-        cellSize: 20,
+        cellSize: 50,
         power: 2,
         opacity: 0.6
       },
@@ -221,6 +221,7 @@
 
         let numerator = 0;
         let denominator = 0;
+        const maxDistance = 25000; // Batas jarak maksimum pengaruh (15km)
 
         for (const station of this._stations) {
           const dx = (station.lng - lng) * Math.cos(lat * Math.PI / 180);
@@ -228,6 +229,9 @@
           const dist = Math.sqrt(dx * dx + dy * dy) * 111000; // Approximate meters
 
           if (dist < 1) return station.rainfall;
+
+          // Abaikan stasiun yang terlalu jauh
+          if (dist > maxDistance) continue;
 
           const weight = 1 / Math.pow(dist, this.options.power);
           numerator += weight * station.rainfall;

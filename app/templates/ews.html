@@ -193,11 +193,11 @@
                 defaultVisible: true,
                 style: function(feature) {
                     return {
-                        color: "#444444",
-                        weight: 1,
+                        color: "#888888",
+                        weight: 2,
                         fillOpacity: 0,
-                        dashArray: '2, 4',
-                        opacity: 0.8
+                        dashArray: '4, 4',
+                        opacity: 0.9
                     };
                 },
                 onEachFeature: function(feature, layer) {
@@ -624,7 +624,7 @@
                                 <h4 style="margin:0 0 8px 0; color:#FF851B;">Siaga Hujan</h4>
                                 <div style="font-weight:bold; margin-bottom:6px;">${item.pos.nama} <span style="margin: 4px 0 0;font-weight:500;color:#888">+${item.pos.elevasi} <span style="font-size: 11px;font-weight:500;letter-spacing:0.1rem;color:#888">MDPL</span></div>
                                 <div style="font-size:11px; letter-spacing: 0.1em;color:#888;">CURAH HUJAN
-                                    <div style="font-size: 5em;color:#444">${item.rain.toFixed(1)} <span style="font-size:11px;color:#888">mm</span>selama ${item.total_seconds}</div>
+                                    <div style="font-size: 3em;color:#444">${item.rain.toFixed(1)} mm selama ${item.total_seconds}</div>
                                 </div>
                                 <div style="font-size:0.95em; color:#555;">
                                     <span>Last Sampling:</span><br>
