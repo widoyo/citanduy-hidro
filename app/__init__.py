@@ -365,8 +365,8 @@ def create_app():
 
 Nama Pos:,{pos.nama}, Elevasi:,{pos.elevasi}
 No Stasiun:,{pos.register}, Tipe Alat:,Telemetri
-Bujur Timus:,{pos.ll.split(',')[1]},Pemilik:,BBWS Citanduy
-Lintang Selatan:,{pos.ll.split(',')[0]},Th. Pendirian:,-
+Bujur:,{pos.ll.split(',')[1]},Pemilik:,BBWS Citanduy
+Lintang:,{pos.ll.split(',')[0]},Th. Pendirian:,-
 
 Data {tipe} Bulan {sampling_date.strftime('%b %Y')} Telemetri
 

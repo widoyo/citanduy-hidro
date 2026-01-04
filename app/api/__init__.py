@@ -290,6 +290,7 @@ def rain():
     out = []
     for r in rdaily:
         if not r._rain(): continue
+        if not r.pos: continue
         #if r._rain()['rain24'] == 0: continue
         if r.pos and r.pos.tipe not in ('1', '3'): continue
         try:

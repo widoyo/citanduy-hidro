@@ -237,11 +237,11 @@ def index():
             p.m_ch = data_manual[p.id]
         if p.id in rdailies and rdailies[p.id]._rain():
             rd = rdailies[p.id]._rain()
-            p.pagi = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=7 and k < 13]))
-            p.siang = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=13 and k < 19]))
-            p.malam = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=19 and k < 24]) + \
-                sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=0 and k < 1]))
-            p.dini = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if k >=1 and k < 7]))
+            p.pagi = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if int(k[11:13]) >=7 and int(k[11:13]) < 13]))
+            p.siang = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if int(k[11:13]) >=13 and int(k[11:13]) < 19]))
+            p.malam = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if int(k[11:13]) >=19 and int(k[11:13]) < 24]) + \
+                sum([v.get('rain') for k, v in rd.get('hourly').items() if int(k[11:13]) >=0 and int(k[11:13]) < 1]))
+            p.dini = '{:.1f}'.format(sum([v.get('rain') for k, v in rd.get('hourly').items() if int(k[11:13]) >=1 and int(k[11:13]) < 7]))
             p.ch = '{:.1f}'.format(rd.get('rain24'))
             p.count = rd.get('count24') or 0
             p.source = rdailies[p.id].source

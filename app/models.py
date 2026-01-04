@@ -512,12 +512,15 @@ class RDaily(BaseModel):
     
     def _24jam(self):
         end_of_hour = 24
-        out = dict([(i, {'num': 0, 'rain': 0, 'wlevel': 0}) for i in range(end_of_hour)])
         
         data_raw = json.loads(self.raw)
+        sampling = datetime.datetime.fromisoformat(data_raw[0]['sampling'])
+        sampling = sampling.replace(minute=0, second=0, microsecond=0)
+        out = dict([(sampling.replace(hour=i).isoformat(), {'num': 0, 'rain': 0.0, 'wlevel': 0.0}) for i in range(end_of_hour)])
         for d in data_raw:
             sampling = datetime.datetime.fromisoformat(d['sampling'])
-            jam = sampling.hour
+            jam = sampling.replace(minute=0, second=0, microsecond=0)
+            jam = jam.isoformat()
             out[jam]['num'] += 1
             if d.get('rain'):
                 try:
@@ -539,12 +542,12 @@ class RDaily(BaseModel):
     def _rain(self):
         if not 'rain' in self.raw:
             return None
-        data = [(k, v) for k, v in self._24jam().items() if k > 6]
+        data = [(k, v) for k, v in self._24jam().items() if int(k[11:13]) > 6]
         next_day = RDaily.select().where(
             RDaily.sampling==self.sampling + datetime.timedelta(days=1),
             RDaily.pos_id==self.pos_id).first()
         if next_day:
-            data += [(k, v) for k, v in next_day._24jam().items() if k < 7]
+            data += [(k, v) for k, v in next_day._24jam().items() if int(k[11:13]) < 7]
         
         rain24 = 0
         count24 = 0
@@ -553,10 +556,10 @@ class RDaily(BaseModel):
         if self.source == 'SC':
             hujan_jam_sebelum = 0
             for k, v in data:
-                sampling_date = self.sampling if k > 6 else \
+                sampling_date = self.sampling if int(k[11:13]) > 6 else \
                     self.sampling + datetime.timedelta(days=1)
                 sampling_ = datetime.datetime.fromisoformat(sampling_date.isoformat())
-                sampling_ = sampling_.replace(hour=k)
+                sampling_ = sampling_.replace(hour=int(k[11:13]))
                 if sampling_ > now:
                     continue
                 hujan_jam_ini = v.get('rain', 0) - hujan_jam_sebelum if v.get('num', 0) > 0 else 0
