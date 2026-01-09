@@ -692,7 +692,6 @@ Data {tipe} Bulan {sampling_date.strftime('%b %Y')} Telemetri
             if pos.tipe in ('1', '3'):
                 toDelete = [m for m in mDaily if m.ch is None]
                 for td in toDelete:
-                    mDaily.remove(td)
                     td.delete_instance()
             
             data_manual = dict([(md.sampling.day, {'ch': md.ch, 'tma': md._tma}) for md in mDaily])
