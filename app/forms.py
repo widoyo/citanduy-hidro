@@ -24,7 +24,7 @@ class CurahHujanForm(FlaskForm):
 class TmaForm(FlaskForm):
     pos = HiddenField('pos_id')
     sampling = HiddenField('sampling')
-    jam = SelectField('jam', choices=['07', '12', '17'])
+    jam = SelectField('jam', choices=[('07', '07'), ('12', '12'), ('17', '17')])
     tma = FloatField('tma')
     fetch = HiddenField('fetch')
 
@@ -36,7 +36,7 @@ class NoteForm(FlaskForm):
 class KlimatForm(FlaskForm):
     pos = HiddenField('pos_id')
     sampling = HiddenField('sampling')
-    jam = SelectField('jam', choices=['07', '12', '17'])
+    jam = SelectField('jam', choices=[('07', '07'), ('12', '12'), ('17', '17')])
     thermometer_max = FloatField('tmax')
     thermometer_min = FloatField('tmin')
     bola_basah = FloatField('bb')
@@ -53,6 +53,12 @@ class HasilUjiKAForm(FlaskForm):
     ll = StringField('ll')
     fname = StringField('fname')
     lembaga = StringField('lembaga')
+    status_hasil_uji = SelectField('status_hasil_uji', 
+                                   choices=[
+                                       ('memenuhi', 'memenuhi'),
+                                       ('cemar ringan', 'cemar ringan'),
+                                       ('cemar sedang', 'cemar sedang'),
+                                       ('cemar berat', 'cemar berat')])
     
 
 class PublikasiForm(FlaskForm):
