@@ -535,8 +535,8 @@ class RDaily(BaseModel):
         return out
     
     def _tma(self):
-        jams = (6, 11, 16)
-        data = dict([(k+1, v) for k, v in self._24jam().items() if k in jams])
+        jams = [f"{self.sampling.isoformat()}T{jam}:00:00" for jam in ('06', '11', '16')]
+        data = dict([(int(k[11:13]) + 1, v) for k, v in self._24jam().items() if k in jams])
         return data            
     
     def _rain(self):
