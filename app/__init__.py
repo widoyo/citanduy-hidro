@@ -666,6 +666,13 @@ Data {tipe} Bulan {sampling_date.strftime('%b %Y')} Telemetri
     def page_not_found(e):
         return render_template('404.html'), 404
     
+    @app.errorhandler(429)
+    def too_many_requests(e):
+        return jsonify({
+            'error': 'Slow and Low: Data hanya update setiap 5 menit',
+            'message': 'Data hanya update setiap 5 menit, silakan coba lagi nanti'
+            }), 429
+    
     @app.route('/')
     def homepage():
         '''background: #2193b0;  /* fallback for old browsers */
