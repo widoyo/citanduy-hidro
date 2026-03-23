@@ -5,7 +5,7 @@ from playhouse.shortcuts import model_to_dict
 from flask_wtf.csrf import generate_csrf
 
 from app.models import RDaily, VENDORS, Pos, ManualDaily, Incoming
-from app import get_sampling, csrf
+from app import get_sampling, csrf, limiter
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 from app.api import pos
@@ -37,6 +37,7 @@ def sensor_show(uuid):
     return jsonify(model_to_dict(inc))
 
 @bp.route('/wlevel')
+@limiter.limit("1 per 5 minute")
 def wlevel():
     '''{pos: manual: telemetri: }'''
     get_newest = not request.args.get('s', None)
@@ -281,6 +282,7 @@ def _format_pos_data(p):
     }
     
 @bp.route('/rain')
+@limiter.limit("1 per 5 minute")
 def rain():
     get_newest = request.args.get('s', None)
     (_s, s, s_) = get_sampling(request.args.get('s', None))

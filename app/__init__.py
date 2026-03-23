@@ -19,11 +19,19 @@ import requests
 import datetime
 import json
 from typing import Optional
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 load_dotenv()
 
 db_wrapper = FlaskDB()
 csrf = CSRFProtect()
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["288 per day", "12 per hour"],
+    storage_uri="memory://",
+)
 
 from app.models import FetchLog, User, RDaily, UserQuery, ManualDaily, Pos, OPos, NUM_DAYS
 from app.forms import CurahHujanForm, TmaForm
@@ -204,6 +212,7 @@ def create_app():
     app.config.from_pyfile('config.py')
     db_wrapper.init_app(app)
     csrf.init_app(app)
+    limiter.init_app(app)
     
     from app.cli import register as register_cli
     
